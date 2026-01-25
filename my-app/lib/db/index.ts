@@ -1,7 +1,7 @@
 import type { Exercise, SetEntry, SettingsState, WorkoutId } from "../types";
 
 const DB_NAME = "gymlog";
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 
 let dbPromise: Promise<IDBDatabase> | null = null;
 
@@ -26,6 +26,9 @@ const openDb = () => {
       if (!db.objectStoreNames.contains("settings")) {
         db.createObjectStore("settings", { keyPath: "key" });
       }
+      if (!db.objectStoreNames.contains("mirror")) {
+        db.createObjectStore("mirror", { keyPath: "key" });
+      }
     };
     request.onsuccess = () => resolve(request.result);
     request.onerror = () => reject(request.error);
@@ -46,6 +49,17 @@ const transactionDone = (tx: IDBTransaction) =>
     tx.onabort = () => reject(tx.error);
   });
 
+export const DB_CHANGE_EVENT = "gymlog:db-change";
+
+const notifyDbChange = (source: string) => {
+  if (typeof window === "undefined") return;
+  window.dispatchEvent(
+    new CustomEvent(DB_CHANGE_EVENT, {
+      detail: { source, ts: Date.now() },
+    }),
+  );
+};
+
 export const getAllExercises = async () => {
   const db = await openDb();
   const tx = db.transaction("exercises", "readonly");
@@ -60,6 +74,7 @@ export const saveExercise = async (exercise: Exercise) => {
   const tx = db.transaction("exercises", "readwrite");
   tx.objectStore("exercises").put(exercise);
   await transactionDone(tx);
+  notifyDbChange("saveExercise");
 };
 
 export const saveExercises = async (exercises: Exercise[]) => {
@@ -68,6 +83,7 @@ export const saveExercises = async (exercises: Exercise[]) => {
   const store = tx.objectStore("exercises");
   exercises.forEach((exercise) => store.put(exercise));
   await transactionDone(tx);
+  notifyDbChange("saveExercises");
 };
 
 export const deleteExercise = async (id: string) => {
@@ -75,6 +91,7 @@ export const deleteExercise = async (id: string) => {
   const tx = db.transaction("exercises", "readwrite");
   tx.objectStore("exercises").delete(id);
   await transactionDone(tx);
+  notifyDbChange("deleteExercise");
 };
 
 export const reorderExercises = async (
@@ -98,6 +115,7 @@ export const addSet = async (entry: SetEntry) => {
   const tx = db.transaction("sets", "readwrite");
   tx.objectStore("sets").put(entry);
   await transactionDone(tx);
+  notifyDbChange("addSet");
 };
 
 export const updateSet = async (entry: SetEntry) => {
@@ -105,6 +123,7 @@ export const updateSet = async (entry: SetEntry) => {
   const tx = db.transaction("sets", "readwrite");
   tx.objectStore("sets").put(entry);
   await transactionDone(tx);
+  notifyDbChange("updateSet");
 };
 
 export const deleteSet = async (id: string) => {
@@ -112,6 +131,7 @@ export const deleteSet = async (id: string) => {
   const tx = db.transaction("sets", "readwrite");
   tx.objectStore("sets").delete(id);
   await transactionDone(tx);
+  notifyDbChange("deleteSet");
 };
 
 export const getAllSets = async () => {
@@ -175,6 +195,7 @@ export const setSetting = async <T = unknown>(key: string, value: T) => {
   const tx = db.transaction("settings", "readwrite");
   tx.objectStore("settings").put({ key, value });
   await transactionDone(tx);
+  notifyDbChange("setSetting");
 };
 
 export const setSettings = async (settings: Partial<SettingsState>) => {
@@ -185,13 +206,65 @@ export const setSettings = async (settings: Partial<SettingsState>) => {
     store.put({ key, value });
   });
   await transactionDone(tx);
+  notifyDbChange("setSettings");
+};
+
+export const getMirrorHandle = async (): Promise<FileSystemFileHandle | null> => {
+  const db = await openDb();
+  const tx = db.transaction("mirror", "readonly");
+  const store = tx.objectStore("mirror");
+  const item = await requestToPromise<{ key: string; value: FileSystemFileHandle } | undefined>(
+    store.get("handle"),
+  );
+  await transactionDone(tx);
+  return item?.value ?? null;
+};
+
+export const setMirrorHandle = async (handle: FileSystemFileHandle | null) => {
+  const db = await openDb();
+  const tx = db.transaction("mirror", "readwrite");
+  const store = tx.objectStore("mirror");
+  if (handle) {
+    store.put({ key: "handle", value: handle });
+  } else {
+    store.delete("handle");
+  }
+  await transactionDone(tx);
+};
+
+export const getMirrorLastWrite = async (): Promise<number | null> => {
+  const db = await openDb();
+  const tx = db.transaction("mirror", "readonly");
+  const store = tx.objectStore("mirror");
+  const item = await requestToPromise<{ key: string; value: number } | undefined>(
+    store.get("lastWrite"),
+  );
+  await transactionDone(tx);
+  return item?.value ?? null;
+};
+
+export const setMirrorLastWrite = async (lastWrite: number | null) => {
+  const db = await openDb();
+  const tx = db.transaction("mirror", "readwrite");
+  const store = tx.objectStore("mirror");
+  if (lastWrite !== null) {
+    store.put({ key: "lastWrite", value: lastWrite });
+  } else {
+    store.delete("lastWrite");
+  }
+  await transactionDone(tx);
 };
 
 export const clearAllData = async () => {
   const db = await openDb();
-  const tx = db.transaction(["exercises", "sets", "settings"], "readwrite");
+  const tx = db.transaction(
+    ["exercises", "sets", "settings", "mirror"],
+    "readwrite",
+  );
   tx.objectStore("exercises").clear();
   tx.objectStore("sets").clear();
   tx.objectStore("settings").clear();
+  tx.objectStore("mirror").clear();
   await transactionDone(tx);
+  notifyDbChange("clearAllData");
 };

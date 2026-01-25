@@ -40,6 +40,7 @@ const ExerciseCard = ({
   const unitDisplay = settings.unitDisplay;
   const showLb = unitDisplay === "both" || unitDisplay === "lb";
   const showKg = unitDisplay === "both" || unitDisplay === "kg";
+  const isBodyweight = exercise.type === "bodyweight";
 
   return (
     <div className="rounded-3xl border border-[var(--border)] bg-[color:var(--bg-card)] p-5 shadow-[var(--shadow)]">
@@ -56,18 +57,20 @@ const ExerciseCard = ({
           <div className="text-right text-xs text-[color:var(--muted)]">
             <div>Last</div>
             <div className="text-sm font-semibold text-[color:var(--text)]">
-              {formatLb(lastSet.inputLb)}x{lastSet.reps}
+              {isBodyweight ? "BW" : formatLb(lastSet.inputLb)}x{lastSet.reps}
             </div>
-            <div className="text-xs">
-              {showLb ? `${formatLb(lastSet.totalLb)} lb` : null}
-              {showLb && showKg ? " | " : null}
-              {showKg
-                ? `${formatKg(
-                    toKg(lastSet.totalLb, settings.roundingKg),
-                    settings.roundingKg,
-                  )} kg`
-                : null}
-            </div>
+            {!isBodyweight ? (
+              <div className="text-xs">
+                {showLb ? `${formatLb(lastSet.totalLb)} lb` : null}
+                {showLb && showKg ? " | " : null}
+                {showKg
+                  ? `${formatKg(
+                      toKg(lastSet.totalLb, settings.roundingKg),
+                      settings.roundingKg,
+                    )} kg`
+                  : null}
+              </div>
+            ) : null}
           </div>
         ) : null}
       </div>
@@ -109,7 +112,7 @@ const ExerciseCard = ({
                 key={set.id}
                 className="rounded-full border border-[var(--border)] bg-[color:var(--bg-elev)] px-3 py-1 text-xs text-[color:var(--text)]"
               >
-                {formatLb(set.inputLb)}x{set.reps}
+                {isBodyweight ? "BW" : formatLb(set.inputLb)}x{set.reps}
               </div>
             ))}
           </div>

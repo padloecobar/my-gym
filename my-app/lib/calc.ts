@@ -20,7 +20,20 @@ export const computeTotals = (
   barLb: number,
   rounding = 0.1,
 ) => {
-  const totalLb = type === "barbell" ? inputLb * 2 + barLb : inputLb;
+  let totalLb = inputLb;
+  switch (type) {
+    case "barbell":
+      totalLb = inputLb * 2 + barLb;
+      break;
+    case "dumbbell":
+      totalLb = inputLb * 2;
+      break;
+    case "bodyweight":
+      totalLb = 0;
+      break;
+    default:
+      totalLb = inputLb;
+  }
   const totalKg = toKg(totalLb, rounding);
   return { totalLb, totalKg };
 };

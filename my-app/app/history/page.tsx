@@ -159,6 +159,7 @@ const HistoryPage = () => {
                   {Array.from(byExercise.entries()).map(([exerciseId, exerciseSets]) => {
                     const exercise = exerciseById.get(exerciseId);
                     const name = exercise?.name ?? "Unknown exercise";
+                    const isBodyweight = exercise?.type === "bodyweight";
                     return (
                       <div key={exerciseId} className="space-y-2">
                         <div className="text-sm font-semibold text-[color:var(--text)]">
@@ -173,25 +174,29 @@ const HistoryPage = () => {
                             >
                               <div>
                                 <div className="text-sm font-semibold text-[color:var(--text)]">
-                                  {formatLb(set.inputLb)}x{set.reps}
+                                  {isBodyweight ? "BW" : formatLb(set.inputLb)}x{set.reps}
                                 </div>
                                 <div className="text-xs text-[color:var(--muted)]">
                                   {formatShortTime(set.ts)}
                                 </div>
                               </div>
                               <div className="text-right text-xs text-[color:var(--muted)]">
-                                <div>
-                                  {showLb ? `${formatLb(set.totalLb)} lb` : null}
-                                  {showLb && showKg ? (
-                                    <span className="mx-1">|</span>
-                                  ) : null}
-                                  {showKg
-                                    ? `${formatKg(
-                                        toKg(set.totalLb, settings.roundingKg),
-                                        settings.roundingKg,
-                                      )} kg`
-                                    : null}
-                                </div>
+                                {!isBodyweight ? (
+                                  <div>
+                                    {showLb ? `${formatLb(set.totalLb)} lb` : null}
+                                    {showLb && showKg ? (
+                                      <span className="mx-1">|</span>
+                                    ) : null}
+                                    {showKg
+                                      ? `${formatKg(
+                                          toKg(set.totalLb, settings.roundingKg),
+                                          settings.roundingKg,
+                                        )} kg`
+                                      : null}
+                                  </div>
+                                ) : (
+                                  <div>Bodyweight</div>
+                                )}
                                 {set.tags?.length ? (
                                   <div className="mt-1 text-[color:var(--text)]">
                                     {set.tags.join(" / ")}

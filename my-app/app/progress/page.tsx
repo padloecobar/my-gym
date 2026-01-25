@@ -33,6 +33,7 @@ const ProgressPage = () => {
   }, []);
 
   const selectedExercise = exercises.find((exercise) => exercise.id === selectedId) ?? null;
+  const isBodyweight = selectedExercise?.type === "bodyweight";
 
   const exerciseSets = useMemo(() => {
     if (!selectedExercise) return [] as SetEntry[];
@@ -40,18 +41,28 @@ const ProgressPage = () => {
   }, [sets, selectedExercise]);
 
   const sessionStats = useMemo(() => {
-    const byDate = new Map<string, { bestTotal: number; bestE1RM: number }>();
+    const byDate = new Map<
+      string,
+      { bestTotal: number; bestE1RM: number; bestReps: number }
+    >();
     exerciseSets.forEach((set) => {
-      const existing = byDate.get(set.date);
-      const bestTotal = Math.max(existing?.bestTotal ?? 0, set.totalLb);
+      const existing = byDate.get(set.date) ?? {
+        bestTotal: 0,
+        bestE1RM: 0,
+        bestReps: 0,
+      };
+      const bestTotal = Math.max(existing.bestTotal, set.totalLb);
       const e1rm = estimateE1RM(set.totalLb, set.reps, settings.e1rmFormula);
-      const bestE1RM = Math.max(existing?.bestE1RM ?? 0, e1rm);
-      byDate.set(set.date, { bestTotal, bestE1RM });
+      const bestE1RM = Math.max(existing.bestE1RM, e1rm);
+      const bestReps = Math.max(existing.bestReps, set.reps);
+      byDate.set(set.date, { bestTotal, bestE1RM, bestReps });
     });
     return Array.from(byDate.entries()).sort((a, b) => (a[0] > b[0] ? 1 : -1));
   }, [exerciseSets, settings.e1rmFormula]);
 
-  const chartData = sessionStats.slice(-10).map(([, stats]) => stats.bestE1RM);
+  const chartData = sessionStats
+    .slice(-10)
+    .map(([, stats]) => (isBodyweight ? stats.bestReps : stats.bestE1RM));
   const maxValue = Math.max(...chartData, 0);
   const minValue = Math.min(...chartData, maxValue);
 
@@ -63,6 +74,7 @@ const ProgressPage = () => {
     (max, set) => Math.max(max, estimateE1RM(set.totalLb, set.reps, settings.e1rmFormula)),
     0,
   );
+  const bestReps = exerciseSets.reduce((max, set) => Math.max(max, set.reps), 0);
 
   const formatTotal = (lb: number) => {
     const kg = toKg(lb, settings.roundingKg);
@@ -121,28 +133,41 @@ const ProgressPage = () => {
                 Bests
               </div>
               <div className="mt-3 grid gap-3 sm:grid-cols-2">
-                <div className="rounded-2xl border border-[var(--border)] bg-[color:var(--bg-elev)] p-4">
-                  <div className="text-xs uppercase tracking-[0.3em] text-[color:var(--muted)]">
-                    Best Total
+                {isBodyweight ? (
+                  <div className="rounded-2xl border border-[var(--border)] bg-[color:var(--bg-elev)] p-4">
+                    <div className="text-xs uppercase tracking-[0.3em] text-[color:var(--muted)]">
+                      Best reps
+                    </div>
+                    <div className="mt-2 text-lg font-semibold text-[color:var(--text)]">
+                      {bestReps || "-"}
+                    </div>
                   </div>
-                  <div className="mt-2 text-lg font-semibold text-[color:var(--text)]">
-                    {bestTotal ? formatTotal(bestTotal) : "-"}
-                  </div>
-                </div>
-                <div className="rounded-2xl border border-[var(--border)] bg-[color:var(--bg-elev)] p-4">
-                  <div className="text-xs uppercase tracking-[0.3em] text-[color:var(--muted)]">
-                    Best e1RM
-                  </div>
-                  <div className="mt-2 text-lg font-semibold text-[color:var(--text)]">
-                    {bestE1RM ? formatTotal(bestE1RM) : "-"}
-                  </div>
-                </div>
+                ) : (
+                  <>
+                    <div className="rounded-2xl border border-[var(--border)] bg-[color:var(--bg-elev)] p-4">
+                      <div className="text-xs uppercase tracking-[0.3em] text-[color:var(--muted)]">
+                        Best Total
+                      </div>
+                      <div className="mt-2 text-lg font-semibold text-[color:var(--text)]">
+                        {bestTotal ? formatTotal(bestTotal) : "-"}
+                      </div>
+                    </div>
+                    <div className="rounded-2xl border border-[var(--border)] bg-[color:var(--bg-elev)] p-4">
+                      <div className="text-xs uppercase tracking-[0.3em] text-[color:var(--muted)]">
+                        Best e1RM
+                      </div>
+                      <div className="mt-2 text-lg font-semibold text-[color:var(--text)]">
+                        {bestE1RM ? formatTotal(bestE1RM) : "-"}
+                      </div>
+                    </div>
+                  </>
+                )}
               </div>
             </div>
 
             <div className="rounded-3xl border border-[var(--border)] bg-[color:var(--bg-card)] p-5">
               <div className="text-xs uppercase tracking-[0.35em] text-[color:var(--muted)]">
-                Last 10 Sessions / e1RM
+                Last 10 Sessions / {isBodyweight ? "Best Reps" : "e1RM"}
               </div>
               <div className="mt-4">
                 {chartData.length ? (

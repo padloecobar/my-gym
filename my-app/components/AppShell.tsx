@@ -1,6 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
+import FileMirrorSync from "./FileMirrorSync";
 import TabBar from "./TabBar";
 
 type AppShellProps = {
@@ -13,6 +14,7 @@ type AppShellProps = {
 const AppShell = ({ title, children, headerLeft, headerRight }: AppShellProps) => {
   return (
     <div className="min-h-screen pb-24">
+      <FileMirrorSync />
       <header className="sticky top-0 z-30 border-b border-[var(--border)] bg-[color:var(--bg-elev)]/85 backdrop-blur-xl">
         <div className="mx-auto flex w-full max-w-3xl items-center justify-between px-5 py-4">
           <div className="flex items-center gap-3 text-sm text-[color:var(--muted)]">

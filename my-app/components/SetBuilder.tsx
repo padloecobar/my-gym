@@ -78,6 +78,8 @@ const SetBuilder = ({
   const [showQuickParse, setShowQuickParse] = useState(false);
   const [quickParseText, setQuickParseText] = useState("");
 
+  const isBodyweight = exercise?.type === "bodyweight";
+  const isDumbbell = exercise?.type === "dumbbell";
   const weightStep = exercise?.type === "barbell" ? 2.5 : 5;
 
   // Sync draft state when opening or switching exercises.
@@ -86,7 +88,9 @@ const SetBuilder = ({
     if (!open || !exercise) return;
     const base = initial ?? lastSet;
     setInputLb(
-      base?.inputLb ?? settings.weightPresets[2] ?? settings.barLb,
+      exercise.type === "bodyweight"
+        ? 0
+        : base?.inputLb ?? settings.weightPresets[2] ?? settings.barLb,
     );
     setReps(base?.reps ?? settings.repPresets[1] ?? 5);
     setTags(base?.tags ?? []);
@@ -116,7 +120,8 @@ const SetBuilder = ({
   const showKg = unitDisplay === "both" || unitDisplay === "kg";
 
   const handleSave = () => {
-    onSave({ inputLb, reps, tags, note, rpe });
+    const normalizedInput = exercise.type === "bodyweight" ? 0 : inputLb;
+    onSave({ inputLb: normalizedInput, reps, tags, note, rpe });
     if (mode === "create") {
       setNote("");
       setShowNote(false);
@@ -125,7 +130,8 @@ const SetBuilder = ({
 
   const handleQuickSave = (repValue: number) => {
     if (!onQuickSave) return;
-    onQuickSave({ inputLb, reps: repValue, tags, note, rpe });
+    const normalizedInput = exercise.type === "bodyweight" ? 0 : inputLb;
+    onQuickSave({ inputLb: normalizedInput, reps: repValue, tags, note, rpe });
   };
 
   const handleQuickParse = () => {
@@ -164,69 +170,75 @@ const SetBuilder = ({
       }
     >
       <section className="flex flex-col gap-4">
-        <div className="rounded-2xl border border-[var(--border)] bg-[color:var(--bg-elev)] p-4">
-          <div className="text-xs uppercase tracking-[0.35em] text-[color:var(--muted)]">
-            Weight
-          </div>
-          <div className="mt-2 text-sm text-[color:var(--muted)]">
-            {exercise.type === "barbell" ? "Per side (lb)" : "Weight (lb)"}
-          </div>
-          <div className="mt-2 text-3xl font-semibold text-[color:var(--text)]">
-            {formatLb(inputLb)}
-          </div>
-          <div className="mt-4 grid grid-cols-4 gap-2">
-            {settings.weightPresets.map((preset) => (
-              <Chip
-                key={preset}
-                size="sm"
-                selected={Math.abs(inputLb - preset) < 0.01}
-                onClick={() => setInputLb(preset)}
-              >
-                {preset}
-              </Chip>
-            ))}
-          </div>
-          <div className="mt-3 flex flex-wrap gap-2">
-            {[5, 2.5, 1].map((delta) => (
-              <Chip
-                key={delta}
-                size="sm"
-                onClick={() => setInputLb((prev) => Math.max(0, prev + delta))}
-              >
-                +{delta}
-              </Chip>
-            ))}
-          </div>
-          <div className="mt-4">
-            <Stepper
-              value={inputLb}
-              onChange={setInputLb}
-              step={weightStep}
-              min={0}
-              label={exercise.type === "barbell" ? "Per side" : "Weight"}
-              format={formatLb}
-            />
-          </div>
-          {totals ? (
-            <div className="mt-4 rounded-2xl border border-[var(--border)] bg-[color:var(--bg-card)] px-4 py-3 text-sm text-[color:var(--text)]">
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <div className="text-[color:var(--muted)]">Total</div>
-                <div className="text-sm font-semibold text-[color:var(--text)]">
-                  {showLb ? `${formatLb(totals.totalLb)} lb` : null}
-                  {showLb && showKg ? " | " : null}
-                  {showKg
-                    ? `${formatKg(totals.totalKg, settings.roundingKg)} kg`
-                    : null}
-                </div>
-              </div>
-              {exercise.type === "barbell" ? (
-                <div className="mt-1 text-xs text-[color:var(--muted)]">
-                  Includes {settings.barLb} lb bar
-                </div>
-              ) : null}
+        {!isBodyweight ? (
+          <div className="rounded-2xl border border-[var(--border)] bg-[color:var(--bg-elev)] p-4">
+            <div className="text-xs uppercase tracking-[0.35em] text-[color:var(--muted)]">
+              Weight
             </div>
-          ) : null}
-        </div>
+            <div className="mt-2 text-sm text-[color:var(--muted)]">
+              {exercise.type === "barbell"
+                ? "Per side (lb)"
+                : isDumbbell
+                  ? "Per dumbbell (lb)"
+                  : "Weight (lb)"}
+            </div>
+            <div className="mt-2 text-3xl font-semibold text-[color:var(--text)]">
+              {formatLb(inputLb)}
+            </div>
+            <div className="mt-4 grid grid-cols-4 gap-2">
+              {settings.weightPresets.map((preset) => (
+                <Chip
+                  key={preset}
+                  size="sm"
+                  selected={Math.abs(inputLb - preset) < 0.01}
+                  onClick={() => setInputLb(preset)}
+                >
+                  {preset}
+                </Chip>
+              ))}
+            </div>
+            <div className="mt-3 flex flex-wrap gap-2">
+              {[5, 2.5, 1].map((delta) => (
+                <Chip
+                  key={delta}
+                  size="sm"
+                  onClick={() => setInputLb((prev) => Math.max(0, prev + delta))}
+                >
+                  +{delta}
+                </Chip>
+              ))}
+            </div>
+            <div className="mt-4">
+              <Stepper
+                value={inputLb}
+                onChange={setInputLb}
+                step={weightStep}
+                min={0}
+                label={exercise.type === "barbell" ? "Per side" : isDumbbell ? "Per dumbbell" : "Weight"}
+                format={formatLb}
+              />
+            </div>
+            {totals ? (
+              <div className="mt-4 rounded-2xl border border-[var(--border)] bg-[color:var(--bg-card)] px-4 py-3 text-sm text-[color:var(--text)]">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div className="text-[color:var(--muted)]">Total</div>
+                  <div className="text-sm font-semibold text-[color:var(--text)]">
+                    {showLb ? `${formatLb(totals.totalLb)} lb` : null}
+                    {showLb && showKg ? " | " : null}
+                    {showKg
+                      ? `${formatKg(totals.totalKg, settings.roundingKg)} kg`
+                      : null}
+                  </div>
+                </div>
+                {exercise.type === "barbell" ? (
+                  <div className="mt-1 text-xs text-[color:var(--muted)]">
+                    Includes {settings.barLb} lb bar
+                  </div>
+                ) : null}
+              </div>
+            ) : null}
+          </div>
+        ) : null}
 
         <div className="rounded-2xl border border-[var(--border)] bg-[color:var(--bg-elev)] p-4">
           <div className="text-xs uppercase tracking-[0.35em] text-[color:var(--muted)]">
@@ -343,7 +355,7 @@ const SetBuilder = ({
           </div>
         </div>
 
-        {mode === "create" ? (
+        {mode === "create" && !isBodyweight ? (
           <div className="rounded-2xl border border-[var(--border)] bg-[color:var(--bg-elev)] p-4">
             <button
               type="button"

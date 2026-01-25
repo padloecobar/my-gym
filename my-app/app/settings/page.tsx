@@ -17,7 +17,7 @@ import {
   setSettings,
 } from "../../lib/db";
 import { computeTotals } from "../../lib/calc";
-import { getLocalDateKey } from "../../lib/date";
+import { formatShortTime, getLocalDateKey } from "../../lib/date";
 import {
   DEFAULT_REP_PRESETS,
   DEFAULT_WEIGHT_PRESETS,
@@ -29,6 +29,13 @@ import {
   serializeBackup,
   serializeSetsCsv,
 } from "../../lib/backup";
+import {
+  disableFileMirror,
+  enableFileMirror,
+  getFileMirrorState,
+  writeFileMirrorNow,
+  type FileMirrorState,
+} from "../../lib/fileMirror";
 import type {
   Exercise,
   ExerciseType,
@@ -59,6 +66,13 @@ const SettingsPage = () => {
   const [installPrompt, setInstallPrompt] = useState<BeforeInstallPromptEvent | null>(
     null,
   );
+  const [mirrorState, setMirrorState] = useState<FileMirrorState>({
+    supported: false,
+    enabled: false,
+    fileName: null,
+    lastWrite: null,
+  });
+  const [mirrorBusy, setMirrorBusy] = useState(false);
 
   const [newExerciseName, setNewExerciseName] = useState("");
   const [newExerciseType, setNewExerciseType] = useState<ExerciseType>("barbell");
@@ -67,14 +81,16 @@ const SettingsPage = () => {
 
   useEffect(() => {
     const load = async () => {
-      const [settingsData, exerciseData, setData] = await Promise.all([
+      const [settingsData, exerciseData, setData, mirrorData] = await Promise.all([
         getAllSettings(),
         getAllExercises(),
         getAllSets(),
+        getFileMirrorState(),
       ]);
       setSettingsState({ ...defaultSettings, ...settingsData } as SettingsState);
       setExercises(exerciseData);
       setSets(setData);
+      setMirrorState(mirrorData);
     };
     load();
   }, []);
@@ -102,6 +118,68 @@ const SettingsPage = () => {
       window.clearTimeout(toastTimer.current);
     }
     toastTimer.current = window.setTimeout(() => setToast(null), 3000);
+  };
+
+  const refreshMirrorState = async () => {
+    const next = await getFileMirrorState();
+    setMirrorState(next);
+    return next;
+  };
+
+  const handleEnableMirror = async () => {
+    if (mirrorBusy) return;
+    setMirrorBusy(true);
+    const result = await enableFileMirror();
+    if (!result.ok) {
+      if (result.reason === "unsupported") {
+        showToast("File mirror requires Chrome.");
+      } else if (result.reason === "permission") {
+        showToast("File permission denied.");
+      } else if (result.reason !== "cancelled") {
+        showToast("Could not enable file mirror.");
+      }
+      await refreshMirrorState();
+      setMirrorBusy(false);
+      return;
+    }
+    const writeResult = await writeFileMirrorNow();
+    if (!writeResult.ok) {
+      showToast("File mirror enabled, but write failed.");
+    } else {
+      showToast("File mirror enabled.");
+    }
+    await refreshMirrorState();
+    setMirrorBusy(false);
+  };
+
+  const handleWriteMirror = async () => {
+    if (mirrorBusy) return;
+    setMirrorBusy(true);
+    const result = await writeFileMirrorNow();
+    if (!result.ok) {
+      if (result.reason === "unsupported") {
+        showToast("File mirror requires Chrome.");
+      } else if (result.reason === "permission") {
+        showToast("File permission denied.");
+      } else if (result.reason === "not-enabled") {
+        showToast("File mirror not enabled.");
+      } else {
+        showToast("Could not write mirror file.");
+      }
+    } else {
+      showToast("Mirror updated.");
+    }
+    await refreshMirrorState();
+    setMirrorBusy(false);
+  };
+
+  const handleDisableMirror = async () => {
+    if (mirrorBusy) return;
+    setMirrorBusy(true);
+    await disableFileMirror();
+    await refreshMirrorState();
+    showToast("File mirror disabled.");
+    setMirrorBusy(false);
   };
 
   const updateSettings = async (updates: Partial<SettingsState>) => {
@@ -295,6 +373,11 @@ const SettingsPage = () => {
     exercises
       .filter((exercise) => exercise.workout === workout)
       .sort((a, b) => a.order - b.order);
+
+  const mirrorLastWriteLabel = mirrorState.lastWrite
+    ? formatShortTime(mirrorState.lastWrite)
+    : "Not yet";
+  const mirrorFileName = mirrorState.fileName ?? "gym-log.json";
 
   return (
     <AppShell title="Settings">
@@ -592,6 +675,70 @@ const SettingsPage = () => {
               Add
             </button>
           </div>
+        </section>
+
+        <section className="rounded-3xl border border-[var(--border)] bg-[color:var(--bg-card)] p-5">
+          <div className="text-xs uppercase tracking-[0.35em] text-[color:var(--muted)]">
+            File Mirror
+          </div>
+          {!mirrorState.supported ? (
+            <div className="mt-4 space-y-3">
+              <div className="text-sm text-[color:var(--muted)]">
+                Chrome only. Keep a local gym-log.json updated on every change.
+              </div>
+              <button
+                type="button"
+                disabled
+                className="w-full rounded-xl bg-[color:var(--accent)] px-3 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-black opacity-60"
+              >
+                Enable File Mirror
+              </button>
+            </div>
+          ) : mirrorState.enabled ? (
+            <div className="mt-4 space-y-3">
+              <div className="text-sm text-[color:var(--text)]">
+                <span className="text-[color:var(--muted)]">Mirroring to:</span>{" "}
+                <span className="font-semibold text-[color:var(--text)]">
+                  {mirrorFileName}
+                </span>
+              </div>
+              <div className="text-xs uppercase tracking-[0.3em] text-[color:var(--muted)]">
+                Last write: {mirrorLastWriteLabel}
+              </div>
+              <div className="flex flex-wrap gap-3">
+                <button
+                  type="button"
+                  onClick={handleWriteMirror}
+                  disabled={mirrorBusy}
+                  className="rounded-xl border border-[var(--border)] px-3 py-2 text-xs uppercase tracking-[0.3em] text-[color:var(--text)] disabled:opacity-60"
+                >
+                  Write now
+                </button>
+                <button
+                  type="button"
+                  onClick={handleDisableMirror}
+                  disabled={mirrorBusy}
+                  className="rounded-xl border border-[var(--border)] px-3 py-2 text-xs uppercase tracking-[0.3em] text-[color:var(--danger)] disabled:opacity-60"
+                >
+                  Disable
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="mt-4 space-y-3">
+              <div className="text-sm text-[color:var(--muted)]">
+                Keeps a local JSON snapshot updated on every change.
+              </div>
+              <button
+                type="button"
+                onClick={handleEnableMirror}
+                disabled={mirrorBusy}
+                className="w-full rounded-xl bg-[color:var(--accent)] px-3 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-black disabled:opacity-60"
+              >
+                Enable File Mirror
+              </button>
+            </div>
+          )}
         </section>
 
         <section className="rounded-3xl border border-[var(--border)] bg-[color:var(--bg-card)] p-5">
