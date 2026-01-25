@@ -9,3 +9,4 @@
 - UX: per-side barbell input, per-dumbbell input, bodyweight reps-only flow, quick multi-set logging, quick parse for weighted exercises, undo-first interactions.
 - File mirror (Chrome-only): optional file picker in Settings writes `gym-log.json` on any data change; mirror handle + last write stored in IDB.
 - PWA assets present (manifest + sw).
+- UX revamp: industrial logbook theme in progress; new fonts/palette, refreshed shell/tab bar/cards; Log now uses explicit log buttons, session selector, interactive today chips with edit, and progress bar; SetBuilder/Onboarding reworked for thumb-first logging with plate hints; Progress + Settings reorganized; History adds volume summary.

@@ -13,20 +13,27 @@ type AppShellProps = {
 
 const AppShell = ({ title, children, headerLeft, headerRight }: AppShellProps) => {
   return (
-    <div className="min-h-screen pb-24">
+    <div className="min-h-screen pb-28">
       <FileMirrorSync />
-      <header className="sticky top-0 z-30 border-b border-[var(--border)] bg-[color:var(--bg-elev)]/85 backdrop-blur-xl">
-        <div className="mx-auto flex w-full max-w-3xl items-center justify-between px-5 py-4">
-          <div className="flex items-center gap-3 text-sm text-[color:var(--muted)]">
+      <header className="sticky top-0 z-30 border-b border-[var(--border)] bg-[color:var(--bg-elev)] backdrop-blur-xl">
+        <div className="mx-auto flex w-full max-w-3xl items-center justify-between gap-3 px-5 py-4">
+          <div className="flex min-w-[72px] items-center gap-2 text-[11px] uppercase tracking-[0.3em] text-[color:var(--muted)]">
             {headerLeft}
           </div>
-          <h1 className="text-lg font-semibold tracking-tight text-[color:var(--text)]">
-            {title}
-          </h1>
-          <div className="flex items-center gap-2">{headerRight}</div>
+          <div className="text-center">
+            <div className="text-[10px] uppercase tracking-[0.4em] text-[color:var(--muted)]">
+              Gym Log
+            </div>
+            <h1 className="mt-1 text-base font-semibold uppercase tracking-[0.2em] text-[color:var(--text)] font-serif">
+              {title}
+            </h1>
+          </div>
+          <div className="flex min-w-[72px] items-center justify-end gap-2">
+            {headerRight}
+          </div>
         </div>
       </header>
-      <main className="mx-auto w-full max-w-3xl px-5 pb-[calc(6rem+env(safe-area-inset-bottom))] pt-5">
+      <main className="mx-auto w-full max-w-3xl px-5 pb-[calc(7rem+env(safe-area-inset-bottom))] pt-6">
         {children}
       </main>
       <TabBar />

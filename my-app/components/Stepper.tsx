@@ -52,21 +52,21 @@ const Stepper = ({
   };
 
   return (
-    <div className="flex items-center justify-between gap-4 rounded-2xl border border-[var(--border)] bg-[color:var(--bg-elev)] px-4 py-3">
+    <div className="flex items-center justify-between gap-4 rounded-2xl border border-[var(--border)] bg-[color:var(--bg-card)] px-4 py-3 shadow-[var(--shadow)]">
       <div>
         {label ? (
-          <div className="text-xs uppercase tracking-[0.3em] text-[color:var(--muted)]">
+          <div className="text-[11px] uppercase tracking-[0.3em] text-[color:var(--muted)]">
             {label}
           </div>
         ) : null}
-        <div className="text-xl font-semibold text-[color:var(--text)]">
+        <div className="text-xl font-semibold text-[color:var(--text)] font-mono">
           {format ? format(value) : value}
         </div>
       </div>
       <div className="flex items-center gap-2">
         <button
           type="button"
-          className="grid h-12 w-12 place-items-center rounded-full bg-[color:var(--chip)] text-[color:var(--text)]"
+          className="grid h-12 w-12 place-items-center rounded-full border border-[var(--border)] bg-[color:var(--chip)] text-[color:var(--text)]"
           onPointerDown={() => startHold(-1)}
           onPointerUp={stopHold}
           onPointerLeave={stopHold}
@@ -77,7 +77,7 @@ const Stepper = ({
         </button>
         <button
           type="button"
-          className="grid h-12 w-12 place-items-center rounded-full bg-[color:var(--accent)] text-black"
+          className="grid h-12 w-12 place-items-center rounded-full bg-[color:var(--accent)] text-[color:var(--accent-ink)]"
           onPointerDown={() => startHold(1)}
           onPointerUp={stopHold}
           onPointerLeave={stopHold}

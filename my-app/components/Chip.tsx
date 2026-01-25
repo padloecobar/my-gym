@@ -1,9 +1,9 @@
 import type { ButtonHTMLAttributes } from "react";
 
 const sizeClasses = {
-  sm: "h-8 px-3 text-xs",
-  md: "h-10 px-4 text-sm",
-  lg: "h-12 px-5 text-base",
+  sm: "min-h-[44px] px-3 text-xs",
+  md: "min-h-[44px] px-4 text-sm",
+  lg: "min-h-[48px] px-5 text-base",
 };
 
 type ChipProps = ButtonHTMLAttributes<HTMLButtonElement> & {
@@ -19,11 +19,11 @@ const Chip = ({
 }: ChipProps) => (
   <button
     type="button"
-    className={`inline-flex min-w-[48px] items-center justify-center rounded-full border border-transparent ${
+    className={`inline-flex min-w-[48px] items-center justify-center rounded-full border border-[var(--border)] leading-none ${
       sizeClasses[size]
     } ${
       selected
-        ? "bg-[color:var(--accent)] text-black"
+        ? "bg-[color:var(--accent)] text-[color:var(--accent-ink)] shadow-[var(--shadow)]"
         : "bg-[color:var(--chip)] text-[color:var(--text)]"
     } transition ${className}`}
     {...props}

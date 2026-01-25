@@ -77,6 +77,12 @@ const HistoryPage = () => {
 
   const showLb = settings.unitDisplay === "both" || settings.unitDisplay === "lb";
   const showKg = settings.unitDisplay === "both" || settings.unitDisplay === "kg";
+  const formatTotal = (lb: number) => {
+    const kg = toKg(lb, settings.roundingKg);
+    return `${showLb ? `${formatLb(lb)} lb` : ""}${
+      showLb && showKg ? " | " : ""
+    }${showKg ? `${formatKg(kg, settings.roundingKg)} kg` : ""}`;
+  };
 
   const showToast = (message: string, action?: () => void) => {
     setToast({ message, action });
@@ -86,10 +92,18 @@ const HistoryPage = () => {
     toastTimer.current = window.setTimeout(() => setToast(null), 3000);
   };
 
+  const formatSetLabel = (setEntry: SetEntry) => {
+    const exercise = exerciseById.get(setEntry.exerciseId);
+    if (!exercise) return `${formatLb(setEntry.inputLb)}x${setEntry.reps}`;
+    return exercise.type === "bodyweight"
+      ? `BWx${setEntry.reps}`
+      : `${formatLb(setEntry.inputLb)}x${setEntry.reps}`;
+  };
+
   const handleDelete = async (setEntry: SetEntry) => {
     await deleteSet(setEntry.id);
     setSets((prev) => prev.filter((item) => item.id !== setEntry.id));
-    showToast("Deleted - Undo", async () => {
+    showToast(`Deleted ${formatSetLabel(setEntry)}`, async () => {
       await addSet(setEntry);
       setSets((prev) => [setEntry, ...prev]);
     });
@@ -130,13 +144,13 @@ const HistoryPage = () => {
     <>
       <AppShell title="History">
         <div className="space-y-5">
-          <div className="flex items-center gap-3 rounded-2xl border border-[var(--border)] bg-[color:var(--bg-elev)] px-4 py-3">
-            <IconSearch className="h-4 w-4 text-[color:var(--muted)]" />
+          <div className="flex min-h-[56px] items-center gap-3 rounded-[var(--radius-lg)] border border-[var(--border)] bg-[color:var(--bg-card)] px-4 py-3 shadow-[var(--shadow)]">
+            <IconSearch className="h-5 w-5 text-[color:var(--muted)]" />
             <input
               value={search}
               onChange={(event) => setSearch(event.target.value)}
               placeholder="Search exercise"
-              className="w-full bg-transparent text-sm text-[color:var(--text)] outline-none"
+              className="w-full bg-transparent text-sm text-[color:var(--text)] outline-none placeholder:text-[color:var(--muted)]"
             />
           </div>
 
@@ -147,13 +161,43 @@ const HistoryPage = () => {
               list.push(set);
               byExercise.set(set.exerciseId, list);
             });
+            const totalVolumeLb = dateSets.reduce(
+              (sum, set) => sum + set.totalLb * set.reps,
+              0,
+            );
             return (
               <div
                 key={date}
-                className="rounded-3xl border border-[var(--border)] bg-[color:var(--bg-card)] p-5"
+                className="rounded-[var(--radius-lg)] border border-[var(--border)] bg-[color:var(--bg-card)] p-5 shadow-[var(--shadow)]"
               >
-                <div className="text-xs uppercase tracking-[0.35em] text-[color:var(--muted)]">
+                <div className="text-[11px] uppercase tracking-[0.35em] text-[color:var(--muted)] font-mono">
                   {formatDateHeading(date)}
+                </div>
+                <div className="mt-3 grid gap-2 sm:grid-cols-3">
+                  <div className="rounded-2xl border border-[var(--border)] bg-[color:var(--bg-elev)] px-3 py-2">
+                    <div className="text-[10px] uppercase tracking-[0.3em] text-[color:var(--muted)]">
+                      Sets
+                    </div>
+                    <div className="mt-1 text-sm font-semibold text-[color:var(--text)] font-mono">
+                      {dateSets.length}
+                    </div>
+                  </div>
+                  <div className="rounded-2xl border border-[var(--border)] bg-[color:var(--bg-elev)] px-3 py-2">
+                    <div className="text-[10px] uppercase tracking-[0.3em] text-[color:var(--muted)]">
+                      Exercises
+                    </div>
+                    <div className="mt-1 text-sm font-semibold text-[color:var(--text)] font-mono">
+                      {byExercise.size}
+                    </div>
+                  </div>
+                  <div className="rounded-2xl border border-[var(--border)] bg-[color:var(--bg-elev)] px-3 py-2">
+                    <div className="text-[10px] uppercase tracking-[0.3em] text-[color:var(--muted)]">
+                      Volume
+                    </div>
+                    <div className="mt-1 text-sm font-semibold text-[color:var(--text)] font-mono">
+                      {formatTotal(totalVolumeLb)}
+                    </div>
+                  </div>
                 </div>
                 <div className="mt-4 space-y-4">
                   {Array.from(byExercise.entries()).map(([exerciseId, exerciseSets]) => {
@@ -162,7 +206,7 @@ const HistoryPage = () => {
                     const isBodyweight = exercise?.type === "bodyweight";
                     return (
                       <div key={exerciseId} className="space-y-2">
-                        <div className="text-sm font-semibold text-[color:var(--text)]">
+                        <div className="text-sm font-semibold text-[color:var(--text)] font-serif">
                           {name}
                         </div>
                         {exerciseSets.map((set) => (
@@ -170,10 +214,10 @@ const HistoryPage = () => {
                             <button
                               type="button"
                               onClick={() => setEditingSet(set)}
-                              className="flex w-full items-center justify-between rounded-2xl border border-[var(--border)] bg-[color:var(--bg-elev)] px-4 py-3 text-left"
+                              className="flex min-h-[48px] w-full items-center justify-between rounded-2xl border border-[var(--border)] bg-[color:var(--bg-elev)] px-4 py-2 text-left"
                             >
                               <div>
-                                <div className="text-sm font-semibold text-[color:var(--text)]">
+                                <div className="text-sm font-semibold text-[color:var(--text)] font-mono">
                                   {isBodyweight ? "BW" : formatLb(set.inputLb)}x{set.reps}
                                 </div>
                                 <div className="text-xs text-[color:var(--muted)]">
@@ -182,7 +226,7 @@ const HistoryPage = () => {
                               </div>
                               <div className="text-right text-xs text-[color:var(--muted)]">
                                 {!isBodyweight ? (
-                                  <div>
+                                  <div className="font-mono">
                                     {showLb ? `${formatLb(set.totalLb)} lb` : null}
                                     {showLb && showKg ? (
                                       <span className="mx-1">|</span>
@@ -198,7 +242,7 @@ const HistoryPage = () => {
                                   <div>Bodyweight</div>
                                 )}
                                 {set.tags?.length ? (
-                                  <div className="mt-1 text-[color:var(--text)]">
+                                  <div className="mt-1 text-[color:var(--text)] font-mono">
                                     {set.tags.join(" / ")}
                                   </div>
                                 ) : null}
@@ -215,7 +259,7 @@ const HistoryPage = () => {
           })}
 
           {!groupedByDate.length ? (
-            <div className="rounded-3xl border border-dashed border-[var(--border)] p-6 text-center text-sm text-[color:var(--muted)]">
+            <div className="rounded-[var(--radius-lg)] border border-dashed border-[var(--border)] p-6 text-center text-sm text-[color:var(--muted)]">
               No sets logged yet.
             </div>
           ) : null}

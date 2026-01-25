@@ -15,25 +15,28 @@ const TabBar = () => {
   const pathname = usePathname();
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-40 border-t border-[var(--border)] bg-[color:var(--bg-elev)]/90 backdrop-blur-xl">
-      <div className="mx-auto flex w-full max-w-3xl items-center justify-around px-6 py-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))]">
-        {tabs.map(({ href, label, Icon }) => {
-          const active = pathname === href;
-          return (
-            <Link
-              key={href}
-              href={href}
-              className={`flex min-w-[64px] flex-col items-center gap-1 rounded-xl px-3 py-2 text-[11px] uppercase tracking-[0.2em] transition ${
-                active
-                  ? "text-[color:var(--accent)]"
-                  : "text-[color:var(--muted)]"
-              }`}
-            >
-              <Icon className="h-5 w-5" />
-              <span>{label}</span>
-            </Link>
-          );
-        })}
+    <nav className="fixed bottom-0 left-0 right-0 z-40 pb-[env(safe-area-inset-bottom)]">
+      <div className="mx-auto w-full max-w-3xl px-4 pb-4">
+        <div className="flex items-center justify-between rounded-full border border-[var(--border)] bg-[color:var(--bg-card)] px-3 py-2 shadow-[var(--shadow)]">
+          {tabs.map(({ href, label, Icon }) => {
+            const active = pathname === href;
+            return (
+              <Link
+                key={href}
+                href={href}
+                aria-current={active ? "page" : undefined}
+                className={`flex min-h-[44px] min-w-[64px] flex-col items-center justify-center gap-1 rounded-full px-3 text-[10px] uppercase tracking-[0.28em] transition ${
+                  active
+                    ? "bg-[color:var(--accent)] text-[color:var(--accent-ink)] shadow-[var(--shadow)]"
+                    : "text-[color:var(--muted)] hover:text-[color:var(--text)]"
+                }`}
+              >
+                <Icon className="h-4 w-4" />
+                <span>{label}</span>
+              </Link>
+            );
+          })}
+        </div>
       </div>
     </nav>
   );

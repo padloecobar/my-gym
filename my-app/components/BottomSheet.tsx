@@ -34,7 +34,7 @@ const BottomSheet = ({ open, title, onClose, children, footer }: BottomSheetProp
       aria-hidden={!open}
     >
       <div
-        className={`absolute inset-0 bg-black/50 transition-opacity ${
+        className={`absolute inset-0 bg-black/40 transition-opacity ${
           open ? "opacity-100" : "opacity-0"
         }`}
         onClick={onClose}
@@ -45,14 +45,17 @@ const BottomSheet = ({ open, title, onClose, children, footer }: BottomSheetProp
         }`}
       >
         <div className="rounded-t-[28px] border border-[var(--border)] bg-[color:var(--bg-card)] shadow-[var(--shadow)]">
+          <div className="flex justify-center pt-3">
+            <div className="h-1 w-12 rounded-full bg-[color:var(--border)]" />
+          </div>
           <div className="flex items-center justify-between border-b border-[var(--border)] px-5 py-4">
-            <h2 className="text-base font-semibold text-[color:var(--text)]">
+            <h2 className="text-sm font-semibold uppercase tracking-[0.25em] text-[color:var(--text)] font-serif">
               {title}
             </h2>
             <button
               type="button"
               onClick={onClose}
-              className="grid h-10 w-10 place-items-center rounded-full bg-[color:var(--chip)] text-[color:var(--text)]"
+              className="grid h-11 w-11 place-items-center rounded-full border border-[var(--border)] bg-[color:var(--chip)] text-[color:var(--text)]"
             >
               <IconClose className="h-4 w-4" />
             </button>
@@ -61,7 +64,7 @@ const BottomSheet = ({ open, title, onClose, children, footer }: BottomSheetProp
             {children}
           </div>
           {footer ? (
-            <div className="sticky bottom-0 border-t border-[var(--border)] bg-[color:var(--bg-elev)]/95 px-5 py-4 backdrop-blur">
+            <div className="sticky bottom-0 border-t border-[var(--border)] bg-[color:var(--bg-elev)] px-5 py-4 backdrop-blur">
               {footer}
             </div>
           ) : null}

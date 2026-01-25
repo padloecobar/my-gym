@@ -22,6 +22,20 @@ type ParsedSet = {
   reps: number;
 };
 
+const STANDARD_PLATES = [45, 35, 25, 10, 5, 2.5];
+
+const buildPlateBreakdown = (weight: number) => {
+  let remaining = Math.max(0, weight);
+  const plates: number[] = [];
+  for (const plate of STANDARD_PLATES) {
+    while (remaining + 0.001 >= plate) {
+      plates.push(plate);
+      remaining = Number((remaining - plate).toFixed(2));
+    }
+  }
+  return { plates, remaining };
+};
+
 type SetBuilderProps = {
   open: boolean;
   mode?: "create" | "edit";
@@ -80,6 +94,7 @@ const SetBuilder = ({
 
   const isBodyweight = exercise?.type === "bodyweight";
   const isDumbbell = exercise?.type === "dumbbell";
+  const isBarbell = exercise?.type === "barbell";
   const weightStep = exercise?.type === "barbell" ? 2.5 : 5;
 
   // Sync draft state when opening or switching exercises.
@@ -118,6 +133,23 @@ const SetBuilder = ({
   const unitDisplay = settings.unitDisplay;
   const showLb = unitDisplay === "both" || unitDisplay === "lb";
   const showKg = unitDisplay === "both" || unitDisplay === "kg";
+  const referenceSet = initial ?? lastSet;
+  const lastSummary = referenceSet
+    ? exercise.type === "bodyweight"
+      ? `BWx${referenceSet.reps}`
+      : `${formatLb(referenceSet.inputLb)}x${referenceSet.reps}`
+    : null;
+  const weightDescriptor = isBarbell
+    ? "Per side"
+    : isDumbbell
+      ? "Per dumbbell"
+      : "Weight";
+  const plateBreakdown = isBarbell ? buildPlateBreakdown(inputLb) : null;
+  const showPlates =
+    isBarbell &&
+    plateBreakdown &&
+    plateBreakdown.plates.length > 0 &&
+    plateBreakdown.remaining < 0.01;
 
   const handleSave = () => {
     const normalizedInput = exercise.type === "bodyweight" ? 0 : inputLb;
@@ -147,14 +179,14 @@ const SetBuilder = ({
     <BottomSheet
       open={open}
       onClose={onClose}
-      title={mode === "edit" ? "Edit Set" : "Set Builder"}
+      title={mode === "edit" ? "Edit set" : "Log set"}
       footer={
         <div className="flex items-center gap-3">
           {mode === "edit" && onDelete ? (
             <button
               type="button"
               onClick={onDelete}
-              className="flex-1 rounded-2xl border border-[var(--border)] bg-transparent px-4 py-3 text-sm text-[color:var(--danger)]"
+              className="flex-1 rounded-2xl border border-[var(--border)] bg-transparent px-4 py-3 text-sm uppercase tracking-[0.2em] text-[color:var(--danger)]"
             >
               Delete
             </button>
@@ -162,30 +194,55 @@ const SetBuilder = ({
           <button
             type="button"
             onClick={handleSave}
-            className="flex-1 rounded-2xl bg-[color:var(--accent)] px-4 py-3 text-sm font-semibold uppercase tracking-[0.2em] text-black"
+            className="flex-1 rounded-2xl bg-[color:var(--accent)] px-4 py-3 text-sm font-semibold uppercase tracking-[0.2em] text-[color:var(--accent-ink)]"
           >
-            {mode === "edit" ? "Save" : "Save Set"}
+            {mode === "edit" ? "Save changes" : "Log set"}
           </button>
         </div>
       }
     >
       <section className="flex flex-col gap-4">
+        {lastSummary ? (
+          <div className="rounded-2xl border border-dashed border-[var(--border)] bg-[color:var(--bg-elev)] p-3 text-sm text-[color:var(--muted)]">
+            <div className="text-[10px] uppercase tracking-[0.3em]">Last logged</div>
+            <div className="mt-1 text-base font-semibold text-[color:var(--text)] font-mono">
+              {lastSummary}
+            </div>
+          </div>
+        ) : null}
         {!isBodyweight ? (
           <div className="rounded-2xl border border-[var(--border)] bg-[color:var(--bg-elev)] p-4">
-            <div className="text-xs uppercase tracking-[0.35em] text-[color:var(--muted)]">
-              Weight
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <div className="text-[11px] uppercase tracking-[0.35em] text-[color:var(--muted)]">
+                  Weight
+                </div>
+                <div className="mt-1 text-xs text-[color:var(--muted)]">
+                  {weightDescriptor} (lb)
+                </div>
+              </div>
+              {totals ? (
+                <div className="text-right text-[11px] text-[color:var(--muted)]">
+                  <div className="uppercase tracking-[0.3em]">Total</div>
+                  <div className="mt-1 font-mono text-sm text-[color:var(--text)]">
+                    {showLb ? `${formatLb(totals.totalLb)} lb` : null}
+                    {showLb && showKg ? " | " : null}
+                    {showKg
+                      ? `${formatKg(totals.totalKg, settings.roundingKg)} kg`
+                      : null}
+                  </div>
+                </div>
+              ) : null}
             </div>
-            <div className="mt-2 text-sm text-[color:var(--muted)]">
-              {exercise.type === "barbell"
-                ? "Per side (lb)"
-                : isDumbbell
-                  ? "Per dumbbell (lb)"
-                  : "Weight (lb)"}
-            </div>
-            <div className="mt-2 text-3xl font-semibold text-[color:var(--text)]">
+            <div className="mt-2 text-3xl font-semibold text-[color:var(--text)] font-mono">
               {formatLb(inputLb)}
             </div>
-            <div className="mt-4 grid grid-cols-4 gap-2">
+            {isBarbell ? (
+              <div className="mt-1 text-[11px] text-[color:var(--muted)]">
+                Bar {settings.barLb} lb included
+              </div>
+            ) : null}
+            <div className="mt-3 grid grid-cols-4 gap-2">
               {settings.weightPresets.map((preset) => (
                 <Chip
                   key={preset}
@@ -197,7 +254,7 @@ const SetBuilder = ({
                 </Chip>
               ))}
             </div>
-            <div className="mt-3 flex flex-wrap gap-2">
+            <div className="mt-2 flex flex-wrap gap-2">
               {[5, 2.5, 1].map((delta) => (
                 <Chip
                   key={delta}
@@ -208,43 +265,30 @@ const SetBuilder = ({
                 </Chip>
               ))}
             </div>
-            <div className="mt-4">
+            <div className="mt-3">
               <Stepper
                 value={inputLb}
                 onChange={setInputLb}
                 step={weightStep}
                 min={0}
-                label={exercise.type === "barbell" ? "Per side" : isDumbbell ? "Per dumbbell" : "Weight"}
+                label={weightDescriptor}
                 format={formatLb}
               />
             </div>
-            {totals ? (
-              <div className="mt-4 rounded-2xl border border-[var(--border)] bg-[color:var(--bg-card)] px-4 py-3 text-sm text-[color:var(--text)]">
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <div className="text-[color:var(--muted)]">Total</div>
-                  <div className="text-sm font-semibold text-[color:var(--text)]">
-                    {showLb ? `${formatLb(totals.totalLb)} lb` : null}
-                    {showLb && showKg ? " | " : null}
-                    {showKg
-                      ? `${formatKg(totals.totalKg, settings.roundingKg)} kg`
-                      : null}
-                  </div>
-                </div>
-                {exercise.type === "barbell" ? (
-                  <div className="mt-1 text-xs text-[color:var(--muted)]">
-                    Includes {settings.barLb} lb bar
-                  </div>
-                ) : null}
+            {showPlates ? (
+              <div className="mt-2 text-[11px] text-[color:var(--muted)]">
+                Plates (std):{" "}
+                {plateBreakdown?.plates.map((plate) => formatLb(plate)).join(" + ")}
               </div>
             ) : null}
           </div>
         ) : null}
 
         <div className="rounded-2xl border border-[var(--border)] bg-[color:var(--bg-elev)] p-4">
-          <div className="text-xs uppercase tracking-[0.35em] text-[color:var(--muted)]">
+          <div className="text-[11px] uppercase tracking-[0.35em] text-[color:var(--muted)]">
             Reps
           </div>
-          <div className="mt-3 flex flex-wrap gap-2">
+          <div className="mt-2 flex flex-wrap gap-2">
             {settings.repPresets.map((rep) => (
               <Chip
                 key={rep}
@@ -255,22 +299,18 @@ const SetBuilder = ({
               </Chip>
             ))}
           </div>
-          <div className="mt-4">
+          <div className="mt-3">
             <Stepper value={reps} onChange={setReps} step={1} min={1} />
           </div>
         </div>
 
         {mode === "create" && onQuickSave ? (
           <div className="rounded-2xl border border-[var(--border)] bg-[color:var(--bg-elev)] p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <div className="text-xs uppercase tracking-[0.35em] text-[color:var(--muted)]">
-                  Multi-set
-                </div>
-                <div className="text-sm text-[color:var(--muted)]">
-                  Tap reps to save instantly
-                </div>
-              </div>
+            <div className="text-[11px] uppercase tracking-[0.35em] text-[color:var(--muted)]">
+              Rapid log
+            </div>
+            <div className="mt-1 text-sm text-[color:var(--muted)]">
+              Tap reps to log immediately
             </div>
             <div className="mt-3 flex gap-2 overflow-x-auto pb-1">
               {settings.repPresets.map((rep) => (
@@ -283,15 +323,11 @@ const SetBuilder = ({
         ) : null}
 
         <div className="rounded-2xl border border-[var(--border)] bg-[color:var(--bg-elev)] p-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <div className="text-xs uppercase tracking-[0.35em] text-[color:var(--muted)]">
-                Quick Tags
-              </div>
-              <div className="text-sm text-[color:var(--muted)]">
-                Tap to toggle
-              </div>
-            </div>
+          <div className="text-[11px] uppercase tracking-[0.35em] text-[color:var(--muted)]">
+            Tags + notes
+          </div>
+          <div className="mt-1 text-sm text-[color:var(--muted)]">
+            Tap to toggle
           </div>
           <div className="mt-3 flex flex-wrap gap-2">
             {DEFAULT_TAGS.map((tag) => {
@@ -317,7 +353,7 @@ const SetBuilder = ({
             <button
               type="button"
               onClick={() => setShowNote((prev) => !prev)}
-              className="flex w-full items-center justify-between rounded-xl border border-[var(--border)] bg-transparent px-3 py-2 text-sm text-[color:var(--muted)]"
+              className="flex min-h-[44px] w-full items-center justify-between rounded-xl border border-[var(--border)] bg-transparent px-3 py-2 text-sm text-[color:var(--muted)]"
             >
               Add note
               <IconChevronDown className={`h-4 w-4 ${showNote ? "rotate-180" : ""}`} />
@@ -336,7 +372,7 @@ const SetBuilder = ({
             <button
               type="button"
               onClick={() => setShowRpe((prev) => !prev)}
-              className="flex w-full items-center justify-between rounded-xl border border-[var(--border)] bg-transparent px-3 py-2 text-sm text-[color:var(--muted)]"
+              className="flex min-h-[44px] w-full items-center justify-between rounded-xl border border-[var(--border)] bg-transparent px-3 py-2 text-sm text-[color:var(--muted)]"
             >
               RPE
               <IconChevronDown className={`h-4 w-4 ${showRpe ? "rotate-180" : ""}`} />
@@ -360,11 +396,11 @@ const SetBuilder = ({
             <button
               type="button"
               onClick={() => setShowQuickParse((prev) => !prev)}
-              className="flex w-full items-center justify-between text-sm text-[color:var(--muted)]"
+              className="flex min-h-[44px] w-full items-center justify-between text-sm text-[color:var(--muted)]"
             >
               <span className="flex items-center gap-2">
                 <IconKeyboard className="h-4 w-4" />
-                Quick parse
+                Quick entry
               </span>
               <IconChevronDown
                 className={`h-4 w-4 ${showQuickParse ? "rotate-180" : ""}`}
@@ -376,14 +412,14 @@ const SetBuilder = ({
                   value={quickParseText}
                   onChange={(event) => setQuickParseText(event.target.value)}
                   placeholder="45x12,10,8"
-                  className="w-full rounded-xl border border-[var(--border)] bg-[color:var(--bg-card)] px-3 py-2 text-sm text-[color:var(--text)]"
+                  className="min-h-[44px] w-full rounded-xl border border-[var(--border)] bg-[color:var(--bg-card)] px-3 py-2 text-sm text-[color:var(--text)]"
                 />
                 <button
                   type="button"
                   onClick={handleQuickParse}
-                  className="w-full rounded-xl bg-[color:var(--accent-2)] px-3 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-black"
+                  className="min-h-[44px] w-full rounded-xl bg-[color:var(--accent-2)] px-3 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-[color:var(--accent-ink)]"
                 >
-                  Parse & Save
+                  Log parsed sets
                 </button>
               </div>
             ) : null}

@@ -382,77 +382,83 @@ const SettingsPage = () => {
   return (
     <AppShell title="Settings">
       <div className="space-y-5">
-        <section className="rounded-3xl border border-[var(--border)] bg-[color:var(--bg-card)] p-5">
-          <div className="text-xs uppercase tracking-[0.35em] text-[color:var(--muted)]">
-            Bar Weight
+        <section className="rounded-[var(--radius-lg)] border border-[var(--border)] bg-[color:var(--bg-card)] p-5 shadow-[var(--shadow)]">
+          <div className="text-[11px] uppercase tracking-[0.35em] text-[color:var(--muted)]">
+            Quick setup
           </div>
-          <div className="mt-3">
-            <Stepper
-              value={settings.barLb}
-              onChange={(value) => updateSettings({ barLb: value })}
-              step={5}
-              min={10}
-              max={70}
-              label="Default bar (lb)"
-            />
+          <div className="mt-4 grid gap-5">
+            <div>
+              <div className="text-[10px] uppercase tracking-[0.3em] text-[color:var(--muted)]">
+                Bar weight
+              </div>
+              <div className="mt-3">
+                <Stepper
+                  value={settings.barLb}
+                  onChange={(value) => updateSettings({ barLb: value })}
+                  step={5}
+                  min={10}
+                  max={70}
+                  label="Default bar (lb)"
+                />
+              </div>
+            </div>
+            <div>
+              <div className="text-[10px] uppercase tracking-[0.3em] text-[color:var(--muted)]">
+                Units
+              </div>
+              <div className="mt-2 flex flex-wrap gap-2">
+                {(["both", "lb", "kg"] as const).map((unit) => (
+                  <Chip
+                    key={unit}
+                    selected={settings.unitDisplay === unit}
+                    onClick={() => updateSettings({ unitDisplay: unit })}
+                  >
+                    {unit.toUpperCase()}
+                  </Chip>
+                ))}
+              </div>
+              <div className="mt-4">
+                <div className="text-[10px] uppercase tracking-[0.3em] text-[color:var(--muted)]">
+                  KG rounding
+                </div>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {[0.1, 0.5, 1].map((value) => (
+                    <Chip
+                      key={value}
+                      selected={Math.abs(settings.roundingKg - value) < 0.01}
+                      onClick={() => updateSettings({ roundingKg: value })}
+                    >
+                      {value}kg
+                    </Chip>
+                  ))}
+                </div>
+              </div>
+              <div className="mt-4">
+                <div className="text-[10px] uppercase tracking-[0.3em] text-[color:var(--muted)]">
+                  e1RM formula
+                </div>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {(["epley", "brzycki"] as const).map((formula) => (
+                    <Chip
+                      key={formula}
+                      selected={settings.e1rmFormula === formula}
+                      onClick={() => updateSettings({ e1rmFormula: formula })}
+                    >
+                      {formula}
+                    </Chip>
+                  ))}
+                </div>
+              </div>
+            </div>
           </div>
         </section>
 
-        <section className="rounded-3xl border border-[var(--border)] bg-[color:var(--bg-card)] p-5">
-          <div className="text-xs uppercase tracking-[0.35em] text-[color:var(--muted)]">
-            Display
-          </div>
-          <div className="mt-3 flex flex-wrap gap-2">
-            {(["both", "lb", "kg"] as const).map((unit) => (
-              <Chip
-                key={unit}
-                selected={settings.unitDisplay === unit}
-                onClick={() => updateSettings({ unitDisplay: unit })}
-              >
-                {unit.toUpperCase()}
-              </Chip>
-            ))}
-          </div>
-          <div className="mt-4">
-            <div className="text-xs uppercase tracking-[0.3em] text-[color:var(--muted)]">
-              KG rounding
-            </div>
-            <div className="mt-2 flex flex-wrap gap-2">
-              {[0.1, 0.5, 1].map((value) => (
-                <Chip
-                  key={value}
-                  selected={Math.abs(settings.roundingKg - value) < 0.01}
-                  onClick={() => updateSettings({ roundingKg: value })}
-                >
-                  {value}kg
-                </Chip>
-              ))}
-            </div>
-          </div>
-          <div className="mt-4">
-            <div className="text-xs uppercase tracking-[0.3em] text-[color:var(--muted)]">
-              e1RM formula
-            </div>
-            <div className="mt-2 flex flex-wrap gap-2">
-              {(["epley", "brzycki"] as const).map((formula) => (
-                <Chip
-                  key={formula}
-                  selected={settings.e1rmFormula === formula}
-                  onClick={() => updateSettings({ e1rmFormula: formula })}
-                >
-                  {formula}
-                </Chip>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        <section className="rounded-3xl border border-[var(--border)] bg-[color:var(--bg-card)] p-5">
-          <div className="text-xs uppercase tracking-[0.35em] text-[color:var(--muted)]">
+        <section className="rounded-[var(--radius-lg)] border border-[var(--border)] bg-[color:var(--bg-card)] p-5 shadow-[var(--shadow)]">
+          <div className="text-[11px] uppercase tracking-[0.35em] text-[color:var(--muted)]">
             Presets
           </div>
           <div className="mt-3">
-            <div className="text-xs uppercase tracking-[0.3em] text-[color:var(--muted)]">
+            <div className="text-[10px] uppercase tracking-[0.3em] text-[color:var(--muted)]">
               Weight presets
             </div>
             <div className="mt-2 flex flex-wrap gap-2">
@@ -476,7 +482,7 @@ const SettingsPage = () => {
                 type="number"
                 min={0}
                 placeholder="Add"
-                className="w-full rounded-xl border border-[var(--border)] bg-[color:var(--bg-elev)] px-3 py-2 text-sm text-[color:var(--text)]"
+                className="min-h-[44px] w-full rounded-xl border border-[var(--border)] bg-[color:var(--bg-elev)] px-3 py-2 text-sm text-[color:var(--text)]"
                 onKeyDown={(event) => {
                   if (event.key !== "Enter") return;
                   const value = Number((event.target as HTMLInputElement).value);
@@ -495,14 +501,14 @@ const SettingsPage = () => {
                 onClick={() =>
                   updateSettings({ weightPresets: DEFAULT_WEIGHT_PRESETS })
                 }
-                className="rounded-xl border border-[var(--border)] px-3 py-2 text-xs uppercase tracking-[0.3em] text-[color:var(--muted)]"
+                className="min-h-[44px] rounded-xl border border-[var(--border)] px-3 py-2 text-xs uppercase tracking-[0.3em] text-[color:var(--muted)]"
               >
                 Reset
               </button>
             </div>
           </div>
           <div className="mt-4">
-            <div className="text-xs uppercase tracking-[0.3em] text-[color:var(--muted)]">
+            <div className="text-[10px] uppercase tracking-[0.3em] text-[color:var(--muted)]">
               Rep presets
             </div>
             <div className="mt-2 flex flex-wrap gap-2">
@@ -524,7 +530,7 @@ const SettingsPage = () => {
                 type="number"
                 min={1}
                 placeholder="Add"
-                className="w-full rounded-xl border border-[var(--border)] bg-[color:var(--bg-elev)] px-3 py-2 text-sm text-[color:var(--text)]"
+                className="min-h-[44px] w-full rounded-xl border border-[var(--border)] bg-[color:var(--bg-elev)] px-3 py-2 text-sm text-[color:var(--text)]"
                 onKeyDown={(event) => {
                   if (event.key !== "Enter") return;
                   const value = Number((event.target as HTMLInputElement).value);
@@ -541,7 +547,7 @@ const SettingsPage = () => {
               <button
                 type="button"
                 onClick={() => updateSettings({ repPresets: DEFAULT_REP_PRESETS })}
-                className="rounded-xl border border-[var(--border)] px-3 py-2 text-xs uppercase tracking-[0.3em] text-[color:var(--muted)]"
+                className="min-h-[44px] rounded-xl border border-[var(--border)] px-3 py-2 text-xs uppercase tracking-[0.3em] text-[color:var(--muted)]"
               >
                 Reset
               </button>
@@ -549,14 +555,14 @@ const SettingsPage = () => {
           </div>
         </section>
 
-        <section className="rounded-3xl border border-[var(--border)] bg-[color:var(--bg-card)] p-5">
-          <div className="text-xs uppercase tracking-[0.35em] text-[color:var(--muted)]">
-            Workout Editor
+        <section className="rounded-[var(--radius-lg)] border border-[var(--border)] bg-[color:var(--bg-card)] p-5 shadow-[var(--shadow)]">
+          <div className="text-[11px] uppercase tracking-[0.35em] text-[color:var(--muted)]">
+            Workout builder
           </div>
           <div className="mt-4 grid gap-5">
             {workoutOptions.map((workout) => (
               <div key={workout} className="space-y-3">
-                <div className="text-xs uppercase tracking-[0.3em] text-[color:var(--muted)]">
+                <div className="text-[10px] uppercase tracking-[0.3em] text-[color:var(--muted)]">
                   Workout {workout}
                 </div>
                 {groupedExercises(workout).map((exercise) => (
@@ -586,7 +592,7 @@ const SettingsPage = () => {
                       <button
                         type="button"
                         onClick={() => handleRemoveExercise(exercise)}
-                        className="text-xs uppercase tracking-[0.3em] text-[color:var(--danger)]"
+                        className="text-[10px] uppercase tracking-[0.3em] text-[color:var(--danger)]"
                       >
                         Remove
                       </button>
@@ -599,7 +605,7 @@ const SettingsPage = () => {
                             type: event.target.value as ExerciseType,
                           })
                         }
-                        className="rounded-xl border border-[var(--border)] bg-[color:var(--bg-card)] px-3 py-2 text-xs uppercase tracking-[0.3em] text-[color:var(--text)]"
+                        className="min-h-[44px] rounded-xl border border-[var(--border)] bg-[color:var(--bg-card)] px-3 py-2 text-xs uppercase tracking-[0.3em] text-[color:var(--text)]"
                       >
                         {typeOptions.map((type) => (
                           <option key={type} value={type}>
@@ -614,7 +620,7 @@ const SettingsPage = () => {
                             workout: event.target.value as WorkoutId,
                           })
                         }
-                        className="rounded-xl border border-[var(--border)] bg-[color:var(--bg-card)] px-3 py-2 text-xs uppercase tracking-[0.3em] text-[color:var(--text)]"
+                        className="min-h-[44px] rounded-xl border border-[var(--border)] bg-[color:var(--bg-card)] px-3 py-2 text-xs uppercase tracking-[0.3em] text-[color:var(--text)]"
                       >
                         {workoutOptions.map((workoutOption) => (
                           <option key={workoutOption} value={workoutOption}>
@@ -630,7 +636,7 @@ const SettingsPage = () => {
           </div>
 
           <div className="mt-6 rounded-2xl border border-dashed border-[var(--border)] p-4">
-            <div className="text-xs uppercase tracking-[0.3em] text-[color:var(--muted)]">
+            <div className="text-[10px] uppercase tracking-[0.3em] text-[color:var(--muted)]">
               Add exercise
             </div>
             <div className="mt-3 grid gap-3 sm:grid-cols-3">
@@ -638,14 +644,14 @@ const SettingsPage = () => {
                 value={newExerciseName}
                 onChange={(event) => setNewExerciseName(event.target.value)}
                 placeholder="Name"
-                className="rounded-xl border border-[var(--border)] bg-[color:var(--bg-elev)] px-3 py-2 text-sm text-[color:var(--text)]"
+                className="min-h-[44px] rounded-xl border border-[var(--border)] bg-[color:var(--bg-elev)] px-3 py-2 text-sm text-[color:var(--text)]"
               />
               <select
                 value={newExerciseType}
                 onChange={(event) =>
                   setNewExerciseType(event.target.value as ExerciseType)
                 }
-                className="rounded-xl border border-[var(--border)] bg-[color:var(--bg-elev)] px-3 py-2 text-sm text-[color:var(--text)]"
+                className="min-h-[44px] rounded-xl border border-[var(--border)] bg-[color:var(--bg-elev)] px-3 py-2 text-sm text-[color:var(--text)]"
               >
                 {typeOptions.map((type) => (
                   <option key={type} value={type}>
@@ -658,7 +664,7 @@ const SettingsPage = () => {
                 onChange={(event) =>
                   setNewExerciseWorkout(event.target.value as WorkoutId)
                 }
-                className="rounded-xl border border-[var(--border)] bg-[color:var(--bg-elev)] px-3 py-2 text-sm text-[color:var(--text)]"
+                className="min-h-[44px] rounded-xl border border-[var(--border)] bg-[color:var(--bg-elev)] px-3 py-2 text-sm text-[color:var(--text)]"
               >
                 {workoutOptions.map((workout) => (
                   <option key={workout} value={workout}>
@@ -670,16 +676,16 @@ const SettingsPage = () => {
             <button
               type="button"
               onClick={handleAddExercise}
-              className="mt-3 w-full rounded-xl bg-[color:var(--accent)] px-3 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-black"
+              className="mt-3 min-h-[44px] w-full rounded-xl bg-[color:var(--accent)] px-3 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-[color:var(--accent-ink)]"
             >
-              Add
+              Add exercise
             </button>
           </div>
         </section>
 
-        <section className="rounded-3xl border border-[var(--border)] bg-[color:var(--bg-card)] p-5">
-          <div className="text-xs uppercase tracking-[0.35em] text-[color:var(--muted)]">
-            File Mirror
+        <section className="rounded-[var(--radius-lg)] border border-[var(--border)] bg-[color:var(--bg-card)] p-5 shadow-[var(--shadow)]">
+          <div className="text-[11px] uppercase tracking-[0.35em] text-[color:var(--muted)]">
+            File mirror
           </div>
           {!mirrorState.supported ? (
             <div className="mt-4 space-y-3">
@@ -689,7 +695,7 @@ const SettingsPage = () => {
               <button
                 type="button"
                 disabled
-                className="w-full rounded-xl bg-[color:var(--accent)] px-3 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-black opacity-60"
+                className="min-h-[44px] w-full rounded-xl bg-[color:var(--accent)] px-3 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-[color:var(--accent-ink)] opacity-60"
               >
                 Enable File Mirror
               </button>
@@ -702,7 +708,7 @@ const SettingsPage = () => {
                   {mirrorFileName}
                 </span>
               </div>
-              <div className="text-xs uppercase tracking-[0.3em] text-[color:var(--muted)]">
+              <div className="text-[10px] uppercase tracking-[0.3em] text-[color:var(--muted)]">
                 Last write: {mirrorLastWriteLabel}
               </div>
               <div className="flex flex-wrap gap-3">
@@ -710,7 +716,7 @@ const SettingsPage = () => {
                   type="button"
                   onClick={handleWriteMirror}
                   disabled={mirrorBusy}
-                  className="rounded-xl border border-[var(--border)] px-3 py-2 text-xs uppercase tracking-[0.3em] text-[color:var(--text)] disabled:opacity-60"
+                  className="min-h-[44px] rounded-xl border border-[var(--border)] px-3 py-2 text-xs uppercase tracking-[0.3em] text-[color:var(--text)] disabled:opacity-60"
                 >
                   Write now
                 </button>
@@ -718,7 +724,7 @@ const SettingsPage = () => {
                   type="button"
                   onClick={handleDisableMirror}
                   disabled={mirrorBusy}
-                  className="rounded-xl border border-[var(--border)] px-3 py-2 text-xs uppercase tracking-[0.3em] text-[color:var(--danger)] disabled:opacity-60"
+                  className="min-h-[44px] rounded-xl border border-[var(--border)] px-3 py-2 text-xs uppercase tracking-[0.3em] text-[color:var(--danger)] disabled:opacity-60"
                 >
                   Disable
                 </button>
@@ -733,7 +739,7 @@ const SettingsPage = () => {
                 type="button"
                 onClick={handleEnableMirror}
                 disabled={mirrorBusy}
-                className="w-full rounded-xl bg-[color:var(--accent)] px-3 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-black disabled:opacity-60"
+                className="min-h-[44px] w-full rounded-xl bg-[color:var(--accent)] px-3 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-[color:var(--accent-ink)] disabled:opacity-60"
               >
                 Enable File Mirror
               </button>
@@ -741,15 +747,15 @@ const SettingsPage = () => {
           )}
         </section>
 
-        <section className="rounded-3xl border border-[var(--border)] bg-[color:var(--bg-card)] p-5">
-          <div className="text-xs uppercase tracking-[0.35em] text-[color:var(--muted)]">
+        <section className="rounded-[var(--radius-lg)] border border-[var(--border)] bg-[color:var(--bg-card)] p-5 shadow-[var(--shadow)]">
+          <div className="text-[11px] uppercase tracking-[0.35em] text-[color:var(--muted)]">
             Backup
           </div>
           <div className="mt-4 flex flex-wrap gap-3">
             <button
               type="button"
               onClick={handleExportJson}
-              className="flex items-center gap-2 rounded-xl border border-[var(--border)] px-3 py-2 text-xs uppercase tracking-[0.3em] text-[color:var(--text)]"
+              className="min-h-[44px] flex items-center gap-2 rounded-xl border border-[var(--border)] px-3 py-2 text-xs uppercase tracking-[0.3em] text-[color:var(--text)]"
             >
               <IconDownload className="h-4 w-4" />
               Export JSON
@@ -757,12 +763,12 @@ const SettingsPage = () => {
             <button
               type="button"
               onClick={handleExportCsv}
-              className="flex items-center gap-2 rounded-xl border border-[var(--border)] px-3 py-2 text-xs uppercase tracking-[0.3em] text-[color:var(--text)]"
+              className="min-h-[44px] flex items-center gap-2 rounded-xl border border-[var(--border)] px-3 py-2 text-xs uppercase tracking-[0.3em] text-[color:var(--text)]"
             >
               <IconDownload className="h-4 w-4" />
               Export CSV
             </button>
-            <label className="flex cursor-pointer items-center gap-2 rounded-xl border border-[var(--border)] px-3 py-2 text-xs uppercase tracking-[0.3em] text-[color:var(--text)]">
+            <label className="min-h-[44px] flex cursor-pointer items-center gap-2 rounded-xl border border-[var(--border)] px-3 py-2 text-xs uppercase tracking-[0.3em] text-[color:var(--text)]">
               <IconUpload className="h-4 w-4" />
               Import
               <input
@@ -782,8 +788,8 @@ const SettingsPage = () => {
         </section>
 
         {installPrompt ? (
-          <section className="rounded-3xl border border-[var(--border)] bg-[color:var(--bg-card)] p-5">
-            <div className="text-xs uppercase tracking-[0.35em] text-[color:var(--muted)]">
+          <section className="rounded-[var(--radius-lg)] border border-[var(--border)] bg-[color:var(--bg-card)] p-5 shadow-[var(--shadow)]">
+            <div className="text-[11px] uppercase tracking-[0.35em] text-[color:var(--muted)]">
               Install
             </div>
             <button
@@ -793,9 +799,9 @@ const SettingsPage = () => {
                 await installPrompt.userChoice;
                 setInstallPrompt(null);
               }}
-              className="mt-3 w-full rounded-xl bg-[color:var(--accent)] px-3 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-black"
+              className="mt-3 min-h-[44px] w-full rounded-xl bg-[color:var(--accent)] px-3 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-[color:var(--accent-ink)]"
             >
-              Install App
+              Install app
             </button>
           </section>
         ) : null}
