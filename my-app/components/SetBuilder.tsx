@@ -95,7 +95,8 @@ const SetBuilder = ({
   const isBodyweight = exercise?.type === "bodyweight";
   const isDumbbell = exercise?.type === "dumbbell";
   const isBarbell = exercise?.type === "barbell";
-  const weightStep = exercise?.type === "barbell" ? 2.5 : 5;
+  const perSide = isBarbell || isDumbbell ? exercise?.perSide ?? true : false;
+  const weightStep = isBarbell ? (perSide ? 2.5 : 5) : 5;
 
   // Sync draft state when opening or switching exercises.
   /* eslint-disable react-hooks/set-state-in-effect */
@@ -125,8 +126,9 @@ const SetBuilder = ({
       exercise.type,
       settings.barLb,
       settings.roundingKg,
+      perSide,
     );
-  }, [exercise, inputLb, settings.barLb, settings.roundingKg]);
+  }, [exercise, inputLb, perSide, settings.barLb, settings.roundingKg]);
 
   if (!exercise) return null;
 
@@ -140,11 +142,20 @@ const SetBuilder = ({
       : `${formatLb(referenceSet.inputLb)}x${referenceSet.reps}`
     : null;
   const weightDescriptor = isBarbell
-    ? "Per side"
+    ? perSide
+      ? "Per side"
+      : "Total on bar"
     : isDumbbell
-      ? "Per dumbbell"
+      ? perSide
+        ? "Per dumbbell"
+        : "Total load"
       : "Weight";
-  const plateBreakdown = isBarbell ? buildPlateBreakdown(inputLb) : null;
+  const plateInput = isBarbell
+    ? perSide
+      ? inputLb
+      : Math.max(0, (inputLb - settings.barLb) / 2)
+    : inputLb;
+  const plateBreakdown = isBarbell ? buildPlateBreakdown(plateInput) : null;
   const showPlates =
     isBarbell &&
     plateBreakdown &&
@@ -239,7 +250,7 @@ const SetBuilder = ({
             </div>
             {isBarbell ? (
               <div className="mt-1 text-[11px] text-[color:var(--muted)]">
-                Bar {settings.barLb} lb included
+                Bar {settings.barLb} lb {perSide ? "included" : "inside total"}
               </div>
             ) : null}
             <div className="mt-3 grid grid-cols-4 gap-2">

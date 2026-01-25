@@ -8,6 +8,7 @@ export type Exercise = {
   name: string;
   type: ExerciseType;
   workout: WorkoutId;
+  perSide?: boolean;
   order: number;
   createdAt: number;
 };

@@ -19,14 +19,15 @@ export const computeTotals = (
   type: ExerciseType,
   barLb: number,
   rounding = 0.1,
+  perSide = true,
 ) => {
   let totalLb = inputLb;
   switch (type) {
     case "barbell":
-      totalLb = inputLb * 2 + barLb;
+      totalLb = perSide ? inputLb * 2 + barLb : inputLb;
       break;
     case "dumbbell":
-      totalLb = inputLb * 2;
+      totalLb = perSide ? inputLb * 2 : inputLb;
       break;
     case "bodyweight":
       totalLb = 0;

@@ -32,6 +32,15 @@ export const IconProgress = (props: SVGProps<SVGSVGElement>) => (
   </svg>
 );
 
+export const IconTimer = (props: SVGProps<SVGSVGElement>) => (
+  <svg viewBox="0 0 24 24" aria-hidden="true" {...baseProps} {...props}>
+    <circle cx="12" cy="13" r="7" />
+    <path d="M12 13V9" />
+    <path d="M12 13l3 2" />
+    <path d="M9 2h6" />
+  </svg>
+);
+
 export const IconSettings = (props: SVGProps<SVGSVGElement>) => (
   <svg viewBox="0 0 24 24" aria-hidden="true" {...baseProps} {...props}>
     <path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" />

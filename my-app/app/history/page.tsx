@@ -119,11 +119,16 @@ const HistoryPage = () => {
     if (!editingSet) return;
     const exercise = exerciseById.get(editingSet.exerciseId);
     if (!exercise) return;
+    const perSide =
+      exercise.type === "barbell" || exercise.type === "dumbbell"
+        ? exercise.perSide ?? true
+        : false;
     const totals = computeTotals(
       draft.inputLb,
       exercise.type,
       editingSet.barLbSnapshot,
       settings.roundingKg,
+      perSide,
     );
     const updated: SetEntry = {
       ...editingSet,
