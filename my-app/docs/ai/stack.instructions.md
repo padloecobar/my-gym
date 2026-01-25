@@ -21,8 +21,8 @@ Source of truth: `my-app/package.json`.
 
 ## Next.js + React rules
 - App Router only; no Pages Router or legacy data fetching APIs.
-- Server Components by default; add "use client" only when required (events, browser APIs, controlled inputs).
 - React 19 patterns only; no class components or legacy lifecycles.
+- Always do quick web search to verify approach in the official docs.
 
 ## Styling + UI rules
 - Tailwind v4 utilities first.

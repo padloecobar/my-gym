@@ -11,7 +11,7 @@ Do not implement code unless you follow these steps in order.
 - Read `my-app/package.json` and `my-app/docs/ai/stack.instructions.md`.
 
 ## 3) Verify docs (official)
-For any non-trivial API/hook/platform feature:
+For any non-trivial feature:
 - Check official docs (React, Next.js, Tailwind, MDN).
 - Record 1–5 links in the iteration log.
 - If search is unavailable, use conservative patterns and note uncertainty.
