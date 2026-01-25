@@ -16,10 +16,12 @@ import {
   addSet,
   deleteExercise,
   getAllExercises,
+  getAllSessions,
   getAllSettings,
   getAllSets,
   saveExercise,
   saveExercises,
+  saveSessions,
   setSettings,
 } from "../../lib/db";
 import { computeTotals } from "../../lib/calc";
@@ -45,6 +47,7 @@ import {
 import type {
   Exercise,
   ExerciseType,
+  SessionEntry,
   SetEntry,
   SettingsState,
   WorkoutId,
@@ -94,6 +97,7 @@ const SettingsPage = () => {
   const [settings, setSettingsState] = useState<SettingsState>(defaultSettings);
   const [exercises, setExercises] = useState<Exercise[]>([]);
   const [sets, setSets] = useState<SetEntry[]>([]);
+  const [sessions, setSessions] = useState<SessionEntry[]>([]);
   const [toast, setToast] = useState<string | null>(null);
   const toastTimer = useRef<number | null>(null);
   const [installPrompt, setInstallPrompt] = useState<BeforeInstallPromptEvent | null>(
@@ -113,14 +117,17 @@ const SettingsPage = () => {
 
   useEffect(() => {
     const load = async () => {
-      const [settingsData, exerciseData, setData, mirrorData] = await Promise.all([
-        getAllSettings(),
-        getAllExercises(),
-        getAllSets(),
-        getFileMirrorState(),
-      ]);
+      const [settingsData, exerciseData, sessionData, setData, mirrorData] =
+        await Promise.all([
+          getAllSettings(),
+          getAllExercises(),
+          getAllSessions(),
+          getAllSets(),
+          getFileMirrorState(),
+        ]);
       setSettingsState({ ...defaultSettings, ...settingsData } as SettingsState);
       setExercises(exerciseData);
+      setSessions(sessionData);
       setSets(setData);
       setMirrorState(mirrorData);
     };
@@ -310,7 +317,7 @@ const SettingsPage = () => {
   };
 
   const handleExportJson = async () => {
-    const payload = serializeBackup(exercises, sets, settings);
+    const payload = serializeBackup(exercises, sets, settings, sessions);
     downloadFile(payload, "gymlog-backup.json", "application/json");
   };
 
@@ -338,9 +345,13 @@ const SettingsPage = () => {
         for (const setEntry of payload.sets) {
           await addSet(setEntry);
         }
+        if (payload.sessions?.length) {
+          await saveSessions(payload.sessions);
+        }
         setSettingsState({ ...settings, ...payload.settings, onboarded: true });
         await setSettings({ ...payload.settings, onboarded: true });
         setSets(await getAllSets());
+        setSessions(await getAllSessions());
         showToast("Backup imported.");
         return;
       }
@@ -414,6 +425,7 @@ const SettingsPage = () => {
       await saveExercises(nextExercises);
       setExercises(nextExercises);
       setSets(await getAllSets());
+      setSessions(await getAllSessions());
       showToast("CSV imported.");
     } catch (error) {
       console.error(error);

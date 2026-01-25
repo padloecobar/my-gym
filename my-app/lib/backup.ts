@@ -1,4 +1,10 @@
-import type { BackupPayload, Exercise, SetEntry, SettingsState } from "./types";
+import type {
+  BackupPayload,
+  Exercise,
+  SessionEntry,
+  SetEntry,
+  SettingsState,
+} from "./types";
 
 type SerializeBackupOptions = {
   pretty?: boolean;
@@ -8,13 +14,15 @@ export const serializeBackup = (
   exercises: Exercise[],
   sets: SetEntry[],
   settings: SettingsState,
+  sessions: SessionEntry[] = [],
   options: SerializeBackupOptions = {},
 ): string => {
   const payload: BackupPayload = {
-    version: 1,
+    version: 2,
     exportedAt: Date.now(),
     exercises,
     sets,
+    sessions: sessions.length ? sessions : undefined,
     settings,
   };
   const pretty = options.pretty !== false;

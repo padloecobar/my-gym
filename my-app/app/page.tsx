@@ -16,16 +16,29 @@ import {
   addSet,
   deleteSet,
   getAllExercises,
+  getAllSessions,
   getAllSettings,
   getAllSets,
+  getSession,
   saveExercises,
   setSettings,
   updateSet,
 } from "../lib/db";
 import { computeTotals, formatLb } from "../lib/calc";
-import { formatShortTime, getLocalDateKey } from "../lib/date";
+import {
+  formatDateHeading,
+  formatSessionDateLabel,
+  formatShortTime,
+  getLocalDateKey,
+} from "../lib/date";
 import { createDefaultExercises, defaultSettings } from "../lib/defaults";
-import type { Exercise, SetEntry, SettingsState, WorkoutId } from "../lib/types";
+import type {
+  Exercise,
+  SessionEntry,
+  SetEntry,
+  SettingsState,
+  WorkoutId,
+} from "../lib/types";
 
 const typeLabel = (type: Exercise["type"]) => {
   switch (type) {
@@ -65,8 +78,10 @@ const getModeLabel = (exercise: Exercise) => {
 const LogPage = () => {
   const [exercises, setExercises] = useState<Exercise[]>([]);
   const [sets, setSets] = useState<SetEntry[]>([]);
+  const [sessions, setSessions] = useState<SessionEntry[]>([]);
   const [settings, setSettingsState] = useState<SettingsState>(defaultSettings);
   const [loading, setLoading] = useState(true);
+  const [activeSessionDate, setActiveSessionDate] = useState(getLocalDateKey());
   const [selectedWorkout, setSelectedWorkout] = useState<WorkoutId | null>(null);
   const [sessionPickerOpen, setSessionPickerOpen] = useState(false);
   const [composerOpen, setComposerOpen] = useState(false);
@@ -83,6 +98,11 @@ const LogPage = () => {
   const scrollRaf = useRef<number | null>(null);
   const [restTimerEndsAt, setRestTimerEndsAt] = useState<number | null>(null);
   const [restTick, setRestTick] = useState(Date.now());
+  const [calendarOpen, setCalendarOpen] = useState(false);
+  const [calendarMonth, setCalendarMonth] = useState(() => {
+    const now = new Date();
+    return { year: now.getFullYear(), month: now.getMonth() };
+  });
   const gestureRef = useRef<{
     startX: number;
     startY: number;
@@ -102,18 +122,35 @@ const LogPage = () => {
   useEffect(() => {
     const load = async () => {
       try {
-        const [exerciseData, settingsData, setData] = await Promise.all([
+        const [exerciseData, sessionData, settingsData, setData] = await Promise.all([
           getAllExercises(),
+          getAllSessions(),
           getAllSettings(),
           getAllSets(),
         ]);
+        const todayKey = getLocalDateKey();
+        const sessionDate =
+          typeof settingsData.activeSessionDate === "string"
+            ? settingsData.activeSessionDate
+            : todayKey;
         const mergedSettings = {
           ...defaultSettings,
           ...settingsData,
+          activeSessionDate: sessionDate,
         } as SettingsState;
         setExercises(exerciseData);
+        setSessions(sessionData);
         setSettingsState(mergedSettings);
         setSets(setData);
+        setActiveSessionDate(sessionDate);
+        const activeDate = new Date(sessionDate);
+        setCalendarMonth({
+          year: activeDate.getFullYear(),
+          month: activeDate.getMonth(),
+        });
+        if (settingsData.activeSessionDate !== sessionDate) {
+          await setSettings({ activeSessionDate: sessionDate });
+        }
       } catch (error) {
         console.error(error);
       } finally {
@@ -174,22 +211,116 @@ const LogPage = () => {
   }, [exercisesForWorkout.length]);
 
   const todayKey = getLocalDateKey();
+  const sessionDateLabel = formatSessionDateLabel(activeSessionDate, todayKey);
+  const sessionBarDates = useMemo(() => {
+    const dates = sessions
+      .map((session) => session.date)
+      .filter((date) => date <= todayKey);
+    const list = [todayKey, activeSessionDate, ...dates];
+    const unique = new Set<string>();
+    return list.filter((date) => {
+      if (unique.has(date)) return false;
+      unique.add(date);
+      return true;
+    });
+  }, [activeSessionDate, sessions, todayKey]);
 
-  const { lastSetByExercise, todaySetsByExercise } = useMemo(() => {
+  const workoutDateSet = useMemo(
+    () => new Set(sessions.map((session) => session.date)),
+    [sessions],
+  );
+
+  const calendarMonthLabel = useMemo(() => {
+    const date = new Date(calendarMonth.year, calendarMonth.month, 1);
+    return date.toLocaleDateString(undefined, {
+      month: "long",
+      year: "numeric",
+    });
+  }, [calendarMonth.month, calendarMonth.year]);
+
+  const calendarDays = useMemo(() => {
+    const days: Array<{
+      dateKey: string;
+      day: number;
+      isToday: boolean;
+      isActive: boolean;
+      hasWorkout: boolean;
+    } | null> = [];
+    const firstDay = new Date(calendarMonth.year, calendarMonth.month, 1);
+    const startWeekday = firstDay.getDay();
+    const daysInMonth = new Date(
+      calendarMonth.year,
+      calendarMonth.month + 1,
+      0,
+    ).getDate();
+    const totalCells = Math.ceil((startWeekday + daysInMonth) / 7) * 7;
+    for (let i = 0; i < totalCells; i += 1) {
+      const dayNumber = i - startWeekday + 1;
+      if (dayNumber < 1 || dayNumber > daysInMonth) {
+        days.push(null);
+        continue;
+      }
+      const dateKey = `${calendarMonth.year}-${String(
+        calendarMonth.month + 1,
+      ).padStart(2, "0")}-${String(dayNumber).padStart(2, "0")}`;
+      days.push({
+        dateKey,
+        day: dayNumber,
+        isToday: dateKey === todayKey,
+        isActive: dateKey === activeSessionDate,
+        hasWorkout: workoutDateSet.has(dateKey),
+      });
+    }
+    return days;
+  }, [
+    activeSessionDate,
+    calendarMonth.month,
+    calendarMonth.year,
+    todayKey,
+    workoutDateSet,
+  ]);
+
+  const openCalendar = useCallback(() => {
+    const date = new Date(activeSessionDate);
+    setCalendarMonth({ year: date.getFullYear(), month: date.getMonth() });
+    setCalendarOpen(true);
+  }, [activeSessionDate]);
+
+  const handlePrevMonth = useCallback(() => {
+    setCalendarMonth((prev) => {
+      const nextMonth = prev.month - 1;
+      if (nextMonth < 0) {
+        return { year: prev.year - 1, month: 11 };
+      }
+      return { year: prev.year, month: nextMonth };
+    });
+  }, []);
+
+  const handleNextMonth = useCallback(() => {
+    setCalendarMonth((prev) => {
+      const nextMonth = prev.month + 1;
+      if (nextMonth > 11) {
+        return { year: prev.year + 1, month: 0 };
+      }
+      return { year: prev.year, month: nextMonth };
+    });
+  }, []);
+
+  const { lastSetByExercise, sessionSetsByExercise } = useMemo(() => {
     const lastMap = new Map<string, SetEntry>();
-    const todayMap = new Map<string, SetEntry[]>();
+    const sessionMap = new Map<string, SetEntry[]>();
     sets.forEach((set) => {
       if (!lastMap.has(set.exerciseId)) {
         lastMap.set(set.exerciseId, set);
       }
-      if (set.date === todayKey) {
-        const list = todayMap.get(set.exerciseId) ?? [];
+      if (set.date === activeSessionDate) {
+        const list = sessionMap.get(set.exerciseId) ?? [];
         list.push(set);
-        todayMap.set(set.exerciseId, list);
+        sessionMap.set(set.exerciseId, list);
       }
     });
-    return { lastSetByExercise: lastMap, todaySetsByExercise: todayMap };
-  }, [sets, todayKey]);
+    return { lastSetByExercise: lastMap, sessionSetsByExercise: sessionMap };
+  }, [activeSessionDate, sets]);
 
   const workoutMeta = useMemo(() => {
     return workouts.map((workout) => {
@@ -198,11 +329,11 @@ const LogPage = () => {
         .sort((a, b) => a.order - b.order);
       const focus = list.slice(0, 2).map((exercise) => exercise.name).join(" + ");
       const completed = list.filter(
-        (exercise) => (todaySetsByExercise.get(exercise.id) ?? []).length > 0,
+        (exercise) => (sessionSetsByExercise.get(exercise.id) ?? []).length > 0,
       ).length;
       const setCount = list.reduce(
         (total, exercise) =>
-          total + (todaySetsByExercise.get(exercise.id) ?? []).length,
+          total + (sessionSetsByExercise.get(exercise.id) ?? []).length,
         0,
       );
       return {
@@ -213,7 +344,7 @@ const LogPage = () => {
         setCount,
       };
     });
-  }, [exercises, todaySetsByExercise, workouts]);
+  }, [exercises, sessionSetsByExercise, workouts]);
 
   const activeMeta = workoutMeta.find((meta) => meta.workout === activeWorkout);
   const activeCompleted = activeMeta?.completed ?? 0;
@@ -223,8 +354,8 @@ const LogPage = () => {
   const lastSet = activeExercise
     ? lastSetByExercise.get(activeExercise.id) ?? null
     : null;
-  const todaySets = activeExercise
-    ? todaySetsByExercise.get(activeExercise.id) ?? []
+  const sessionSets = activeExercise
+    ? sessionSetsByExercise.get(activeExercise.id) ?? []
     : [];
 
   const exerciseById = useMemo(() => {
@@ -232,6 +363,41 @@ const LogPage = () => {
   }, [exercises]);
 
   const needsOnboarding = !settings.onboarded || exercises.length === 0;
+
+  const sortSessionsDesc = useCallback(
+    (items: SessionEntry[]) =>
+      [...items].sort((a, b) => (a.date < b.date ? 1 : -1)),
+    [],
+  );
+
+  const refreshSessionDate = useCallback(
+    async (date: string) => {
+      const session = await getSession(date);
+      if (!session) return;
+      setSessions((prev) => {
+        const next = prev.filter((item) => item.date !== date);
+        next.push(session);
+        return sortSessionsDesc(next);
+      });
+    },
+    [sortSessionsDesc],
+  );
+
+  const removeSessionDate = useCallback((date: string) => {
+    setSessions((prev) => prev.filter((item) => item.date !== date));
+  }, []);
+
+  const updateSessionDate = useCallback(async (nextDate: string) => {
+    if (!nextDate) return;
+    const date = new Date(nextDate);
+    setActiveSessionDate(nextDate);
+    setCalendarMonth({
+      year: date.getFullYear(),
+      month: date.getMonth(),
+    });
+    setSettingsState((prev) => ({ ...prev, activeSessionDate: nextDate }));
+    await setSettings({ activeSessionDate: nextDate });
+  }, []);
 
   const showToast = useCallback((message: string, action?: () => void) => {
     setToast({ message, action });
@@ -281,7 +447,7 @@ const LogPage = () => {
       return {
         id: crypto.randomUUID(),
         ts,
-        date: getLocalDateKey(ts),
+        date: activeSessionDate,
         exerciseId: exercise.id,
         reps: draft.reps,
         inputLb: draft.inputLb,
@@ -293,7 +459,7 @@ const LogPage = () => {
         meta: draft.rpe ? { rpe: draft.rpe } : undefined,
       };
     },
-    [settings.barLb, settings.roundingKg],
+    [activeSessionDate, settings.barLb, settings.roundingKg],
   );
 
   const handleAddSet = useCallback(
@@ -312,6 +478,7 @@ const LogPage = () => {
       try {
         await addSet(entry);
         setSets((prev) => [entry, ...prev]);
+        await refreshSessionDate(entry.date);
         const nextSettings = { ...settings, lastWorkout: exercise.workout };
         setSettingsState(nextSettings);
         await setSettings({ lastWorkout: exercise.workout });
@@ -319,7 +486,14 @@ const LogPage = () => {
         if (!options?.silent) {
           showToast(`Logged ${formatSetLabel(entry, exercise)}`, async () => {
             await deleteSet(entry.id);
-            setSets((prev) => prev.filter((item) => item.id !== entry.id));
+            setSets((prev) => {
+              const next = prev.filter((item) => item.id !== entry.id);
+              const stillHasDate = next.some((item) => item.date === entry.date);
+              if (!stillHasDate) {
+                removeSessionDate(entry.date);
+              }
+              return next;
+            });
           });
         }
       } catch (error) {
@@ -330,6 +504,8 @@ const LogPage = () => {
     [
       createSetEntry,
       formatSetLabel,
+      refreshSessionDate,
+      removeSessionDate,
       settings,
       showToast,
       triggerHaptic,
@@ -341,27 +517,35 @@ const LogPage = () => {
     const nextSettings: SettingsState = {
       ...defaultSettings,
       barLb,
+      activeSessionDate,
       onboarded: true,
     };
     await saveExercises(seeded);
     await setSettings(nextSettings);
     setExercises(seeded);
     setSettingsState(nextSettings);
-  }, []);
+  }, [activeSessionDate]);
 
   const handleUndoToday = useCallback(
     async (exerciseId: string) => {
-      const todaySetsList = todaySetsByExercise.get(exerciseId) ?? [];
-      const latest = todaySetsList[0];
+      const sessionSetsList = sessionSetsByExercise.get(exerciseId) ?? [];
+      const latest = sessionSetsList[0];
       if (!latest) {
         showToast("No sets to undo.");
         return;
       }
       await deleteSet(latest.id);
-      setSets((prev) => prev.filter((item) => item.id !== latest.id));
+      setSets((prev) => {
+        const next = prev.filter((item) => item.id !== latest.id);
+        const stillHasDate = next.some((item) => item.date === latest.date);
+        if (!stillHasDate) {
+          removeSessionDate(latest.date);
+        }
+        return next;
+      });
       showToast("Undid last set.");
     },
-    [showToast, todaySetsByExercise],
+    [removeSessionDate, sessionSetsByExercise, showToast],
   );
 
   const handleEditUpdate = useCallback(
@@ -402,33 +586,56 @@ const LogPage = () => {
     if (!editingSet) return;
     const exercise = exerciseById.get(editingSet.exerciseId);
     await deleteSet(editingSet.id);
-    setSets((prev) => prev.filter((item) => item.id !== editingSet.id));
+    setSets((prev) => {
+      const next = prev.filter((item) => item.id !== editingSet.id);
+      const stillHasDate = next.some((item) => item.date === editingSet.date);
+      if (!stillHasDate) {
+        removeSessionDate(editingSet.date);
+      }
+      return next;
+    });
     setEditingSet(null);
     if (exercise) {
       showToast(`Deleted ${formatSetLabel(editingSet, exercise)}`, async () => {
         await addSet(editingSet);
         setSets((prev) => [editingSet, ...prev]);
+        await refreshSessionDate(editingSet.date);
       });
     } else {
       showToast("Deleted set");
     }
-  }, [editingSet, exerciseById, formatSetLabel, showToast]);
+  }, [
+    editingSet,
+    exerciseById,
+    formatSetLabel,
+    refreshSessionDate,
+    removeSessionDate,
+    showToast,
+  ]);
 
   const handleDeleteSet = useCallback(
     async (entry: SetEntry) => {
       await deleteSet(entry.id);
-      setSets((prev) => prev.filter((item) => item.id !== entry.id));
+      setSets((prev) => {
+        const next = prev.filter((item) => item.id !== entry.id);
+        const stillHasDate = next.some((item) => item.date === entry.date);
+        if (!stillHasDate) {
+          removeSessionDate(entry.date);
+        }
+        return next;
+      });
       const exercise = exerciseById.get(entry.exerciseId);
       if (exercise) {
         showToast(`Deleted ${formatSetLabel(entry, exercise)}`, async () => {
           await addSet(entry);
           setSets((prev) => [entry, ...prev]);
+          await refreshSessionDate(entry.date);
         });
       } else {
         showToast("Deleted set");
       }
     },
-    [exerciseById, formatSetLabel, showToast],
+    [exerciseById, formatSetLabel, refreshSessionDate, removeSessionDate, showToast],
   );
 
   const handleToggleWarmup = useCallback(
@@ -630,15 +837,57 @@ const LogPage = () => {
         title="Log"
         mainClassName="pt-4"
         header={
-          <div className="flex items-center justify-between gap-4 px-5 py-3">
+          <div className="space-y-3 px-5 py-3">
+            <div className="flex items-center justify-between gap-3">
+              <div className="-mx-5 flex flex-1 gap-2 overflow-x-auto px-5 pb-1">
+                {sessionBarDates.map((dateKey) => {
+                  const isActive = dateKey === activeSessionDate;
+                  const label =
+                    dateKey === todayKey ? "Today" : formatDateHeading(dateKey);
+                  return (
+                    <button
+                      key={dateKey}
+                      type="button"
+                      onClick={() => updateSessionDate(dateKey)}
+                      className={`min-h-[36px] whitespace-nowrap rounded-full border px-3 text-[10px] uppercase tracking-[0.3em] transition ${
+                        isActive
+                          ? "border-[var(--accent)] bg-[color:var(--accent)] text-[color:var(--accent-ink)]"
+                          : "border-[var(--border)] bg-[color:var(--bg-card)] text-[color:var(--muted)]"
+                      }`}
+                    >
+                      {label}
+                    </button>
+                  );
+                })}
+                <button
+                  type="button"
+                  onClick={openCalendar}
+                  className="min-h-[36px] whitespace-nowrap rounded-full border border-[var(--border)] bg-[color:var(--bg-card)] px-3 text-[10px] uppercase tracking-[0.3em] text-[color:var(--muted)]"
+                >
+                  Pick
+                </button>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="hidden min-h-[36px] items-center rounded-full border border-[var(--border)] bg-[color:var(--bg-card)] px-3 text-[10px] uppercase tracking-[0.3em] text-[color:var(--muted)] sm:flex">
+                  Sync ✓
+                </div>
+                <Link
+                  href="/settings"
+                  className="grid h-11 w-11 place-items-center rounded-full border border-[var(--border)] bg-[color:var(--bg-card)]"
+                  aria-label="Settings"
+                >
+                  <IconSettings className="h-4 w-4" />
+                </Link>
+              </div>
+            </div>
             <button
               type="button"
               onClick={() => setSessionPickerOpen(true)}
-              className="flex min-h-[44px] flex-1 items-center gap-2 rounded-full border border-[var(--border)] bg-[color:var(--bg-card)] px-4 py-2 text-left"
+              className="flex min-h-[44px] w-full items-center gap-2 rounded-full border border-[var(--border)] bg-[color:var(--bg-card)] px-4 py-2 text-left"
             >
               <div className="min-w-0">
                 <div className="text-[10px] uppercase tracking-[0.35em] text-[color:var(--muted)]">
-                  Workout {activeWorkout}
+                  Workout {activeWorkout} · {sessionDateLabel}
                 </div>
                 <div className="truncate text-sm font-semibold text-[color:var(--text)]">
                   {activeMeta?.focus ? `${activeMeta.focus} Focus` : "Session"}
@@ -649,18 +898,6 @@ const LogPage = () => {
               </div>
               <IconChevronDown className="h-4 w-4 text-[color:var(--muted)]" />
             </button>
-            <div className="flex items-center gap-2">
-              <div className="hidden min-h-[44px] items-center rounded-full border border-[var(--border)] bg-[color:var(--bg-card)] px-3 text-[10px] uppercase tracking-[0.3em] text-[color:var(--muted)] sm:flex">
-                Sync ✓
-              </div>
-              <Link
-                href="/settings"
-                className="grid h-11 w-11 place-items-center rounded-full border border-[var(--border)] bg-[color:var(--bg-card)]"
-                aria-label="Settings"
-              >
-                <IconSettings className="h-4 w-4" />
-              </Link>
-            </div>
           </div>
         }
       >
@@ -782,8 +1019,8 @@ const LogPage = () => {
                             Timeline
                           </div>
                           <div className="mt-3 max-h-[220px] space-y-2 overflow-y-auto">
-                            {todaySets.length ? (
-                              todaySets.map((setEntry) => {
+                            {sessionSets.length ? (
+                              sessionSets.map((setEntry) => {
                                 const warmup = setEntry.tags?.includes("warmup");
                                 return (
                                   <div
@@ -895,6 +1132,76 @@ const LogPage = () => {
           >
             + New workout
           </Link>
+        </div>
+      </BottomSheet>
+
+      <BottomSheet
+        open={calendarOpen}
+        onClose={() => setCalendarOpen(false)}
+        title="Pick session date"
+      >
+        <div className="space-y-4">
+          <div className="flex items-center justify-between gap-3">
+            <button
+              type="button"
+              onClick={handlePrevMonth}
+              className="min-h-[36px] rounded-full border border-[var(--border)] px-3 text-[10px] uppercase tracking-[0.3em] text-[color:var(--muted)]"
+            >
+              Prev
+            </button>
+            <div className="text-sm font-semibold text-[color:var(--text)] font-serif">
+              {calendarMonthLabel}
+            </div>
+            <button
+              type="button"
+              onClick={handleNextMonth}
+              className="min-h-[36px] rounded-full border border-[var(--border)] px-3 text-[10px] uppercase tracking-[0.3em] text-[color:var(--muted)]"
+            >
+              Next
+            </button>
+          </div>
+          <div className="grid grid-cols-7 gap-2 text-center text-[10px] uppercase tracking-[0.3em] text-[color:var(--muted)]">
+            {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
+              <div key={day}>{day}</div>
+            ))}
+          </div>
+          <div className="grid grid-cols-7 gap-2">
+            {calendarDays.map((day, index) => {
+              if (!day) {
+                return <div key={`empty-${index}`} />;
+              }
+              return (
+                <button
+                  key={day.dateKey}
+                  type="button"
+                  onClick={() => {
+                    updateSessionDate(day.dateKey);
+                    setCalendarOpen(false);
+                  }}
+                  className={`flex min-h-[44px] flex-col items-center justify-center rounded-2xl border px-2 py-2 text-xs font-semibold transition ${
+                    day.isActive
+                      ? "border-[var(--accent)] bg-[color:var(--accent)] text-[color:var(--accent-ink)]"
+                      : "border-[var(--border)] bg-[color:var(--bg-elev)] text-[color:var(--text)]"
+                  }`}
+                >
+                  <span>{day.day}</span>
+                  <span
+                    className={`mt-1 h-1 w-1 rounded-full ${
+                      day.hasWorkout
+                        ? "bg-[color:var(--accent-2)]"
+                        : day.isToday
+                          ? "bg-[color:var(--accent)]"
+                          : "bg-transparent"
+                    }`}
+                    aria-hidden="true"
+                  />
+                </button>
+              );
+            })}
+          </div>
+          <div className="text-xs text-[color:var(--muted)]">
+            Dots mark days with a logged workout.
+          </div>
         </div>
       </BottomSheet>
 

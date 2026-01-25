@@ -30,6 +30,15 @@ export type SetEntry = {
   };
 };
 
+export type SessionEntry = {
+  date: string;
+  workoutId?: WorkoutId;
+  createdAtTs: number;
+  updatedAtTs: number;
+  notes?: string;
+  exercisesSnapshot?: string[];
+};
+
 export type SettingsState = {
   barLb: number;
   unitDisplay: UnitDisplay;
@@ -38,6 +47,7 @@ export type SettingsState = {
   weightPresets: number[];
   repPresets: number[];
   lastWorkout?: WorkoutId;
+  activeSessionDate?: string;
   onboarded?: boolean;
 };
 
@@ -46,5 +56,6 @@ export type BackupPayload = {
   exportedAt: number;
   exercises: Exercise[];
   sets: SetEntry[];
+  sessions?: SessionEntry[];
   settings: SettingsState;
 };

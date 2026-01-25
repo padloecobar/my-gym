@@ -1,6 +1,7 @@
 import { serializeBackup } from "./backup";
 import {
   getAllExercises,
+  getAllSessions,
   getAllSets,
   getAllSettings,
   getMirrorHandle,
@@ -69,13 +70,14 @@ const ensureHandlePermission = async (handle: FileSystemFileHandle) => {
 };
 
 const buildMirrorPayload = async () => {
-  const [exercises, sets, settingsData] = await Promise.all([
+  const [exercises, sessions, sets, settingsData] = await Promise.all([
     getAllExercises(),
+    getAllSessions(),
     getAllSets(),
     getAllSettings(),
   ]);
   const settings = { ...defaultSettings, ...settingsData } as SettingsState;
-  const payload = serializeBackup(exercises, sets, settings, {
+  const payload = serializeBackup(exercises, sets, settings, sessions, {
     pretty: true,
   });
   return payload;

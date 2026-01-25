@@ -1,4 +1,4 @@
-const CACHE_NAME = "gymlog-cache-v1";
+const CACHE_NAME = "gymlog-cache-v2";
 const CORE_ASSETS = [
   "/",
   "/history",
