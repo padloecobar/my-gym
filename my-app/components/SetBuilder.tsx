@@ -1,13 +1,17 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+
+import { computeTotals, formatKg, formatLb } from "@/lib/calc";
+import { DEFAULT_TAGS } from "@/lib/defaults";
+
 import BottomSheet from "./BottomSheet";
 import Chip from "./Chip";
-import Stepper from "./Stepper";
 import { IconChevronDown, IconKeyboard } from "./Icons";
-import { computeTotals, formatKg, formatLb } from "../lib/calc";
-import type { Exercise, SetEntry, SettingsState } from "../lib/types";
-import { DEFAULT_TAGS } from "../lib/defaults";
+import Stepper from "./Stepper";
+
+import type { Exercise, SetEntry, SettingsState } from "@/lib/types";
+
 
 type SetDraft = {
   inputLb: number;

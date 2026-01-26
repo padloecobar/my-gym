@@ -1,8 +1,10 @@
 import { useCallback, useEffect, useState } from "react";
+
+import { useDbChange } from "./useDbChange";
 import { dbService } from "../../lib/db/service";
 import { defaultSettings } from "../../lib/defaults";
+
 import type { SettingsState } from "../../lib/types";
-import { useDbChange } from "./useDbChange";
 
 const SETTINGS_SOURCES = new Set([
   "setSetting",
@@ -44,14 +46,14 @@ export const useSettings = (): UseSettingsState & UseSettingsActions => {
   }, []);
 
   useEffect(() => {
-    refresh();
+    void refresh();
   }, [refresh]);
 
   useDbChange(
     useCallback(
       (detail) => {
         if (!SETTINGS_SOURCES.has(detail.source)) return;
-        refresh();
+        void refresh();
       },
       [refresh],
     ),

@@ -1,8 +1,9 @@
 "use client";
 
-import type { ReactNode } from "react";
 import FileMirrorSync from "./FileMirrorSync";
 import TabBar from "./TabBar";
+
+import type { ReactNode } from "react";
 
 type AppShellProps = {
   title: string;

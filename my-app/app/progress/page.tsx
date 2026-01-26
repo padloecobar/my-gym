@@ -1,14 +1,17 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import AppShell from "../../components/AppShell";
-import Chip from "../../components/Chip";
-import { IconSearch } from "../../components/Icons";
+
+import AppShell from "@/components/AppShell";
+import Chip from "@/components/Chip";
+import { IconSearch } from "@/components/Icons";
+import { useExercises } from "@/src/hooks/useExercises";
+import { useSets } from "@/src/hooks/useSets";
+import { useSettings } from "@/src/hooks/useSettings";
+
 import { estimateE1RM, formatKg, formatLb, toKg } from "../../lib/calc";
 import { formatDateHeading } from "../../lib/date";
-import { useExercises } from "../../src/hooks/useExercises";
-import { useSets } from "../../src/hooks/useSets";
-import { useSettings } from "../../src/hooks/useSettings";
+
 import type { SetEntry } from "../../lib/types";
 
 const ProgressPage = () => {

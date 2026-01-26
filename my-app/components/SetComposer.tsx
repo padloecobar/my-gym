@@ -1,11 +1,14 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+
+import { computeTotals, formatKg, formatLb } from "@/lib/calc";
+
 import BottomSheet from "./BottomSheet";
 import Chip from "./Chip";
 import Stepper from "./Stepper";
-import { computeTotals, formatKg, formatLb } from "../lib/calc";
-import type { Exercise, SetEntry, SettingsState } from "../lib/types";
+
+import type { Exercise, SetEntry, SettingsState } from "@/lib/types";
 
 export type SetDraft = {
   inputLb: number;

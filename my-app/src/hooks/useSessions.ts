@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useState, type Dispatch, type SetStateAction } from "react";
-import { dbService, type ListSessionsOptions, type SessionPage } from "../../lib/db/service";
-import type { SessionEntry } from "../../lib/types";
+
 import { useDbChange } from "./useDbChange";
+import { dbService, type ListSessionsOptions, type SessionPage } from "../../lib/db/service";
+
+import type { SessionEntry } from "../../lib/types";
 
 const SESSION_SOURCES = new Set([
   "saveSession",
@@ -57,7 +59,7 @@ export const useSessions = (
 
   useEffect(() => {
     if (!autoLoad) return;
-    refresh();
+    void refresh();
   }, [autoLoad, refresh]);
 
   useDbChange(
@@ -65,7 +67,7 @@ export const useSessions = (
       (detail) => {
         if (!autoLoad) return;
         if (!SESSION_SOURCES.has(detail.source)) return;
-        refresh();
+        void refresh();
       },
       [autoLoad, refresh],
     ),

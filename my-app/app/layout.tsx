@@ -1,8 +1,10 @@
-import type { Metadata, Viewport } from "next";
 import { Azeret_Mono, Recursive, Unbounded } from "next/font/google";
-import "./globals.css";
-import PwaRegister from "../components/PwaRegister";
 
+import PwaRegister from "@/components/PwaRegister";
+
+import "./globals.css";
+
+import type { Metadata, Viewport } from "next";
 const displayFont = Unbounded({
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],

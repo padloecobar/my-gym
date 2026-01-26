@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+
 import { IconMinus, IconPlus } from "./Icons";
 
 type StepperProps = {

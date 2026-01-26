@@ -1,6 +1,7 @@
-import type { Exercise, SetEntry, SettingsState } from "../lib/types";
 import { formatKg, formatLb, toKg } from "../lib/calc";
 import { formatShortTime } from "../lib/date";
+
+import type { Exercise, SetEntry, SettingsState } from "../lib/types";
 
 const typeLabel = (type: Exercise["type"]) => {
   switch (type) {

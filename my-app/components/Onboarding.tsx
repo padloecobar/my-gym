@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+
 import Stepper from "./Stepper";
 
 type OnboardingProps = {

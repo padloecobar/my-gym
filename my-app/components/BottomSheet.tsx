@@ -1,8 +1,10 @@
 "use client";
 
-import type { ReactNode } from "react";
 import { useEffect } from "react";
+
 import { IconClose } from "./Icons";
+
+import type { ReactNode } from "react";
 
 type BottomSheetProps = {
   open: boolean;
@@ -38,6 +40,14 @@ const BottomSheet = ({ open, title, onClose, children, footer }: BottomSheetProp
           open ? "opacity-100" : "opacity-0"
         }`}
         onClick={onClose}
+        role="button"
+        tabIndex={0}
+        onKeyDown={(event) => {
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            onClose();
+          }
+        }}
       />
       <div
         className={`absolute bottom-0 left-0 right-0 mx-auto w-full max-w-3xl transform transition-transform ${

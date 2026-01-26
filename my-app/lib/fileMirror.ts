@@ -10,6 +10,7 @@ import {
   setMirrorLastWrite,
 } from "./db";
 import { defaultSettings } from "./defaults";
+
 import type { SettingsState } from "./types";
 
 export type FileMirrorState = {

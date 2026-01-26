@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+
 import { DB_CHANGE_EVENT } from "../../lib/db";
 
 type DbChangeDetail = {

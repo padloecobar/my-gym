@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useState } from "react";
-import { dbService } from "../../lib/db/service";
-import type { Exercise, WorkoutId } from "../../lib/types";
+
 import { useDbChange } from "./useDbChange";
+import { dbService } from "../../lib/db/service";
+
+import type { Exercise, WorkoutId } from "../../lib/types";
 
 const EXERCISE_SOURCES = new Set([
   "saveExercise",
@@ -44,14 +46,14 @@ export const useExercises = (): UseExercisesState & UseExercisesActions => {
   }, []);
 
   useEffect(() => {
-    refresh();
+    void refresh();
   }, [refresh]);
 
   useDbChange(
     useCallback(
       (detail) => {
         if (!EXERCISE_SOURCES.has(detail.source)) return;
-        refresh();
+        void refresh();
       },
       [refresh],
     ),

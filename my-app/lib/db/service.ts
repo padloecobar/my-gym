@@ -1,10 +1,3 @@
-import type {
-  Exercise,
-  SessionEntry,
-  SetEntry,
-  SettingsState,
-  WorkoutId,
-} from "../types";
 import {
   addSet,
   clearAllData,
@@ -34,6 +27,14 @@ import {
   setSettings,
   updateSet,
 } from "./index";
+
+import type {
+  Exercise,
+  SessionEntry,
+  SetEntry,
+  SettingsState,
+  WorkoutId,
+} from "../types";
 
 type ListSessionsOptions = {
   limit: number;

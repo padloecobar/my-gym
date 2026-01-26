@@ -1,8 +1,10 @@
 "use client";
 
-import type { ReactNode } from "react";
 import { useRef, useState } from "react";
+
 import { IconTrash } from "./Icons";
+
+import type { ReactNode } from "react";
 
 type SwipeRowProps = {
   children: ReactNode;
@@ -62,7 +64,22 @@ const SwipeRow = ({ children, onDelete }: SwipeRowProps) => {
         onPointerUp={handlePointerUp}
         onPointerLeave={handlePointerUp}
       >
-        <div onClick={open ? handleReset : undefined}>{children}</div>
+        <div
+          onClick={() => {
+            if (open) handleReset();
+          }}
+          role="button"
+          tabIndex={0}
+          onKeyDown={(event) => {
+            if (!open) return;
+            if (event.key === "Enter" || event.key === " ") {
+              event.preventDefault();
+              handleReset();
+            }
+          }}
+        >
+          {children}
+        </div>
       </div>
     </div>
   );

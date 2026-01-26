@@ -1,21 +1,23 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState, type PointerEvent } from "react";
 import Link from "next/link";
-import AppShell from "../components/AppShell";
-import BottomSheet from "../components/BottomSheet";
-import Onboarding from "../components/Onboarding";
-import SetComposer, { type SetDraft } from "../components/SetComposer";
-import Toast from "../components/Toast";
+import { useCallback, useEffect, useMemo, useRef, useState, type PointerEvent } from "react";
+
+import AppShell from "@/components/AppShell";
+import BottomSheet from "@/components/BottomSheet";
+import Onboarding from "@/components/Onboarding";
+import SetComposer, { type SetDraft } from "@/components/SetComposer";
+import Toast from "@/components/Toast";
+import { useExercises } from "@/src/hooks/useExercises";
+import { useSessions } from "@/src/hooks/useSessions";
+import { useSets } from "@/src/hooks/useSets";
+import { useSettings } from "@/src/hooks/useSettings";
+
 import {
   IconChevronDown,
   IconSettings,
   IconTimer,
 } from "../components/Icons";
-import { useExercises } from "../src/hooks/useExercises";
-import { useSessions } from "../src/hooks/useSessions";
-import { useSets } from "../src/hooks/useSets";
-import { useSettings } from "../src/hooks/useSettings";
 import { computeTotals, formatLb } from "../lib/calc";
 import {
   formatDateHeading,
@@ -24,6 +26,7 @@ import {
   getLocalDateKey,
 } from "../lib/date";
 import { createDefaultExercises, defaultSettings } from "../lib/defaults";
+
 import type {
   Exercise,
   SessionEntry,
@@ -1182,7 +1185,7 @@ const LogPage = () => {
                   key={day.dateKey}
                   type="button"
                   onClick={() => {
-                    updateSessionDate(day.dateKey);
+                    void updateSessionDate(day.dateKey);
                     setCalendarOpen(false);
                   }}
                   className={`flex min-h-[44px] flex-col items-center justify-center rounded-2xl border px-2 py-2 text-xs font-semibold transition ${
@@ -1223,7 +1226,7 @@ const LogPage = () => {
         }}
         onSave={(draft) => {
           if (!activeExercise) return;
-          handleAddSet(activeExercise, draft);
+          void handleAddSet(activeExercise, draft);
           setComposerOpen(false);
           setComposerSeed(null);
         }}
@@ -1258,9 +1261,16 @@ const LogPage = () => {
         <Toast
           message={toast.message}
           actionLabel={toast.action ? "Undo" : undefined}
-          onAction={() => {
-            toast.action?.();
-            setToast(null);
+          onAction={async () => {
+            if (!toast?.action) return;
+            try {
+              await Promise.resolve(toast.action());
+            } catch (err) {
+              console.error("Undo action failed:", err);
+              showToast("Undo failed");
+            } finally {
+              setToast(null);
+            }
           }}
           onClose={() => setToast(null)}
         />

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+
 import { IconHistory, IconLog, IconProgress, IconSettings } from "./Icons";
 
 const tabs = [

@@ -1,21 +1,29 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import AppShell from "../../components/AppShell";
-import Chip from "../../components/Chip";
-import Stepper from "../../components/Stepper";
-import Toast from "../../components/Toast";
+
+import AppShell from "@/components/AppShell";
+import Chip from "@/components/Chip";
 import {
   IconDrag,
   IconDownload,
   IconSearch,
   IconTrash,
   IconUpload,
-} from "../../components/Icons";
-import { useExercises } from "../../src/hooks/useExercises";
-import { useSessions } from "../../src/hooks/useSessions";
-import { useSets } from "../../src/hooks/useSets";
-import { useSettings } from "../../src/hooks/useSettings";
+} from "@/components/Icons";
+import Stepper from "@/components/Stepper";
+import Toast from "@/components/Toast";
+import { useExercises } from "@/src/hooks/useExercises";
+import { useSessions } from "@/src/hooks/useSessions";
+import { useSets } from "@/src/hooks/useSets";
+import { useSettings } from "@/src/hooks/useSettings";
+
+import {
+  parseBackup,
+  parseSetsCsv,
+  serializeBackup,
+  serializeSetsCsv,
+} from "../../lib/backup";
 import { computeTotals } from "../../lib/calc";
 import { formatShortTime, getLocalDateKey } from "../../lib/date";
 import {
@@ -23,18 +31,13 @@ import {
   DEFAULT_WEIGHT_PRESETS,
 } from "../../lib/defaults";
 import {
-  parseBackup,
-  parseSetsCsv,
-  serializeBackup,
-  serializeSetsCsv,
-} from "../../lib/backup";
-import {
   disableFileMirror,
   enableFileMirror,
   getFileMirrorState,
   writeFileMirrorNow,
   type FileMirrorState,
 } from "../../lib/fileMirror";
+
 import type {
   Exercise,
   ExerciseType,
@@ -119,7 +122,7 @@ const SettingsPage = () => {
       const mirrorData = await getFileMirrorState();
       setMirrorState(mirrorData);
     };
-    load();
+    void load();
   }, []);
 
   useEffect(() => {
@@ -298,12 +301,12 @@ const SettingsPage = () => {
     URL.revokeObjectURL(url);
   };
 
-  const handleExportJson = async () => {
+  const handleExportJson = () => {
     const payload = serializeBackup(exercises, sets, settings, sessions);
     downloadFile(payload, "gymlog-backup.json", "application/json");
   };
 
-  const handleExportCsv = async () => {
+  const handleExportCsv = () => {
     const payload = serializeSetsCsv(sets, exercises);
     downloadFile(payload, "gymlog-sets.csv", "text/csv");
   };
@@ -512,17 +515,25 @@ const SettingsPage = () => {
                     key={exercise.id}
                     onDragOver={(event) => event.preventDefault()}
                     onDrop={() => handleDrop(activeWorkout, exercise.id)}
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter" || event.key === " ") {
+                        event.preventDefault();
+                      }
+                    }}
                     className="rounded-2xl border border-[var(--border)] bg-[color:var(--bg-elev)] p-3"
                   >
                     <div className="flex flex-wrap items-center gap-3">
-                      <div
+                      <button
+                        type="button"
                         draggable
                         onDragStart={() => handleDragStart(exercise.id)}
                         className="grid h-10 w-10 cursor-grab place-items-center rounded-full border border-[var(--border)] text-[color:var(--muted)]"
                         aria-label="Drag to reorder"
                       >
                         <IconDrag className="h-4 w-4" />
-                      </div>
+                      </button>
                       <input
                         defaultValue={exercise.name}
                         onBlur={(event) =>
@@ -658,7 +669,7 @@ const SettingsPage = () => {
               <div className="mt-3">
                 <Stepper
                   value={settings.barLb}
-                  onChange={(value) => updateSettings({ barLb: value })}
+                  onChange={(value) => void updateSettings({ barLb: value })}
                   step={5}
                   min={10}
                   max={70}
@@ -675,7 +686,7 @@ const SettingsPage = () => {
                   <Chip
                     key={unit}
                     selected={settings.unitDisplay === unit}
-                    onClick={() => updateSettings({ unitDisplay: unit })}
+                    onClick={() => void updateSettings({ unitDisplay: unit })}
                   >
                     {unit.toUpperCase()}
                   </Chip>
@@ -690,7 +701,7 @@ const SettingsPage = () => {
                     <Chip
                       key={value}
                       selected={Math.abs(settings.roundingKg - value) < 0.01}
-                      onClick={() => updateSettings({ roundingKg: value })}
+                      onClick={() => void updateSettings({ roundingKg: value })}
                     >
                       {value}kg
                     </Chip>
@@ -706,7 +717,7 @@ const SettingsPage = () => {
                     <Chip
                       key={formula}
                       selected={settings.e1rmFormula === formula}
-                      onClick={() => updateSettings({ e1rmFormula: formula })}
+                      onClick={() => void updateSettings({ e1rmFormula: formula })}
                     >
                       {formula}
                     </Chip>
@@ -730,7 +741,7 @@ const SettingsPage = () => {
                 <Chip
                   key={value}
                   onClick={() =>
-                    updateSettings({
+                    void updateSettings({
                       weightPresets: settings.weightPresets.filter(
                         (item) => item !== value,
                       ),
@@ -751,7 +762,7 @@ const SettingsPage = () => {
                   if (event.key !== "Enter") return;
                   const value = Number((event.target as HTMLInputElement).value);
                   if (!Number.isNaN(value)) {
-                    updateSettings({
+                    void updateSettings({
                       weightPresets: Array.from(
                         new Set([...settings.weightPresets, value]),
                       ).sort((a, b) => a - b),
@@ -762,7 +773,9 @@ const SettingsPage = () => {
               />
               <button
                 type="button"
-                onClick={() => updateSettings({ weightPresets: DEFAULT_WEIGHT_PRESETS })}
+                onClick={() =>
+                  void updateSettings({ weightPresets: DEFAULT_WEIGHT_PRESETS })
+                }
                 className="min-h-[44px] rounded-xl border border-[var(--border)] px-3 py-2 text-xs uppercase tracking-[0.3em] text-[color:var(--muted)]"
               >
                 Reset
@@ -778,7 +791,7 @@ const SettingsPage = () => {
                 <Chip
                   key={value}
                   onClick={() =>
-                    updateSettings({
+                    void updateSettings({
                       repPresets: settings.repPresets.filter((item) => item !== value),
                     })
                   }
@@ -797,7 +810,7 @@ const SettingsPage = () => {
                   if (event.key !== "Enter") return;
                   const value = Number((event.target as HTMLInputElement).value);
                   if (!Number.isNaN(value)) {
-                    updateSettings({
+                    void updateSettings({
                       repPresets: Array.from(
                         new Set([...settings.repPresets, value]),
                       ).sort((a, b) => a - b),
@@ -808,7 +821,9 @@ const SettingsPage = () => {
               />
               <button
                 type="button"
-                onClick={() => updateSettings({ repPresets: DEFAULT_REP_PRESETS })}
+                onClick={() =>
+                  void updateSettings({ repPresets: DEFAULT_REP_PRESETS })
+                }
                 className="min-h-[44px] rounded-xl border border-[var(--border)] px-3 py-2 text-xs uppercase tracking-[0.3em] text-[color:var(--muted)]"
               >
                 Reset
@@ -848,7 +863,7 @@ const SettingsPage = () => {
                 onChange={(event) => {
                   const file = event.target.files?.[0];
                   if (file) {
-                    handleImportFile(file);
+                    void handleImportFile(file);
                     event.target.value = "";
                   }
                 }}

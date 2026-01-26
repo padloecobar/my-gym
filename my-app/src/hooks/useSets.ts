@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useState, type Dispatch, type SetStateAction } from "react";
-import { dbService } from "../../lib/db/service";
-import type { SetEntry } from "../../lib/types";
+
 import { useDbChange } from "./useDbChange";
+import { dbService } from "../../lib/db/service";
+
+import type { SetEntry } from "../../lib/types";
 
 const SET_SOURCES = new Set([
   "addSet",
@@ -54,7 +56,7 @@ export const useSets = (
 
   useEffect(() => {
     if (!autoLoad) return;
-    refresh();
+    void refresh();
   }, [autoLoad, refresh]);
 
   useDbChange(
@@ -62,7 +64,7 @@ export const useSets = (
       (detail) => {
         if (!autoLoad) return;
         if (!SET_SOURCES.has(detail.source)) return;
-        refresh();
+        void refresh();
       },
       [autoLoad, refresh],
     ),

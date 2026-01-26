@@ -115,7 +115,8 @@ const openDbRequest = (version?: number) =>
       }
     };
     request.onsuccess = () => resolve(request.result);
-    request.onerror = () => reject(request.error);
+    request.onerror = () =>
+      reject(request.error ?? new Error("IndexedDB open failed"));
   });
 
 const openDb = () => {
@@ -135,17 +136,20 @@ const openDb = () => {
   return dbPromise;
 };
 
-const requestToPromise = <T>(request: IDBRequest<T>) =>
+const requestToPromise = <T>(request: IDBRequest<unknown>) =>
   new Promise<T>((resolve, reject) => {
-    request.onsuccess = () => resolve(request.result);
-    request.onerror = () => reject(request.error);
+    request.onsuccess = () => resolve(request.result as T);
+    request.onerror = () =>
+      reject(request.error ?? new Error("IndexedDB request failed"));
   });
 
 const transactionDone = (tx: IDBTransaction) =>
   new Promise<void>((resolve, reject) => {
     tx.oncomplete = () => resolve();
-    tx.onerror = () => reject(tx.error);
-    tx.onabort = () => reject(tx.error);
+    tx.onerror = () =>
+      reject(tx.error ?? new Error("IndexedDB transaction failed"));
+    tx.onabort = () =>
+      reject(tx.error ?? new Error("IndexedDB transaction aborted"));
   });
 
 export const DB_CHANGE_EVENT = "gymlog:db-change";
@@ -386,7 +390,8 @@ export const listSessions = async (options: {
   const result = await new Promise<{ sessions: SessionEntry[]; hasMore: boolean }>(
     (resolve, reject) => {
       const request = store.openCursor(range, "prev");
-      request.onerror = () => reject(request.error);
+      request.onerror = () =>
+        reject(request.error ?? new Error("IndexedDB cursor failed"));
       request.onsuccess = () => {
         const cursor = request.result;
         if (!cursor) {

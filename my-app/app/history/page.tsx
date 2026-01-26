@@ -1,22 +1,25 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import AppShell from "../../components/AppShell";
-import SetBuilder from "../../components/SetBuilder";
-import SwipeRow from "../../components/SwipeRow";
-import Toast from "../../components/Toast";
-import { IconChevronDown, IconSearch } from "../../components/Icons";
-import { useExercises } from "../../src/hooks/useExercises";
-import { useSessions } from "../../src/hooks/useSessions";
-import { useSets } from "../../src/hooks/useSets";
-import { useSettings } from "../../src/hooks/useSettings";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+
+import AppShell from "@/components/AppShell";
+import { IconChevronDown, IconSearch } from "@/components/Icons";
+import SetBuilder from "@/components/SetBuilder";
+import SwipeRow from "@/components/SwipeRow";
+import Toast from "@/components/Toast";
+import { useExercises } from "@/src/hooks/useExercises";
+import { useSessions } from "@/src/hooks/useSessions";
+import { useSets } from "@/src/hooks/useSets";
+import { useSettings } from "@/src/hooks/useSettings";
+
 import { computeTotals, formatKg, formatLb, toKg } from "../../lib/calc";
 import {
   formatDateHeading,
   formatShortTime,
   getLocalDateKey,
 } from "../../lib/date";
+
 import type {
   Exercise,
   SessionEntry,
@@ -354,7 +357,7 @@ const HistoryPage = () => {
         setLoading(false);
       }
     };
-    load();
+    void load();
   }, [exercises, exercisesLoading, loadSessions, settingsLoading]);
 
   const handleOpenSession = useCallback(
@@ -743,7 +746,7 @@ const HistoryPage = () => {
           {hasMore ? (
             <button
               type="button"
-              onClick={handleLoadMore}
+              onClick={() => void handleLoadMore()}
               disabled={loadingMore}
               className="min-h-[48px] w-full rounded-2xl border border-[var(--border)] bg-[color:var(--bg-elev)] text-[10px] uppercase tracking-[0.3em] text-[color:var(--text)] disabled:opacity-60"
             >
@@ -765,7 +768,7 @@ const HistoryPage = () => {
         onSave={handleUpdate}
         onDelete={() => {
           if (!editingSet) return;
-          handleDeleteSet(editingSet);
+          void handleDeleteSet(editingSet);
           setEditingSet(null);
         }}
       />
@@ -774,9 +777,16 @@ const HistoryPage = () => {
         <Toast
           message={toast.message}
           actionLabel={toast.action ? "Undo" : undefined}
-          onAction={() => {
-            toast.action?.();
-            setToast(null);
+          onAction={async () => {
+            if (!toast?.action) return;
+            try {
+              await Promise.resolve(toast.action());
+            } catch (err) {
+              console.error("Undo action failed:", err);
+              showToast("Undo failed");
+            } finally {
+              setToast(null);
+            }
           }}
           onClose={() => setToast(null)}
         />
