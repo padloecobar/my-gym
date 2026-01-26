@@ -136,7 +136,7 @@ const openDb = () => {
   return dbPromise;
 };
 
-const requestToPromise = <T>(request: IDBRequest<unknown>) =>
+const requestToPromise = <T>(request: IDBRequest<any>) =>
   new Promise<T>((resolve, reject) => {
     request.onsuccess = () => resolve(request.result as T);
     request.onerror = () =>

@@ -41,9 +41,26 @@ fi
 
 norm_ext() { print "${1#.}"; }
 
+# Extensions that must NEVER be included (even if added to ALLOWED_EXTS)
+typeset -a BLOCKED_EXTS=( md )
+
 is_allowed_ext() {
   local path="$1"
   local ext="${path##*.}"
+
+  # normalize extension to lowercase (zsh modifier :l)
+  ext="${ext:l}"
+
+  # hard block markdown
+  if [[ "$ext" == "md" ]]; then
+    return 1
+  fi
+
+  local b
+  for b in "${BLOCKED_EXTS[@]}"; do
+    [[ "$ext" == "$(norm_ext "$b")" ]] && return 1
+  done
+
   local e
   for e in "${ALLOWED_EXTS[@]}"; do
     [[ "$ext" == "$(norm_ext "$e")" ]] && return 0
@@ -146,11 +163,11 @@ for rel_path in "${files[@]}"; do
   fi
 
   {
-    print "${START_PREFIX}${banner_path}${BANNER_SUFFIX}"
+    print "${START_PREFIX}${file_abs}${BANNER_SUFFIX}"
     print ""
     cat -- "$file_abs"
     print ""
-    print "${END_PREFIX}${banner_path}${BANNER_SUFFIX}"
+    print "${END_PREFIX}${file_abs}${BANNER_SUFFIX}"
     print ""
   } >> "$output_file"
 done
