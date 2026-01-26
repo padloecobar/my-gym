@@ -12,24 +12,15 @@ import {
   IconTrash,
   IconUpload,
 } from "../../components/Icons";
-import {
-  addSet,
-  deleteExercise,
-  getAllExercises,
-  getAllSessions,
-  getAllSettings,
-  getAllSets,
-  saveExercise,
-  saveExercises,
-  saveSessions,
-  setSettings,
-} from "../../lib/db";
+import { useExercises } from "../../src/hooks/useExercises";
+import { useSessions } from "../../src/hooks/useSessions";
+import { useSets } from "../../src/hooks/useSets";
+import { useSettings } from "../../src/hooks/useSettings";
 import { computeTotals } from "../../lib/calc";
 import { formatShortTime, getLocalDateKey } from "../../lib/date";
 import {
   DEFAULT_REP_PRESETS,
   DEFAULT_WEIGHT_PRESETS,
-  defaultSettings,
 } from "../../lib/defaults";
 import {
   parseBackup,
@@ -47,9 +38,6 @@ import {
 import type {
   Exercise,
   ExerciseType,
-  SessionEntry,
-  SetEntry,
-  SettingsState,
   WorkoutId,
 } from "../../lib/types";
 
@@ -94,10 +82,21 @@ const EXERCISE_LIBRARY: ExerciseTemplate[] = [
 const getNow = () => Date.now();
 
 const SettingsPage = () => {
-  const [settings, setSettingsState] = useState<SettingsState>(defaultSettings);
-  const [exercises, setExercises] = useState<Exercise[]>([]);
-  const [sets, setSets] = useState<SetEntry[]>([]);
-  const [sessions, setSessions] = useState<SessionEntry[]>([]);
+  const {
+    settings,
+    error: settingsError,
+    updateSettings,
+    replaceSettings,
+  } = useSettings();
+  const {
+    exercises,
+    error: exercisesError,
+    saveExercise,
+    saveExercises,
+    deleteExercise,
+  } = useExercises();
+  const { sets, error: setsError, addSet } = useSets();
+  const { sessions, error: sessionsError, saveSessions } = useSessions();
   const [toast, setToast] = useState<string | null>(null);
   const toastTimer = useRef<number | null>(null);
   const [installPrompt, setInstallPrompt] = useState<BeforeInstallPromptEvent | null>(
@@ -117,18 +116,7 @@ const SettingsPage = () => {
 
   useEffect(() => {
     const load = async () => {
-      const [settingsData, exerciseData, sessionData, setData, mirrorData] =
-        await Promise.all([
-          getAllSettings(),
-          getAllExercises(),
-          getAllSessions(),
-          getAllSets(),
-          getFileMirrorState(),
-        ]);
-      setSettingsState({ ...defaultSettings, ...settingsData } as SettingsState);
-      setExercises(exerciseData);
-      setSessions(sessionData);
-      setSets(setData);
+      const mirrorData = await getFileMirrorState();
       setMirrorState(mirrorData);
     };
     load();
@@ -150,6 +138,14 @@ const SettingsPage = () => {
       }
     };
   }, []);
+
+  useEffect(() => {
+    const errors = [settingsError, exercisesError, setsError, sessionsError].filter(
+      Boolean,
+    );
+    if (!errors.length) return;
+    console.error("Settings page data error:", errors);
+  }, [settingsError, exercisesError, setsError, sessionsError]);
 
   const showToast = (message: string) => {
     setToast(message);
@@ -221,34 +217,24 @@ const SettingsPage = () => {
     setMirrorBusy(false);
   };
 
-  const updateSettings = async (updates: Partial<SettingsState>) => {
-    const next = { ...settings, ...updates };
-    setSettingsState(next);
-    await setSettings(updates);
-  };
-
   const handleExerciseUpdate = async (id: string, updates: Partial<Exercise>) => {
-    const next = exercises.map((exercise) => {
-      if (exercise.id !== id) return exercise;
-      let updated: Exercise = { ...exercise, ...updates };
-      if (updates.type) {
-        if (updates.type === "barbell" || updates.type === "dumbbell") {
-          if (updated.perSide === undefined) updated.perSide = true;
-        } else {
-          updated.perSide = false;
-        }
+    const exercise = exercises.find((item) => item.id === id);
+    if (!exercise) return;
+    let updated: Exercise = { ...exercise, ...updates };
+    if (updates.type) {
+      if (updates.type === "barbell" || updates.type === "dumbbell") {
+        if (updated.perSide === undefined) updated.perSide = true;
+      } else {
+        updated.perSide = false;
       }
-      if (updates.workout && updates.workout !== exercise.workout) {
-        const nextOrder = exercises.filter(
-          (item) => item.workout === updates.workout,
-        ).length;
-        updated = { ...updated, order: nextOrder };
-      }
-      return updated;
-    });
-    setExercises(next);
-    const updated = next.find((exercise) => exercise.id === id);
-    if (updated) await saveExercise(updated);
+    }
+    if (updates.workout && updates.workout !== exercise.workout) {
+      const nextOrder = exercises.filter(
+        (item) => item.workout === updates.workout,
+      ).length;
+      updated = { ...updated, order: nextOrder };
+    }
+    await saveExercise(updated);
   };
 
   const handleAddExercise = async (
@@ -269,15 +255,12 @@ const SettingsPage = () => {
       order: workoutList.length,
       createdAt: getNow(),
     };
-    const next = [...exercises, newExercise];
-    setExercises(next);
     await saveExercise(newExercise);
     setSearchTerm("");
   };
 
   const handleRemoveExercise = async (exercise: Exercise) => {
     await deleteExercise(exercise.id);
-    setExercises((prev) => prev.filter((item) => item.id !== exercise.id));
     showToast("Exercise removed. Existing sets keep history.");
   };
 
@@ -301,7 +284,6 @@ const SettingsPage = () => {
       const newIndex = updated.findIndex((item) => item.id === exercise.id);
       return { ...exercise, order: newIndex };
     });
-    setExercises(reordered);
     await saveExercises(reordered);
     setDragId(null);
   };
@@ -340,7 +322,6 @@ const SettingsPage = () => {
             mergedExercises.push(exercise);
           }
         });
-        setExercises(mergedExercises);
         await saveExercises(mergedExercises);
         for (const setEntry of payload.sets) {
           await addSet(setEntry);
@@ -348,10 +329,7 @@ const SettingsPage = () => {
         if (payload.sessions?.length) {
           await saveSessions(payload.sessions);
         }
-        setSettingsState({ ...settings, ...payload.settings, onboarded: true });
-        await setSettings({ ...payload.settings, onboarded: true });
-        setSets(await getAllSets());
-        setSessions(await getAllSessions());
+        await replaceSettings({ ...settings, ...payload.settings, onboarded: true });
         showToast("Backup imported.");
         return;
       }
@@ -423,9 +401,6 @@ const SettingsPage = () => {
       }
 
       await saveExercises(nextExercises);
-      setExercises(nextExercises);
-      setSets(await getAllSets());
-      setSessions(await getAllSessions());
       showToast("CSV imported.");
     } catch (error) {
       console.error(error);

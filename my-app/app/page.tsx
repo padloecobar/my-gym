@@ -12,18 +12,10 @@ import {
   IconSettings,
   IconTimer,
 } from "../components/Icons";
-import {
-  addSet,
-  deleteSet,
-  getAllExercises,
-  getAllSessions,
-  getAllSettings,
-  getAllSets,
-  getSession,
-  saveExercises,
-  setSettings,
-  updateSet,
-} from "../lib/db";
+import { useExercises } from "../src/hooks/useExercises";
+import { useSessions } from "../src/hooks/useSessions";
+import { useSets } from "../src/hooks/useSets";
+import { useSettings } from "../src/hooks/useSettings";
 import { computeTotals, formatLb } from "../lib/calc";
 import {
   formatDateHeading,
@@ -76,12 +68,36 @@ const getModeLabel = (exercise: Exercise) => {
 };
 
 const LogPage = () => {
-  const [exercises, setExercises] = useState<Exercise[]>([]);
-  const [sets, setSets] = useState<SetEntry[]>([]);
-  const [sessions, setSessions] = useState<SessionEntry[]>([]);
-  const [settings, setSettingsState] = useState<SettingsState>(defaultSettings);
-  const [loading, setLoading] = useState(true);
-  const [activeSessionDate, setActiveSessionDate] = useState(getLocalDateKey());
+  const {
+    exercises,
+    loading: exercisesLoading,
+    error: exercisesError,
+    saveExercises,
+  } = useExercises();
+  const {
+    sessions,
+    loading: sessionsLoading,
+    error: sessionsError,
+    getSession,
+    setSessions,
+  } = useSessions();
+  const {
+    sets,
+    loading: setsLoading,
+    error: setsError,
+    addSet,
+    deleteSet,
+    setSets,
+    updateSet,
+  } = useSets();
+  const {
+    settings,
+    loading: settingsLoading,
+    error: settingsError,
+    updateSettings,
+    replaceSettings,
+  } = useSettings();
+  const loading = exercisesLoading || sessionsLoading || setsLoading || settingsLoading;
   const [selectedWorkout, setSelectedWorkout] = useState<WorkoutId | null>(null);
   const [sessionPickerOpen, setSessionPickerOpen] = useState(false);
   const [composerOpen, setComposerOpen] = useState(false);
@@ -97,12 +113,12 @@ const LogPage = () => {
   const carouselRef = useRef<HTMLDivElement | null>(null);
   const scrollRaf = useRef<number | null>(null);
   const [restTimerEndsAt, setRestTimerEndsAt] = useState<number | null>(null);
-  const [restTick, setRestTick] = useState(Date.now());
+  const [restTick, setRestTick] = useState(0);
   const [calendarOpen, setCalendarOpen] = useState(false);
-  const [calendarMonth, setCalendarMonth] = useState(() => {
-    const now = new Date();
-    return { year: now.getFullYear(), month: now.getMonth() };
-  });
+  const [calendarMonthOverride, setCalendarMonthOverride] = useState<{
+    year: number;
+    month: number;
+  } | null>(null);
   const gestureRef = useRef<{
     startX: number;
     startY: number;
@@ -120,48 +136,6 @@ const LogPage = () => {
   });
 
   useEffect(() => {
-    const load = async () => {
-      try {
-        const [exerciseData, sessionData, settingsData, setData] = await Promise.all([
-          getAllExercises(),
-          getAllSessions(),
-          getAllSettings(),
-          getAllSets(),
-        ]);
-        const todayKey = getLocalDateKey();
-        const sessionDate =
-          typeof settingsData.activeSessionDate === "string"
-            ? settingsData.activeSessionDate
-            : todayKey;
-        const mergedSettings = {
-          ...defaultSettings,
-          ...settingsData,
-          activeSessionDate: sessionDate,
-        } as SettingsState;
-        setExercises(exerciseData);
-        setSessions(sessionData);
-        setSettingsState(mergedSettings);
-        setSets(setData);
-        setActiveSessionDate(sessionDate);
-        const activeDate = new Date(sessionDate);
-        setCalendarMonth({
-          year: activeDate.getFullYear(),
-          month: activeDate.getMonth(),
-        });
-        if (settingsData.activeSessionDate !== sessionDate) {
-          await setSettings({ activeSessionDate: sessionDate });
-        }
-      } catch (error) {
-        console.error(error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    load();
-  }, []);
-
-  useEffect(() => {
     return () => {
       if (toastTimer.current) {
         window.clearTimeout(toastTimer.current);
@@ -172,6 +146,14 @@ const LogPage = () => {
     };
   }, []);
 
+  useEffect(() => {
+    const errors = [exercisesError, sessionsError, setsError, settingsError].filter(
+      Boolean,
+    );
+    if (!errors.length) return;
+    console.error("Log page data error:", errors);
+  }, [exercisesError, sessionsError, setsError, settingsError]);
+
   const workouts = useMemo<WorkoutId[]>(() => {
     const hasCustom = exercises.some((exercise) => exercise.workout === "Custom");
     const base: WorkoutId[] = ["A", "B"];
@@ -179,17 +161,13 @@ const LogPage = () => {
     return base;
   }, [exercises]);
 
-  useEffect(() => {
-    if (!workouts.length) return;
-    if (selectedWorkout && workouts.includes(selectedWorkout)) return;
-    const fallback =
-      settings.lastWorkout && workouts.includes(settings.lastWorkout)
+  const resolvedWorkout =
+    selectedWorkout && workouts.includes(selectedWorkout)
+      ? selectedWorkout
+      : settings.lastWorkout && workouts.includes(settings.lastWorkout)
         ? settings.lastWorkout
-        : workouts[0];
-    setSelectedWorkout(fallback);
-  }, [selectedWorkout, settings.lastWorkout, workouts]);
-
-  const activeWorkout = selectedWorkout ?? workouts[0] ?? "A";
+        : workouts[0] ?? "A";
+  const activeWorkout = resolvedWorkout;
 
   const exercisesForWorkout = useMemo(() => {
     return exercises
@@ -197,20 +175,22 @@ const LogPage = () => {
       .sort((a, b) => a.order - b.order);
   }, [activeWorkout, exercises]);
 
-  useEffect(() => {
-    setActiveIndex(0);
-    if (carouselRef.current) {
-      carouselRef.current.scrollTo({ left: 0, behavior: "auto" });
-    }
-  }, [activeWorkout]);
-
-  useEffect(() => {
-    setActiveIndex((prev) =>
-      Math.min(prev, Math.max(0, exercisesForWorkout.length - 1)),
-    );
-  }, [exercisesForWorkout.length]);
+  const resolvedActiveIndex = Math.min(
+    activeIndex,
+    Math.max(0, exercisesForWorkout.length - 1),
+  );
 
   const todayKey = getLocalDateKey();
+  const activeSessionDate =
+    typeof settings.activeSessionDate === "string"
+      ? settings.activeSessionDate
+      : todayKey;
+  const calendarMonth =
+    calendarMonthOverride ??
+    (() => {
+      const activeDate = new Date(activeSessionDate);
+      return { year: activeDate.getFullYear(), month: activeDate.getMonth() };
+    })();
   const sessionDateLabel = formatSessionDateLabel(activeSessionDate, todayKey);
   const sessionBarDates = useMemo(() => {
     const dates = sessions
@@ -282,29 +262,31 @@ const LogPage = () => {
 
   const openCalendar = useCallback(() => {
     const date = new Date(activeSessionDate);
-    setCalendarMonth({ year: date.getFullYear(), month: date.getMonth() });
+    setCalendarMonthOverride({ year: date.getFullYear(), month: date.getMonth() });
     setCalendarOpen(true);
   }, [activeSessionDate]);
 
   const handlePrevMonth = useCallback(() => {
-    setCalendarMonth((prev) => {
-      const nextMonth = prev.month - 1;
+    setCalendarMonthOverride((prev) => {
+      const base = prev ?? calendarMonth;
+      const nextMonth = base.month - 1;
       if (nextMonth < 0) {
-        return { year: prev.year - 1, month: 11 };
+        return { year: base.year - 1, month: 11 };
       }
-      return { year: prev.year, month: nextMonth };
+      return { year: base.year, month: nextMonth };
     });
-  }, []);
+  }, [calendarMonth]);
 
   const handleNextMonth = useCallback(() => {
-    setCalendarMonth((prev) => {
-      const nextMonth = prev.month + 1;
+    setCalendarMonthOverride((prev) => {
+      const base = prev ?? calendarMonth;
+      const nextMonth = base.month + 1;
       if (nextMonth > 11) {
-        return { year: prev.year + 1, month: 0 };
+        return { year: base.year + 1, month: 0 };
       }
-      return { year: prev.year, month: nextMonth };
+      return { year: base.year, month: nextMonth };
     });
-  }, []);
+  }, [calendarMonth]);
 
   const { lastSetByExercise, sessionSetsByExercise } = useMemo(() => {
     const lastMap = new Map<string, SetEntry>();
@@ -350,7 +332,7 @@ const LogPage = () => {
   const activeCompleted = activeMeta?.completed ?? 0;
   const activeSetCount = activeMeta?.setCount ?? 0;
 
-  const activeExercise = exercisesForWorkout[activeIndex] ?? null;
+  const activeExercise = exercisesForWorkout[resolvedActiveIndex] ?? null;
   const lastSet = activeExercise
     ? lastSetByExercise.get(activeExercise.id) ?? null
     : null;
@@ -380,24 +362,25 @@ const LogPage = () => {
         return sortSessionsDesc(next);
       });
     },
-    [sortSessionsDesc],
+    [getSession, setSessions, sortSessionsDesc],
   );
 
   const removeSessionDate = useCallback((date: string) => {
     setSessions((prev) => prev.filter((item) => item.date !== date));
-  }, []);
+  }, [setSessions]);
 
-  const updateSessionDate = useCallback(async (nextDate: string) => {
-    if (!nextDate) return;
-    const date = new Date(nextDate);
-    setActiveSessionDate(nextDate);
-    setCalendarMonth({
-      year: date.getFullYear(),
-      month: date.getMonth(),
-    });
-    setSettingsState((prev) => ({ ...prev, activeSessionDate: nextDate }));
-    await setSettings({ activeSessionDate: nextDate });
-  }, []);
+  const updateSessionDate = useCallback(
+    async (nextDate: string) => {
+      if (!nextDate) return;
+      const date = new Date(nextDate);
+      setCalendarMonthOverride({
+        year: date.getFullYear(),
+        month: date.getMonth(),
+      });
+      await updateSettings({ activeSessionDate: nextDate });
+    },
+    [updateSettings],
+  );
 
   const showToast = useCallback((message: string, action?: () => void) => {
     setToast({ message, action });
@@ -479,9 +462,7 @@ const LogPage = () => {
         await addSet(entry);
         setSets((prev) => [entry, ...prev]);
         await refreshSessionDate(entry.date);
-        const nextSettings = { ...settings, lastWorkout: exercise.workout };
-        setSettingsState(nextSettings);
-        await setSettings({ lastWorkout: exercise.workout });
+        await updateSettings({ lastWorkout: exercise.workout });
         triggerHaptic(8);
         if (!options?.silent) {
           showToast(`Logged ${formatSetLabel(entry, exercise)}`, async () => {
@@ -502,13 +483,16 @@ const LogPage = () => {
       }
     },
     [
+      addSet,
       createSetEntry,
+      deleteSet,
       formatSetLabel,
       refreshSessionDate,
       removeSessionDate,
-      settings,
+      setSets,
       showToast,
       triggerHaptic,
+      updateSettings,
     ],
   );
 
@@ -521,10 +505,8 @@ const LogPage = () => {
       onboarded: true,
     };
     await saveExercises(seeded);
-    await setSettings(nextSettings);
-    setExercises(seeded);
-    setSettingsState(nextSettings);
-  }, [activeSessionDate]);
+    await replaceSettings(nextSettings);
+  }, [activeSessionDate, replaceSettings, saveExercises]);
 
   const handleUndoToday = useCallback(
     async (exerciseId: string) => {
@@ -545,7 +527,7 @@ const LogPage = () => {
       });
       showToast("Undid last set.");
     },
-    [removeSessionDate, sessionSetsByExercise, showToast],
+    [deleteSet, removeSessionDate, sessionSetsByExercise, setSets, showToast],
   );
 
   const handleEditUpdate = useCallback(
@@ -579,7 +561,15 @@ const LogPage = () => {
       setEditingSet(null);
       showToast(`Updated ${formatSetLabel(updated, exercise)}`);
     },
-    [editingSet, exerciseById, formatSetLabel, settings.roundingKg, showToast],
+    [
+      editingSet,
+      exerciseById,
+      formatSetLabel,
+      settings.roundingKg,
+      setSets,
+      showToast,
+      updateSet,
+    ],
   );
 
   const handleEditDelete = useCallback(async () => {
@@ -605,11 +595,14 @@ const LogPage = () => {
       showToast("Deleted set");
     }
   }, [
+    addSet,
+    deleteSet,
     editingSet,
     exerciseById,
     formatSetLabel,
     refreshSessionDate,
     removeSessionDate,
+    setSets,
     showToast,
   ]);
 
@@ -635,7 +628,16 @@ const LogPage = () => {
         showToast("Deleted set");
       }
     },
-    [exerciseById, formatSetLabel, refreshSessionDate, removeSessionDate, showToast],
+    [
+      addSet,
+      deleteSet,
+      exerciseById,
+      formatSetLabel,
+      refreshSessionDate,
+      removeSessionDate,
+      setSets,
+      showToast,
+    ],
   );
 
   const handleToggleWarmup = useCallback(
@@ -653,7 +655,7 @@ const LogPage = () => {
       await updateSet(updated);
       setSets((prev) => prev.map((item) => (item.id === updated.id ? updated : item)));
     },
-    [],
+    [setSets, updateSet],
   );
 
   const suggestedSet = useMemo(() => {
@@ -715,21 +717,22 @@ const LogPage = () => {
 
   useEffect(() => {
     if (!restTimerEndsAt) return;
-    const id = window.setInterval(() => setRestTick(Date.now()), 1000);
+    const id = window.setInterval(() => {
+      const now = Date.now();
+      setRestTick(now);
+      if (now >= restTimerEndsAt) {
+        window.clearInterval(id);
+        setRestTimerEndsAt(null);
+        showToast("Rest complete.");
+      }
+    }, 1000);
     return () => window.clearInterval(id);
-  }, [restTimerEndsAt]);
+  }, [restTimerEndsAt, showToast]);
 
   const restRemaining = restTimerEndsAt
     ? Math.max(0, Math.ceil((restTimerEndsAt - restTick) / 1000))
     : 0;
 
-  useEffect(() => {
-    if (!restTimerEndsAt) return;
-    if (restRemaining === 0) {
-      setRestTimerEndsAt(null);
-      showToast("Rest complete.");
-    }
-  }, [restRemaining, restTimerEndsAt, showToast]);
 
   const handleScroll = useCallback(() => {
     if (scrollRaf.current) return;
@@ -817,8 +820,8 @@ const LogPage = () => {
     );
   }
 
-  const prevExercise = exercisesForWorkout[activeIndex - 1] ?? null;
-  const nextExercise = exercisesForWorkout[activeIndex + 1] ?? null;
+  const prevExercise = exercisesForWorkout[resolvedActiveIndex - 1] ?? null;
+  const nextExercise = exercisesForWorkout[resolvedActiveIndex + 1] ?? null;
 
   const nextLabel =
     activeExercise && suggestedSet
@@ -1105,6 +1108,10 @@ const LogPage = () => {
                 type="button"
                 onClick={() => {
                   setSelectedWorkout(meta.workout);
+                  setActiveIndex(0);
+                  if (carouselRef.current) {
+                    carouselRef.current.scrollTo({ left: 0, behavior: "auto" });
+                  }
                   setSessionPickerOpen(false);
                 }}
                 className={`w-full rounded-2xl border px-4 py-3 text-left transition ${

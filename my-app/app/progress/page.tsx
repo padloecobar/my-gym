@@ -5,37 +5,32 @@ import AppShell from "../../components/AppShell";
 import Chip from "../../components/Chip";
 import { IconSearch } from "../../components/Icons";
 import { estimateE1RM, formatKg, formatLb, toKg } from "../../lib/calc";
-import { getAllExercises, getAllSettings, getAllSets } from "../../lib/db";
 import { formatDateHeading } from "../../lib/date";
-import { defaultSettings } from "../../lib/defaults";
-import type { Exercise, SetEntry, SettingsState } from "../../lib/types";
+import { useExercises } from "../../src/hooks/useExercises";
+import { useSets } from "../../src/hooks/useSets";
+import { useSettings } from "../../src/hooks/useSettings";
+import type { SetEntry } from "../../lib/types";
 
 const ProgressPage = () => {
-  const [exercises, setExercises] = useState<Exercise[]>([]);
-  const [sets, setSets] = useState<SetEntry[]>([]);
-  const [settings, setSettingsState] = useState<SettingsState>(defaultSettings);
+  const {
+    exercises,
+    error: exercisesError,
+  } = useExercises();
+  const { sets, error: setsError } = useSets();
+  const { settings, error: settingsError } = useSettings();
   const [search, setSearch] = useState("");
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [range, setRange] = useState<5 | 10 | 20 | "all">(10);
 
   useEffect(() => {
-    const load = async () => {
-      const [exerciseData, settingsData, setData] = await Promise.all([
-        getAllExercises(),
-        getAllSettings(),
-        getAllSets(),
-      ]);
-      setExercises(exerciseData);
-      setSettingsState({ ...defaultSettings, ...settingsData } as SettingsState);
-      setSets(setData);
-      if (exerciseData.length) {
-        setSelectedId(exerciseData[0].id);
-      }
-    };
-    load();
-  }, []);
+    const errors = [exercisesError, setsError, settingsError].filter(Boolean);
+    if (!errors.length) return;
+    console.error("Progress page data error:", errors);
+  }, [exercisesError, setsError, settingsError]);
 
-  const selectedExercise = exercises.find((exercise) => exercise.id === selectedId) ?? null;
+  const resolvedSelectedId = selectedId ?? exercises[0]?.id ?? null;
+  const selectedExercise =
+    exercises.find((exercise) => exercise.id === resolvedSelectedId) ?? null;
   const isBodyweight = selectedExercise?.type === "bodyweight";
 
   const exerciseSets = useMemo(() => {
@@ -125,7 +120,7 @@ const ProgressPage = () => {
         <div className="flex gap-2 overflow-x-auto pb-2">
           {filteredExercises.map((exercise) => {
             const count = setCountByExercise.get(exercise.id) ?? 0;
-            const active = selectedId === exercise.id;
+            const active = resolvedSelectedId === exercise.id;
             return (
               <button
                 key={exercise.id}

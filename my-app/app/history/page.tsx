@@ -7,26 +7,16 @@ import SetBuilder from "../../components/SetBuilder";
 import SwipeRow from "../../components/SwipeRow";
 import Toast from "../../components/Toast";
 import { IconChevronDown, IconSearch } from "../../components/Icons";
-import {
-  addSet,
-  deleteSessionWithSets,
-  deleteSet,
-  getAllExercises,
-  getAllSettings,
-  getSession,
-  listSessions,
-  querySetsByDate,
-  saveSession,
-  setSettings,
-  updateSet,
-} from "../../lib/db";
+import { useExercises } from "../../src/hooks/useExercises";
+import { useSessions } from "../../src/hooks/useSessions";
+import { useSets } from "../../src/hooks/useSets";
+import { useSettings } from "../../src/hooks/useSettings";
 import { computeTotals, formatKg, formatLb, toKg } from "../../lib/calc";
 import {
   formatDateHeading,
   formatShortTime,
   getLocalDateKey,
 } from "../../lib/date";
-import { defaultSettings } from "../../lib/defaults";
 import type {
   Exercise,
   SessionEntry,
@@ -122,12 +112,34 @@ const buildSessionSummary = (
 
 const HistoryPage = () => {
   const router = useRouter();
-  const [exercises, setExercises] = useState<Exercise[]>([]);
-  const [sessions, setSessions] = useState<SessionEntry[]>([]);
+  const {
+    exercises,
+    loading: exercisesLoading,
+    error: exercisesError,
+  } = useExercises();
+  const {
+    sessions,
+    setSessions,
+    listSessions,
+    getSession,
+    saveSession,
+    deleteSessionWithSets,
+  } = useSessions({ autoLoad: false });
+  const {
+    querySetsByDate,
+    addSet,
+    updateSet,
+    deleteSet,
+  } = useSets({ autoLoad: false });
+  const {
+    settings,
+    loading: settingsLoading,
+    error: settingsError,
+    updateSettings,
+  } = useSettings();
   const [sessionSets, setSessionSets] = useState<Record<string, SetEntry[]>>({});
   const [summaries, setSummaries] = useState<Record<string, SessionSummary>>({});
   const [expandedDates, setExpandedDates] = useState<Record<string, boolean>>({});
-  const [settings, setSettingsState] = useState<SettingsState>(defaultSettings);
   const [search, setSearch] = useState("");
   const [editingSet, setEditingSet] = useState<SetEntry | null>(null);
   const [toast, setToast] = useState<{ message: string; action?: () => void } | null>(
@@ -191,6 +203,12 @@ const HistoryPage = () => {
     };
   }, []);
 
+  useEffect(() => {
+    const errors = [exercisesError, settingsError].filter(Boolean);
+    if (!errors.length) return;
+    console.error("History page data error:", errors);
+  }, [exercisesError, settingsError]);
+
   const applySetListUpdate = useCallback(
     (date: string, nextList: SetEntry[]) => {
       setSessionSets((prev) => {
@@ -228,7 +246,15 @@ const HistoryPage = () => {
         });
       }
     },
-    [exerciseById, exercises, sessionByDate],
+    [
+      exerciseById,
+      exercises,
+      sessionByDate,
+      setExpandedDates,
+      setSessionSets,
+      setSessions,
+      setSummaries,
+    ],
   );
 
   const loadSessions = useCallback(
@@ -288,7 +314,16 @@ const HistoryPage = () => {
       setSessionSets((prev) => (append ? { ...prev, ...nextSets } : nextSets));
       setHasMore(nextHasMore);
     },
-    [exerciseById, exercises],
+    [
+      exerciseById,
+      exercises,
+      listSessions,
+      querySetsByDate,
+      setHasMore,
+      setSessionSets,
+      setSessions,
+      setSummaries,
+    ],
   );
 
   const handleLoadMore = useCallback(async () => {
@@ -305,19 +340,14 @@ const HistoryPage = () => {
 
   useEffect(() => {
     if (initialLoadRef.current) return;
+    if (exercisesLoading || settingsLoading) return;
     initialLoadRef.current = true;
     const load = async () => {
       try {
-        const [exerciseData, settingsData] = await Promise.all([
-          getAllExercises(),
-          getAllSettings(),
-        ]);
-        setExercises(exerciseData);
-        setSettingsState({ ...defaultSettings, ...settingsData } as SettingsState);
         const exerciseMap = new Map(
-          exerciseData.map((exercise) => [exercise.id, exercise]),
+          exercises.map((exercise) => [exercise.id, exercise]),
         );
-        await loadSessions({ exerciseList: exerciseData, exerciseMap });
+        await loadSessions({ exerciseList: exercises, exerciseMap });
       } catch (error) {
         console.error(error);
       } finally {
@@ -325,7 +355,7 @@ const HistoryPage = () => {
       }
     };
     load();
-  }, [loadSessions]);
+  }, [exercises, exercisesLoading, loadSessions, settingsLoading]);
 
   const handleOpenSession = useCallback(
     async (date: string, workoutId?: WorkoutId) => {
@@ -333,10 +363,10 @@ const HistoryPage = () => {
       if (workoutId) {
         updates.lastWorkout = workoutId;
       }
-      await setSettings(updates);
+      await updateSettings(updates);
       router.push("/");
     },
-    [router],
+    [router, updateSettings],
   );
 
   const handleDuplicateAsToday = useCallback(
@@ -361,12 +391,12 @@ const HistoryPage = () => {
       if (workoutId) {
         updates.lastWorkout = workoutId;
       }
-      await setSettings(updates);
+      await updateSettings(updates);
       showToast("Duplicated for today.", () => {
         void handleOpenSession(todayKey, workoutId);
       });
     },
-    [handleOpenSession, showToast],
+    [getSession, handleOpenSession, saveSession, showToast, updateSettings],
   );
 
   const handleDeleteSession = useCallback(
@@ -394,7 +424,14 @@ const HistoryPage = () => {
       });
       showToast("Session deleted.");
     },
-    [showToast],
+    [
+      deleteSessionWithSets,
+      setExpandedDates,
+      setSessionSets,
+      setSessions,
+      setSummaries,
+      showToast,
+    ],
   );
 
   const handleDeleteSet = useCallback(
@@ -418,10 +455,14 @@ const HistoryPage = () => {
       });
     },
     [
+      addSet,
       applySetListUpdate,
+      deleteSet,
       exerciseById,
       formatSetLabel,
+      getSession,
       sessionSets,
+      setSessions,
       showToast,
     ],
   );
@@ -482,6 +523,7 @@ const HistoryPage = () => {
       sessionSets,
       settings.roundingKg,
       showToast,
+      updateSet,
     ],
   );
 
