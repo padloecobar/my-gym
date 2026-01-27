@@ -12,6 +12,22 @@ INCLUDE_UNTRACKED=0
 START_PREFIX="#### START "
 END_PREFIX="#### END "
 BANNER_SUFFIX=" ####"
+
+# Static top-of-file message for LLMs
+typeset -r TOP_MESSAGE=$'### FILE STRUCTURE (for LLMs)\n\
+This file is a concatenation of multiple source files.\n\
+\n\
+Each file is wrapped like this:\n\
+  #### START <ABSOLUTE_PATH> ####\n\
+  <file contents>\n\
+  #### END <ABSOLUTE_PATH> ####\n\
+\n\
+Notes:\n\
+- The START/END markers always use absolute paths.\n\
+- There is a blank line after each START marker and before each END marker.\n\
+- Treat each START..END block as the complete content of that one file.\n\
+\n\
+### BEGIN CONCATENATED FILES\n'
 # =========================
 
 usage() {
@@ -39,40 +55,43 @@ if command -v git >/dev/null 2>&1; then
   repo_root="$(cd "$root_abs" && git rev-parse --show-toplevel 2>/dev/null || true)"
 fi
 
-norm_ext() { print "${1#.}"; }
+# ---- Extension sets (O(1) lookup) ----
+typeset -A ALLOWED=()
+typeset -A BLOCKED=()
 
 # Extensions that must NEVER be included (even if added to ALLOWED_EXTS)
 typeset -a BLOCKED_EXTS=( md )
 
-is_allowed_ext() {
-  local path="$1"
-  local ext="${path##*.}"
+# Load ALLOWED from ALLOWED_EXTS
+for e in "${ALLOWED_EXTS[@]}"; do
+  e="${e#.}"
+  e="${e:l}"
+  ALLOWED["$e"]=1
+done
 
-  # normalize extension to lowercase (zsh modifier :l)
+# Load BLOCKED from BLOCKED_EXTS
+for b in "${BLOCKED_EXTS[@]}"; do
+  b="${b#.}"
+  b="${b:l}"
+  BLOCKED["$b"]=1
+done
+
+is_allowed_ext() {
+  local ext="${1##*.}"
   ext="${ext:l}"
 
-  # hard block markdown
-  if [[ "$ext" == "md" ]]; then
-    return 1
-  fi
-
-  local b
-  for b in "${BLOCKED_EXTS[@]}"; do
-    [[ "$ext" == "$(norm_ext "$b")" ]] && return 1
-  done
-
-  local e
-  for e in "${ALLOWED_EXTS[@]}"; do
-    [[ "$ext" == "$(norm_ext "$e")" ]] && return 0
-  done
+  [[ -n "${BLOCKED[$ext]-}" ]] && return 1
+  [[ -n "${ALLOWED[$ext]-}" ]] && return 0
   return 1
 }
 
+# Slightly more directory-aware ignore matching
 is_in_ignored_dir() {
   local path="$1"
   local d
   for d in "${IGNORE_DIRS[@]}"; do
-    [[ "$path" == "$d/"* || "$path" == */"$d/"* ]] && return 0
+    # matches ".../d/..." or "d/..." or exactly "d"
+    [[ "$path" == (#b)(*/|)"$d"(|/*) ]] && return 0
   done
   return 1
 }
@@ -90,7 +109,7 @@ matches_extra_ignore() {
 typeset -a candidates=()
 
 if [[ -n "$repo_root" ]]; then
-  # Compute repo-relative root folder path (pure zsh, no python)
+  # Compute repo-relative root folder path (pure zsh)
   if [[ "$root_abs" == "$repo_root" ]]; then
     rel_root="."
   elif [[ "$root_abs" == "$repo_root/"* ]]; then
@@ -148,28 +167,24 @@ if (( ${#files[@]} == 0 )); then
   exit 1
 fi
 
-: > "$output_file"
+# Write output in one go (faster and cleaner)
+{
+  print -r -- "$TOP_MESSAGE"
 
-for rel_path in "${files[@]}"; do
-  if [[ -n "$repo_root" ]]; then
-    file_abs="$repo_root/$rel_path"
-    banner_path="$rel_path"
-    if [[ "${rel_root:-.}" != "." ]]; then
-      banner_path="${banner_path#$rel_root/}"
+  for rel_path in "${files[@]}"; do
+    if [[ -n "$repo_root" ]]; then
+      file_abs="$repo_root/$rel_path"
+    else
+      file_abs="$root_abs/$rel_path"
     fi
-  else
-    file_abs="$root_abs/$rel_path"
-    banner_path="$rel_path"
-  fi
 
-  {
     print "${START_PREFIX}${file_abs}${BANNER_SUFFIX}"
     print ""
     cat -- "$file_abs"
     print ""
     print "${END_PREFIX}${file_abs}${BANNER_SUFFIX}"
     print ""
-  } >> "$output_file"
-done
+  done
+} > "$output_file"
 
 print "✅ Wrote ${#files[@]} file(s) into: $output_file"

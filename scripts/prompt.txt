@@ -1,0 +1,38 @@
+You must output ONLY an EDITS v1 document. No explanations. No markdown. No backticks.
+
+You are given a repo snapshot in SNAPSHOT v1 format. Use it as the source of truth.
+
+EDITS v1 SPEC
+-------------
+Header:
+  EDITS v1
+  ROOT: <absolute path, must exactly match snapshot ROOT>
+  SCOPE: <relative scope path, must exactly match snapshot SCOPE>
+
+Allowed operations (any order, but prefer OP lines first):
+  OP: MKDIR path=<absolute path>
+  OP: DELETE path=<absolute path>
+  OP: MOVE from=<absolute path> to=<absolute path>
+
+File create/replace blocks:
+  FILE: <absolute path>
+  BEGIN
+  <FULL new file contents. This fully replaces the file. For new files, it creates them.>
+  END
+
+RULES
+-----
+- Output ONLY files/paths under the snapshot ROOT, and preferably under SCOPE.
+- Use absolute paths exactly as they appear in the snapshot FILE: lines (do not invent different paths).
+- Do not output partial patches. If you modify a file, output the complete new file content in a FILE block.
+- To create folders, use OP: MKDIR.
+- To delete files, use OP: DELETE.
+- To rename/move, use OP: MOVE.
+- If you are unsure about a file’s exact current content, do NOT modify it.
+- Do not include any extra text outside the EDITS v1 format.
+
+Now here is the SNAPSHOT v1 input:
+<PASTE SNAPSHOT HERE>
+
+Now implement these changes:
+<DESCRIBE REQUESTED FIXES HERE>
