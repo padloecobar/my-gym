@@ -1,0 +1,682 @@
+/* globals.css (2026 Modern Baseline Design System)
+   Goals: scalable layers, token-first, accessible defaults, component-first responsiveness,
+   baseline-safe modern CSS, progressive enhancement for frontier features.
+*/
+
+/* --------------------------------------------
+   0) Cascade Layers
+-------------------------------------------- */
+@layer reset, tokens, base, layout, components, enhancements, utilities, overrides;
+
+/* --------------------------------------------
+   1) Reset (minimal, modern, non-destructive)
+-------------------------------------------- */
+@layer reset {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
+  body {
+    margin: 0;
+    min-block-size: 100dvh; /* modern viewport unit: avoids mobile URL bar issues */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  img,
+  picture,
+  video,
+  canvas,
+  svg {
+    display: block;
+    max-inline-size: 100%;
+    block-size: auto;
+  }
+
+  input,
+  button,
+  textarea,
+  select {
+    font: inherit;
+    color: inherit;
+  }
+
+  button {
+    cursor: pointer;
+  }
+
+  :where(ul, ol) {
+    padding: 0;
+    margin: 0;
+    list-style: none;
+  }
+
+  :where(h1, h2, h3, h4, h5, h6, p, figure, blockquote) {
+    margin: 0;
+  }
+
+  :where(a) {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  :where(table) {
+    border-collapse: collapse;
+    border-spacing: 0;
+  }
+
+  /* Better default for anchors and focused scroll targets */
+  :where(:target) {
+    scroll-margin-block: 6rem;
+  }
+}
+
+/* --------------------------------------------
+   2) Tokens (design system primitives)
+-------------------------------------------- */
+@layer tokens {
+  :root {
+    /* Let the UA draw appropriate built-in UI for light/dark contexts */
+    color-scheme: light dark;
+
+    /* Typography */
+    --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial,
+      "Apple Color Emoji", "Segoe UI Emoji";
+    --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+      "Courier New", monospace;
+
+    /* Fluid type scale (tweak to taste) */
+    --fs-1: clamp(0.875rem, 0.84rem + 0.2vw, 0.95rem);
+    --fs-2: clamp(1rem, 0.95rem + 0.35vw, 1.125rem);
+    --fs-3: clamp(1.125rem, 1.05rem + 0.55vw, 1.35rem);
+    --fs-4: clamp(1.35rem, 1.2rem + 1vw, 1.9rem);
+    --fs-5: clamp(1.7rem, 1.4rem + 1.7vw, 2.6rem);
+
+    --lh-tight: 1.15;
+    --lh-normal: 1.5;
+    --lh-relaxed: 1.7;
+
+    /* Spacing scale */
+    --space-0: 0;
+    --space-1: 0.25rem;
+    --space-2: 0.5rem;
+    --space-3: 0.75rem;
+    --space-4: 1rem;
+    --space-5: 1.25rem;
+    --space-6: 1.5rem;
+    --space-7: 2rem;
+    --space-8: 2.5rem;
+    --space-9: 3rem;
+
+    /* Radius */
+    --r-1: 0.5rem;
+    --r-2: 0.75rem;
+    --r-3: 1rem;
+    --r-pill: 999px;
+
+    /* Borders + shadows */
+    --border-1: 1px;
+    --shadow-1: 0 1px 2px hsl(0 0% 0% / 0.15);
+    --shadow-2: 0 6px 20px hsl(0 0% 0% / 0.18);
+
+    /* Motion */
+    --dur-1: 120ms;
+    --dur-2: 200ms;
+    --dur-3: 320ms;
+    --ease-1: cubic-bezier(0.2, 0.8, 0.2, 1);
+    --ease-2: cubic-bezier(0.2, 0.0, 0.0, 1);
+
+    /* Layout primitives */
+    --container-max: 72rem;
+    --gutter: clamp(1rem, 2vw, 1.5rem);
+
+    /* Color tokens (OKLCH first, HSL fallback below via @supports) */
+    --brand: oklch(62% 0.18 250);
+    --brand-2: oklch(68% 0.16 240);
+
+    --bg: oklch(99% 0.01 250);
+    --surface: oklch(97% 0.015 250);
+    --surface-2: oklch(94% 0.02 250);
+
+    --text: oklch(22% 0.02 250);
+    --muted: oklch(45% 0.02 250);
+
+    --border: oklch(86% 0.02 250);
+    --ring: var(--brand);
+
+    --success: oklch(66% 0.14 150);
+    --warning: oklch(78% 0.15 80);
+    --danger: oklch(63% 0.19 25);
+
+    /* Derived colors */
+    --brand-soft: color-mix(in srgb, var(--brand) 18%, transparent);
+    --border-soft: color-mix(in srgb, var(--border) 70%, transparent);
+    --shadow-color: color-mix(in srgb, var(--text) 18%, transparent);
+
+    /* Focus ring */
+    --ring-size: 3px;
+    --ring-offset: 2px;
+  }
+
+  /* Dark theme tokens using prefers-color-scheme (viewport-level preference) */
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: oklch(18% 0.02 250);
+      --surface: oklch(22% 0.02 250);
+      --surface-2: oklch(27% 0.02 250);
+
+      --text: oklch(96% 0.01 250);
+      --muted: oklch(76% 0.02 250);
+
+      --border: oklch(34% 0.02 250);
+
+      --brand-soft: color-mix(in srgb, var(--brand) 22%, transparent);
+      --shadow-color: color-mix(in srgb, var(--text) 10%, transparent);
+    }
+  }
+
+  /* Fallback for browsers that lack OKLCH (progressive enhancement) */
+  @supports not (color: oklch(62% 0.18 250)) {
+    :root {
+      --brand: hsl(220 95% 62%);
+      --brand-2: hsl(215 90% 66%);
+
+      --bg: hsl(0 0% 100%);
+      --surface: hsl(225 20% 98%);
+      --surface-2: hsl(225 18% 94%);
+
+      --text: hsl(230 20% 15%);
+      --muted: hsl(230 10% 45%);
+
+      --border: hsl(230 15% 85%);
+
+      --success: hsl(145 65% 38%);
+      --warning: hsl(42 95% 50%);
+      --danger: hsl(0 78% 55%);
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: hsl(230 18% 11%);
+        --surface: hsl(230 17% 14%);
+        --surface-2: hsl(230 16% 18%);
+
+        --text: hsl(220 25% 96%);
+        --muted: hsl(220 12% 72%);
+
+        --border: hsl(230 12% 30%);
+      }
+    }
+  }
+}
+
+/* --------------------------------------------
+   3) Base styles (low specificity, accessible defaults)
+-------------------------------------------- */
+@layer base {
+  html {
+    font-size: 16px;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-sans);
+    font-size: var(--fs-2);
+    line-height: var(--lh-normal);
+
+    /* Modern, low-risk typography defaults */
+    font-kerning: normal;
+  }
+
+  /* Smooth scrolling only when the user has NOT requested reduced motion */
+  @media (prefers-reduced-motion: no-preference) {
+    html:focus-within {
+      scroll-behavior: smooth;
+    }
+  }
+
+  :where(h1) { font-size: var(--fs-5); line-height: var(--lh-tight); letter-spacing: -0.02em; }
+  :where(h2) { font-size: var(--fs-4); line-height: var(--lh-tight); letter-spacing: -0.015em; }
+  :where(h3) { font-size: var(--fs-3); line-height: var(--lh-tight); }
+  :where(p)  { max-inline-size: 70ch; }
+
+  :where(code, pre, kbd, samp) {
+    font-family: var(--font-mono);
+    font-size: 0.95em;
+  }
+
+  :where(pre) {
+    padding: var(--space-4);
+    border-radius: var(--r-2);
+    background: color-mix(in srgb, var(--surface) 70%, var(--bg));
+    border: var(--border-1) solid var(--border-soft);
+    overflow: auto;
+  }
+
+  /* Links: underline on hover/focus for clarity */
+  :where(a[href]) {
+    text-decoration-thickness: 0.08em;
+    text-underline-offset: 0.18em;
+  }
+  :where(a[href]:hover) { text-decoration: underline; }
+
+  /* Accessible focus: never remove outlines without replacement */
+  :where(:focus-visible) {
+    outline: var(--ring-size) solid var(--ring);
+    outline-offset: var(--ring-offset);
+  }
+
+  /* Fallback if :focus-visible is not supported */
+  @supports not selector(:focus-visible) {
+    :where(:focus) {
+      outline: var(--ring-size) solid var(--ring);
+      outline-offset: var(--ring-offset);
+    }
+  }
+
+  /* Make tap targets feel better on touch */
+  :where(button, [role="button"], input, select, textarea) {
+    touch-action: manipulation;
+  }
+
+  /* Better text selection */
+  ::selection {
+    background: color-mix(in srgb, var(--brand) 30%, transparent);
+  }
+
+  /* Reduce motion for people who ask for it */
+  @media (prefers-reduced-motion: reduce) {
+    html:focus-within { scroll-behavior: auto; }
+
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+
+  /* Improve layout stability when scrollbars appear */
+  :root { scrollbar-gutter: stable; }
+}
+
+/* --------------------------------------------
+   4) Layout system (grid for structure, flex for alignment)
+-------------------------------------------- */
+@layer layout {
+  .container {
+    inline-size: min(100% - (var(--gutter) * 2), var(--container-max));
+    margin-inline: auto;
+  }
+
+  .stack {
+    display: grid;
+    gap: var(--space-4);
+  }
+
+  .cluster {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+    align-items: center;
+  }
+
+  .grid {
+    display: grid;
+    gap: var(--space-4);
+  }
+
+  /* Utility-ish but structural: keeps long lists fast */
+  .virtual-list {
+    content-visibility: auto;
+    contain: content; /* safer than contain: layout paint style in more situations */
+    contain-intrinsic-size: 1px 800px;
+  }
+}
+
+/* --------------------------------------------
+   5) Components (generic building blocks)
+-------------------------------------------- */
+@layer components {
+  /* Buttons */
+  .btn {
+    --_bg: var(--brand-soft);
+    --_fg: var(--text);
+    --_bd: color-mix(in srgb, var(--border) 70%, transparent);
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+
+    padding-inline: var(--space-4);
+    padding-block: var(--space-2);
+
+    border-radius: var(--r-2);
+    border: var(--border-1) solid var(--_bd);
+    background: var(--_bg);
+    color: var(--_fg);
+
+    box-shadow: var(--shadow-1);
+    transition:
+      transform var(--dur-1) var(--ease-1),
+      filter var(--dur-2) var(--ease-1),
+      background-color var(--dur-2) var(--ease-1),
+      border-color var(--dur-2) var(--ease-1);
+  }
+
+  .btn:hover { filter: brightness(1.05); }
+  .btn:active { transform: translateY(1px); }
+
+  .btn[disabled],
+  .btn[aria-disabled="true"] {
+    opacity: 0.55;
+    cursor: not-allowed;
+    pointer-events: none; /* make aria-disabled truly non-interactive */
+  }
+
+  .btn--primary {
+    --_bg: var(--brand);
+    --_fg: color-mix(in srgb, white 92%, var(--text));
+    --_bd: color-mix(in srgb, var(--brand) 70%, black);
+  }
+
+  .btn--ghost {
+    --_bg: transparent;
+    --_bd: var(--border-soft);
+  }
+
+  /* Card */
+  .card {
+    container-type: inline-size; /* component-first responsiveness */
+    border-radius: var(--r-3);
+    border: var(--border-1) solid var(--border-soft);
+    background: var(--surface);
+    box-shadow: var(--shadow-1);
+    overflow: clip;
+  }
+
+  .card__body {
+    padding: var(--space-5);
+    display: grid;
+    gap: var(--space-3);
+  }
+
+  .card__title {
+    font-size: var(--fs-3);
+    line-height: var(--lh-tight);
+  }
+
+  .card__meta {
+    color: var(--muted);
+    font-size: var(--fs-1);
+  }
+
+  /* Card responsiveness via container queries */
+  @container (min-width: 34rem) {
+    .card__body {
+      padding: calc(var(--space-5) * 1.2);
+      gap: var(--space-4);
+    }
+  }
+
+  /* Form field */
+  .field {
+    display: grid;
+    gap: var(--space-2);
+  }
+
+  .label {
+    font-size: var(--fs-1);
+    color: var(--muted);
+  }
+
+  .input,
+  .select,
+  .textarea {
+    inline-size: 100%;
+    padding-inline: var(--space-3);
+    padding-block: var(--space-2);
+
+    border-radius: var(--r-2);
+    border: var(--border-1) solid var(--border-soft);
+    background: color-mix(in srgb, var(--surface) 70%, var(--bg));
+    color: var(--text);
+
+    transition: border-color var(--dur-2) var(--ease-1), box-shadow var(--dur-2) var(--ease-1);
+  }
+
+  .textarea {
+    min-block-size: 8lh;
+    resize: vertical;
+  }
+
+  .input:focus-visible,
+  .select:focus-visible,
+  .textarea:focus-visible {
+    border-color: color-mix(in srgb, var(--ring) 60%, var(--border));
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--ring) 20%, transparent);
+    outline: none; /* replaced by stronger box-shadow ring */
+  }
+
+  .help {
+    font-size: var(--fs-1);
+    color: var(--muted);
+  }
+
+  .error {
+    color: var(--danger);
+    font-size: var(--fs-1);
+  }
+
+  /* Use :has() to style parent field when it contains an invalid input */
+  .field { --_state: transparent; }
+  @supports selector(:has(*)) {
+    .field:has(.input:invalid, .textarea:invalid, .select:invalid) {
+      --_state: color-mix(in srgb, var(--danger) 35%, transparent);
+    }
+    .field:has(.input:invalid, .textarea:invalid, .select:invalid) :where(.input, .textarea, .select) {
+      border-color: color-mix(in srgb, var(--danger) 60%, var(--border));
+      box-shadow: 0 0 0 4px var(--_state);
+    }
+  }
+
+  /* Badge */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-1);
+    padding-inline: var(--space-2);
+    padding-block: var(--space-1);
+    border-radius: var(--r-pill);
+    border: var(--border-1) solid var(--border-soft);
+    background: color-mix(in srgb, var(--surface) 75%, var(--bg));
+    font-size: var(--fs-1);
+    color: var(--muted);
+    white-space: nowrap;
+  }
+
+  .badge--brand {
+    color: color-mix(in srgb, var(--brand) 70%, var(--text));
+    background: color-mix(in srgb, var(--brand) 18%, transparent);
+    border-color: color-mix(in srgb, var(--brand) 22%, transparent);
+  }
+
+  /* Media */
+  .media {
+    aspect-ratio: 16 / 9;
+    background: color-mix(in srgb, var(--surface-2) 70%, var(--bg));
+    border-radius: var(--r-3);
+    overflow: clip;
+  }
+
+  .media > :where(img, video) {
+    inline-size: 100%;
+    block-size: 100%;
+    object-fit: cover;
+  }
+
+  /* Dialog (fallback styles apply everywhere) */
+  .dialog {
+    border-radius: var(--r-3);
+    border: var(--border-1) solid var(--border-soft);
+    background: var(--surface);
+    box-shadow: var(--shadow-2);
+  }
+  .dialog__body { padding: var(--space-5); }
+  .dialog__footer {
+    padding: var(--space-4);
+    border-top: var(--border-1) solid var(--border-soft);
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--space-3);
+  }
+}
+
+/* --------------------------------------------
+   6) Enhancements (Tier B features with guardrails)
+-------------------------------------------- */
+@layer enhancements {
+  /* View Transitions (progressive enhancement) */
+  @supports (view-transition-name: hero) {
+    .vt-hero { view-transition-name: hero; }
+  }
+
+  /* Scroll-driven animations (progressive enhancement) */
+  @supports (animation-timeline: view()) {
+    .reveal-on-scroll {
+      animation: fade-in linear both;
+      animation-timeline: view();
+      animation-range: entry 10% cover 35%;
+    }
+
+    @keyframes fade-in {
+      from { opacity: 0; transform: translateY(8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .reveal-on-scroll { animation: none; }
+    }
+  }
+
+  /* Anchor Positioning (frontier, guardrails)
+     Gate on the actual properties used. Fallback is static flow layout. */
+  @supports (position-anchor: --anchor) and (inset-area: bottom) {
+    .anchor {
+      anchor-name: --anchor;
+    }
+    .anchored-popover {
+      position: absolute;
+      position-anchor: --anchor;
+      inset-area: bottom;
+      margin-block-start: var(--space-2);
+    }
+  }
+  @supports not ((position-anchor: --anchor) and (inset-area: bottom)) {
+    .anchored-popover {
+      position: static;
+      margin-block-start: var(--space-2);
+    }
+  }
+
+  /* @scope (frontier, guardrails)
+     Fallback styles live in @layer components. This block only narrows spill when supported.
+     Note: there isn't a perfect @supports gate for @scope everywhere, so we keep it additive. */
+  @supports (selector(:is(*))) {
+    @scope (.dialog) to (.dialog__footer) {
+      :scope {
+        border-radius: var(--r-3);
+        border: var(--border-1) solid var(--border-soft);
+        background: var(--surface);
+        box-shadow: var(--shadow-2);
+      }
+      .dialog__body { padding: var(--space-5); }
+      .dialog__footer {
+        padding: var(--space-4);
+        border-top: var(--border-1) solid var(--border-soft);
+        display: flex;
+        justify-content: flex-end;
+        gap: var(--space-3);
+      }
+    }
+  }
+}
+
+/* --------------------------------------------
+   7) Utilities (small, composable helpers)
+-------------------------------------------- */
+@layer utilities {
+  /* Visually hidden but accessible */
+  .sr-only {
+    position: absolute;
+    inline-size: 1px;
+    block-size: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    clip-path: inset(50%);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  .flow > * + * { margin-block-start: var(--space-4); }
+
+  .muted { color: var(--muted); }
+  .mono { font-family: var(--font-mono); }
+
+  .surface {
+    background: var(--surface);
+    border: var(--border-1) solid var(--border-soft);
+    border-radius: var(--r-3);
+  }
+
+  .shadow-1 { box-shadow: var(--shadow-1); }
+  .shadow-2 { box-shadow: var(--shadow-2); }
+
+  .center {
+    display: grid;
+    place-items: center;
+  }
+
+  .truncate {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .nowrap { white-space: nowrap; }
+
+  /* Safe spacing utilities using tokens */
+  .p-4 { padding: var(--space-4); }
+  .p-5 { padding: var(--space-5); }
+  .px-4 { padding-inline: var(--space-4); }
+  .py-3 { padding-block: var(--space-3); }
+  .gap-3 { gap: var(--space-3); }
+  .gap-4 { gap: var(--space-4); }
+
+  /* Simple responsive switcher using container queries */
+  .switcher {
+    container-type: inline-size;
+    display: grid;
+    gap: var(--space-4);
+  }
+  @container (min-width: 42rem) {
+    .switcher { grid-template-columns: 1fr 1fr; align-items: start; }
+  }
+}
+
+/* --------------------------------------------
+   8) Overrides (keep mostly empty, last-resort only)
+-------------------------------------------- */
+@layer overrides {
+  /* Example: emergency patch region */
+  /* .some-legacy-thing { ... } */
+}
