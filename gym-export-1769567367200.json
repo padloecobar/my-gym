@@ -1,0 +1,566 @@
+{
+  "programs": [
+    {
+      "id": "6adc86d4-dfa8-4368-bddb-f8971a8ab740",
+      "name": "New Program 1",
+      "note": "",
+      "exerciseIds": [
+        "204066ab-dcce-48f1-8844-d181571f0c5b",
+        "0c01db49-bcb6-491d-89c8-12035c06ce63",
+        "0338d923-c03d-4da7-bc8a-8c4265b30171",
+        "7aff0bdf-23f7-47c2-938b-06ad78931ec6"
+      ]
+    },
+    {
+      "id": "92e5224e-2794-4a05-8f7e-17246e1b02f5",
+      "name": "Strength B",
+      "note": "Posterior chain focus",
+      "exerciseIds": [
+        "ee87a41e-6b38-4a90-bac9-beadd61d6351",
+        "6d3c1f94-0448-4394-b197-a8456af7bc44",
+        "d18d4f41-6400-4a82-bda2-b9bb1711efca"
+      ]
+    },
+    {
+      "id": "d3112bc7-4671-44c9-9f63-da9733050b61",
+      "name": "Strength A",
+      "note": "Heavy compounds + back work",
+      "exerciseIds": [
+        "2a26306d-3d0e-486c-825c-40de092ff922",
+        "2d16bd77-0ab6-4841-95fc-550096e04b21",
+        "6fcbe573-b54e-4a4a-9f46-c0877caf8177"
+      ]
+    },
+    {
+      "id": "f11040b7-8907-4788-a3d2-b8e6c30f7c9f",
+      "name": "Strength A",
+      "note": "Heavy compounds + back work",
+      "exerciseIds": [
+        "2933a42f-102a-455d-8b68-a84d0ff042d7",
+        "98482631-ff5c-447e-b8ab-14e66b07759c",
+        "be96d728-2948-48ac-a6c8-4a6b29448b0e"
+      ]
+    },
+    {
+      "id": "f433d7fe-ed90-4069-bca7-2d19ac957f67",
+      "name": "Strength B",
+      "note": "Posterior chain focus",
+      "exerciseIds": [
+        "0646d5d4-c0c1-4b0c-bc14-213dd873d72c",
+        "c63112ed-2393-484c-8267-415896794930",
+        "4e7bd4e0-6b27-4899-9493-d1a302eacb6c"
+      ]
+    }
+  ],
+  "exercises": [
+    {
+      "id": "0338d923-c03d-4da7-bc8a-8c4265b30171",
+      "name": "machine",
+      "type": "Machine",
+      "defaultInputMode": "total"
+    },
+    {
+      "id": "0646d5d4-c0c1-4b0c-bc14-213dd873d72c",
+      "name": "Deadlift",
+      "type": "Barbell",
+      "defaultInputMode": "plates"
+    },
+    {
+      "id": "0c01db49-bcb6-491d-89c8-12035c06ce63",
+      "name": "dumb",
+      "type": "Dumbbell",
+      "defaultInputMode": "total"
+    },
+    {
+      "id": "204066ab-dcce-48f1-8844-d181571f0c5b",
+      "name": "bench",
+      "type": "Barbell",
+      "defaultInputMode": "plates"
+    },
+    {
+      "id": "2933a42f-102a-455d-8b68-a84d0ff042d7",
+      "name": "Back Squat",
+      "type": "Barbell",
+      "defaultInputMode": "plates"
+    },
+    {
+      "id": "2a26306d-3d0e-486c-825c-40de092ff922",
+      "name": "Back Squat",
+      "type": "Barbell",
+      "defaultInputMode": "plates"
+    },
+    {
+      "id": "2d16bd77-0ab6-4841-95fc-550096e04b21",
+      "name": "Bench Press",
+      "type": "Barbell",
+      "defaultInputMode": "plates"
+    },
+    {
+      "id": "4e7bd4e0-6b27-4899-9493-d1a302eacb6c",
+      "name": "Bulgarian Split Squat",
+      "type": "Bodyweight",
+      "defaultInputMode": "total"
+    },
+    {
+      "id": "6d3c1f94-0448-4394-b197-a8456af7bc44",
+      "name": "Incline Dumbbell Press",
+      "type": "Dumbbell",
+      "defaultInputMode": "total"
+    },
+    {
+      "id": "6fcbe573-b54e-4a4a-9f46-c0877caf8177",
+      "name": "Lat Pulldown",
+      "type": "Machine",
+      "defaultInputMode": "total"
+    },
+    {
+      "id": "7aff0bdf-23f7-47c2-938b-06ad78931ec6",
+      "name": "body",
+      "type": "Bodyweight",
+      "defaultInputMode": "total"
+    },
+    {
+      "id": "98482631-ff5c-447e-b8ab-14e66b07759c",
+      "name": "Bench Press",
+      "type": "Barbell",
+      "defaultInputMode": "plates"
+    },
+    {
+      "id": "be96d728-2948-48ac-a6c8-4a6b29448b0e",
+      "name": "Lat Pulldown",
+      "type": "Machine",
+      "defaultInputMode": "total"
+    },
+    {
+      "id": "c63112ed-2393-484c-8267-415896794930",
+      "name": "Incline Dumbbell Press",
+      "type": "Dumbbell",
+      "defaultInputMode": "total"
+    },
+    {
+      "id": "d18d4f41-6400-4a82-bda2-b9bb1711efca",
+      "name": "Bulgarian Split Squat",
+      "type": "Bodyweight",
+      "defaultInputMode": "total"
+    },
+    {
+      "id": "ee87a41e-6b38-4a90-bac9-beadd61d6351",
+      "name": "Deadlift",
+      "type": "Barbell",
+      "defaultInputMode": "plates"
+    }
+  ],
+  "workouts": [
+    {
+      "id": "8ca4a077-304a-4dee-ba1e-4a28c7d35049",
+      "programId": "f433d7fe-ed90-4069-bca7-2d19ac957f67",
+      "startedAt": 1769567306454,
+      "endedAt": 1769567314206,
+      "entries": [
+        {
+          "exerciseId": "0646d5d4-c0c1-4b0c-bc14-213dd873d72c",
+          "suggested": true,
+          "sets": [
+            {
+              "id": "649e75e2-4093-40ca-8f97-197d790f51db",
+              "weightKg": 20,
+              "reps": 8,
+              "completed": false,
+              "mode": "plates"
+            },
+            {
+              "id": "53b2777c-d130-4f1c-8e07-057e8a520a61",
+              "weightKg": 20,
+              "reps": 8,
+              "completed": false,
+              "mode": "plates"
+            },
+            {
+              "id": "bd916cef-ef84-44d5-aa54-82b409441aaf",
+              "weightKg": 20,
+              "reps": 8,
+              "completed": false,
+              "mode": "plates"
+            }
+          ]
+        },
+        {
+          "exerciseId": "c63112ed-2393-484c-8267-415896794930",
+          "suggested": true,
+          "sets": [
+            {
+              "id": "f23d1148-f6d9-4968-9901-9b1ff6e88d96",
+              "weightKg": 0,
+              "reps": 8,
+              "completed": false,
+              "mode": "total"
+            }
+          ]
+        },
+        {
+          "exerciseId": "4e7bd4e0-6b27-4899-9493-d1a302eacb6c",
+          "suggested": true,
+          "sets": [
+            {
+              "id": "b6b60e31-fd20-41a7-ba80-4d04d7001175",
+              "weightKg": 0,
+              "reps": 8,
+              "completed": false,
+              "mode": "total"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "551dcf13-ede5-4b68-a47c-b029a60431e9",
+      "programId": "6adc86d4-dfa8-4368-bddb-f8971a8ab740",
+      "startedAt": 1769567099759,
+      "entries": [
+        {
+          "exerciseId": "204066ab-dcce-48f1-8844-d181571f0c5b",
+          "suggested": true,
+          "sets": [
+            {
+              "id": "23365c05-4f8b-4175-940f-b666cc91cd75",
+              "weightKg": 20,
+              "reps": 8,
+              "completed": true,
+              "mode": "plates"
+            },
+            {
+              "id": "47f80e98-3223-4ab2-9ede-4467884fdc44",
+              "weightKg": 55,
+              "reps": 8,
+              "completed": true,
+              "mode": "plates"
+            },
+            {
+              "id": "b2b065e5-40e6-429c-b3b2-0e4a8f5098e4",
+              "weightKg": 20,
+              "reps": 8,
+              "completed": false,
+              "mode": "plates"
+            },
+            {
+              "id": "7df4cd15-644c-411c-a2eb-8df39c8c4723",
+              "weightKg": 20,
+              "reps": 8,
+              "completed": false,
+              "mode": "plates"
+            },
+            {
+              "id": "b870c226-dad2-41f2-8f82-48c517bd48c2",
+              "weightKg": 40,
+              "reps": 8,
+              "completed": false,
+              "mode": "plates"
+            },
+            {
+              "id": "d02b6534-24b0-4bd9-b70e-0e9a6dcc8ce0",
+              "weightKg": 40,
+              "reps": 8,
+              "completed": true,
+              "mode": "plates"
+            }
+          ]
+        },
+        {
+          "exerciseId": "0c01db49-bcb6-491d-89c8-12035c06ce63",
+          "suggested": true,
+          "sets": [
+            {
+              "id": "cced6e92-86b8-478b-bd68-2ed058a55622",
+              "weightKg": 0,
+              "reps": 8,
+              "completed": false,
+              "mode": "total"
+            },
+            {
+              "id": "3795f0ce-becc-4a66-96ff-63e9f4c7a601",
+              "weightKg": 10,
+              "reps": 8,
+              "completed": false,
+              "mode": "total"
+            },
+            {
+              "id": "b56c192c-a040-41f7-a125-dcffeef377ca",
+              "weightKg": 10,
+              "reps": 8,
+              "completed": false,
+              "mode": "total"
+            }
+          ]
+        },
+        {
+          "exerciseId": "0338d923-c03d-4da7-bc8a-8c4265b30171",
+          "suggested": true,
+          "sets": [
+            {
+              "id": "4e5dbd27-4dc0-41f7-be1a-d2a129323861",
+              "weightKg": 12.5,
+              "reps": 8,
+              "completed": false,
+              "mode": "total"
+            }
+          ]
+        },
+        {
+          "exerciseId": "7aff0bdf-23f7-47c2-938b-06ad78931ec6",
+          "suggested": true,
+          "sets": [
+            {
+              "id": "813f86ac-1cc5-41de-a0ab-4ea328983404",
+              "weightKg": 0,
+              "reps": 8,
+              "completed": false,
+              "mode": "total"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "31fad0d2-ef1e-44ba-9c6f-cd4d5c39c9db",
+      "programId": "f433d7fe-ed90-4069-bca7-2d19ac957f67",
+      "startedAt": 1769564295418,
+      "endedAt": 1769564300046,
+      "entries": [
+        {
+          "exerciseId": "0646d5d4-c0c1-4b0c-bc14-213dd873d72c",
+          "suggested": false,
+          "sets": [
+            {
+              "id": "3f02a296-b583-4bb6-a7ae-78e30ec37282",
+              "weightKg": 20,
+              "reps": 8,
+              "completed": false,
+              "mode": "plates"
+            },
+            {
+              "id": "a7045b2c-78e5-4347-8991-11557bf96ce9",
+              "weightKg": 20,
+              "reps": 8,
+              "completed": false,
+              "mode": "plates"
+            },
+            {
+              "id": "0a9c1250-2f78-4fe3-aa56-12708ac40044",
+              "weightKg": 20,
+              "reps": 8,
+              "completed": false,
+              "mode": "plates"
+            }
+          ]
+        },
+        {
+          "exerciseId": "c63112ed-2393-484c-8267-415896794930",
+          "suggested": false,
+          "sets": [
+            {
+              "id": "6e69d4ca-374b-4a70-95c2-e933e27861d6",
+              "weightKg": 0,
+              "reps": 8,
+              "completed": false,
+              "mode": "total"
+            }
+          ]
+        },
+        {
+          "exerciseId": "4e7bd4e0-6b27-4899-9493-d1a302eacb6c",
+          "suggested": false,
+          "sets": [
+            {
+              "id": "6d5ddf83-942d-42b5-8d71-206f1a1dc827",
+              "weightKg": 0,
+              "reps": 8,
+              "completed": false,
+              "mode": "total"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "f064339b-0348-45f8-a489-414e424117a1",
+      "programId": "6adc86d4-dfa8-4368-bddb-f8971a8ab740",
+      "startedAt": 1769562478765,
+      "endedAt": 1769564272636,
+      "entries": [
+        {
+          "exerciseId": "204066ab-dcce-48f1-8844-d181571f0c5b",
+          "suggested": false,
+          "sets": [
+            {
+              "id": "f929c6dd-c9e7-4893-8006-a368b1d940d5",
+              "weightKg": 20,
+              "reps": 8,
+              "completed": false,
+              "mode": "plates"
+            },
+            {
+              "id": "287417ef-79ea-48fe-a900-8accf19e5fe0",
+              "weightKg": 55,
+              "reps": 8,
+              "completed": false,
+              "mode": "plates"
+            },
+            {
+              "id": "c35a9a7b-54e9-451b-8a5d-1edb8c8009dd",
+              "weightKg": 20,
+              "reps": 8,
+              "completed": false,
+              "mode": "plates"
+            },
+            {
+              "id": "9820abd5-b913-43d7-8c74-2c27e2942b93",
+              "weightKg": 20,
+              "reps": 8,
+              "completed": false,
+              "mode": "plates"
+            }
+          ]
+        },
+        {
+          "exerciseId": "0c01db49-bcb6-491d-89c8-12035c06ce63",
+          "suggested": false,
+          "sets": [
+            {
+              "id": "4f9372b1-3ee1-43ed-b79c-9ae2a18eb255",
+              "weightKg": 0,
+              "reps": 8,
+              "completed": false,
+              "mode": "total"
+            },
+            {
+              "id": "192fc6da-a042-486c-b50a-bf0523beca4d",
+              "weightKg": 10,
+              "reps": 8,
+              "completed": false,
+              "mode": "total"
+            },
+            {
+              "id": "c4aa00d7-25cd-4171-a8aa-a77eaf50771a",
+              "weightKg": 10,
+              "reps": 8,
+              "completed": false,
+              "mode": "total"
+            }
+          ]
+        },
+        {
+          "exerciseId": "0338d923-c03d-4da7-bc8a-8c4265b30171",
+          "suggested": false,
+          "sets": [
+            {
+              "id": "acf66269-8bef-4b5b-9560-59abd2934f82",
+              "weightKg": 12.5,
+              "reps": 8,
+              "completed": false,
+              "mode": "total"
+            }
+          ]
+        },
+        {
+          "exerciseId": "7aff0bdf-23f7-47c2-938b-06ad78931ec6",
+          "suggested": false,
+          "sets": [
+            {
+              "id": "f10ea81a-a594-446f-8592-8146bad8bd72",
+              "weightKg": 0,
+              "reps": 8,
+              "completed": false,
+              "mode": "total"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "929c7412-644e-4caa-b092-c8570cd517ee",
+      "programId": "f11040b7-8907-4788-a3d2-b8e6c30f7c9f",
+      "startedAt": 1769486168420,
+      "endedAt": 1769520278444,
+      "entries": [
+        {
+          "exerciseId": "2933a42f-102a-455d-8b68-a84d0ff042d7",
+          "suggested": false,
+          "sets": [
+            {
+              "id": "6ccfb7ab-7646-4d94-91dd-fadd62d61902",
+              "weightKg": 45,
+              "reps": 10,
+              "completed": false,
+              "mode": "plates"
+            },
+            {
+              "id": "75f6165f-9cd2-46e4-acd2-1b1f53e03fa1",
+              "weightKg": 50,
+              "reps": 8,
+              "completed": false,
+              "mode": "plates"
+            },
+            {
+              "id": "8a97d991-0bc7-491b-9a56-58200a926d55",
+              "weightKg": 40,
+              "reps": 10,
+              "completed": true,
+              "mode": "plates"
+            }
+          ]
+        },
+        {
+          "exerciseId": "98482631-ff5c-447e-b8ab-14e66b07759c",
+          "suggested": false,
+          "sets": [
+            {
+              "id": "a9304813-1e6e-44a3-8f9e-c789ed1d7224",
+              "weightKg": 35,
+              "reps": 8,
+              "completed": false,
+              "mode": "plates"
+            },
+            {
+              "id": "8fbf7f56-c8cb-4369-8c98-2f2af1b714cf",
+              "weightKg": 50,
+              "reps": 8,
+              "completed": false,
+              "mode": "plates"
+            }
+          ]
+        },
+        {
+          "exerciseId": "be96d728-2948-48ac-a6c8-4a6b29448b0e",
+          "suggested": false,
+          "sets": [
+            {
+              "id": "e84c857b-e183-4f79-b446-4cd43f9c8874",
+              "weightKg": 0,
+              "reps": 8,
+              "completed": true,
+              "mode": "total"
+            },
+            {
+              "id": "8746cf50-043a-4799-8c88-58568a008e08",
+              "weightKg": 0,
+              "reps": 8,
+              "completed": true,
+              "mode": "total"
+            },
+            {
+              "id": "f1a53b1c-bed8-4bf9-ae3f-0e2b577229c8",
+              "weightKg": 0,
+              "reps": 6,
+              "completed": false,
+              "mode": "total"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "settings": {
+    "unitsPreference": "kg",
+    "defaultBarWeight": 20
+  }
+}

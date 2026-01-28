@@ -1,18 +1,27 @@
 "use client";
 
 import { useParams } from "next/navigation";
+import { useMemo } from "react";
 import HeaderBar from "../../components/HeaderBar";
-import { useGymStore } from "../../../store/gym";
+import { makeWorkoutViewSelector } from "../../../store/selectors/sessionSelectors";
+import { useCatalogShallow } from "../../../store/useCatalogStore";
+import { useSessionStore } from "../../../store/useSessionStore";
+import { useUiShallow } from "../../../store/useUiStore";
 import { formatDate, formatKg, formatLb, formatTime } from "../../../lib/utils";
 
 export default function WorkoutDetailPage() {
   const params = useParams<{ workoutId: string }>();
-  const workout = useGymStore((state) => state.workouts.find((item) => item.id === params.workoutId));
-  const program = useGymStore((state) =>
-    workout ? state.programs.find((item) => item.id === workout.programId) : undefined
+  const workoutSelector = useMemo(() => makeWorkoutViewSelector(params.workoutId), [params.workoutId]);
+  const workout = useSessionStore(workoutSelector);
+  const { programs, exercises } = useCatalogShallow((state) => ({
+    programs: state.programs,
+    exercises: state.exercises,
+  }));
+  const { vtHero } = useUiShallow((state) => ({ vtHero: state.vtHero }));
+  const program = useMemo(
+    () => (workout ? programs.find((item) => item.id === workout.programId) : undefined),
+    [programs, workout]
   );
-  const exercises = useGymStore((state) => state.exercises);
-  const vtHero = useGymStore((state) => state.ui.vtHero);
 
   if (!workout || !program) {
     return (

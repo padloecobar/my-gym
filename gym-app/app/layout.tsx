@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import "./ui.css";
 import AppShell from "./components/AppShell";
-import { GymStoreProvider } from "../store/gym";
+import AppStoreProvider from "../store/AppStoreProvider";
 
 export const metadata: Metadata = {
   title: "Gym Runner",
@@ -28,9 +28,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <GymStoreProvider>
+        <AppStoreProvider>
           <AppShell>{children}</AppShell>
-        </GymStoreProvider>
+        </AppStoreProvider>
       </body>
     </html>
   );

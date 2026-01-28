@@ -1,9 +1,7 @@
-import type { GymExport } from "../types/gym";
-
 const DB_NAME = "gym-tracker";
 const DB_VERSION = 2;
 
-type StoreName = "programs" | "exercises" | "workouts" | "settings";
+export type StoreName = "programs" | "exercises" | "workouts" | "settings" | "meta" | "session";
 
 let dbPromise: Promise<IDBDatabase> | null = null;
 
@@ -42,7 +40,11 @@ const openDb = () => {
   return dbPromise;
 };
 
-const withStore = async <T>(storeName: StoreName, mode: IDBTransactionMode, action: (store: IDBObjectStore) => IDBRequest<T>) => {
+const withStore = async <T>(
+  storeName: StoreName,
+  mode: IDBTransactionMode,
+  action: (store: IDBObjectStore) => IDBRequest<T>
+) => {
   const db = await openDb();
   return new Promise<T>((resolve, reject) => {
     const tx = db.transaction(storeName, mode);
@@ -71,44 +73,4 @@ export const deleteById = async (storeName: StoreName, id: string): Promise<void
 
 export const clearStore = async (storeName: StoreName): Promise<void> => {
   await withStore(storeName, "readwrite", (store) => store.clear());
-};
-
-export const exportJSON = async (): Promise<GymExport> => {
-  const [programs, exercises, workouts] = await Promise.all([
-    getAll<GymExport["programs"][number]>("programs"),
-    getAll<GymExport["exercises"][number]>("exercises"),
-    getAll<GymExport["workouts"][number]>("workouts"),
-  ]);
-
-  const settingsRecord = await getById<{ id: string; value: GymExport["settings"] }>("settings", "settings");
-
-  return {
-    programs,
-    exercises,
-    workouts,
-    settings: settingsRecord?.value ?? {
-      unitsPreference: "kg",
-      defaultBarWeight: 20,
-    },
-  };
-};
-
-export const importJSON = async (payload: GymExport): Promise<void> => {
-  await Promise.all([
-    clearStore("programs"),
-    clearStore("exercises"),
-    clearStore("workouts"),
-    clearStore("settings"),
-  ]);
-
-  await Promise.all([
-    ...payload.programs.map((program) => put("programs", program)),
-    ...payload.exercises.map((exercise) => put("exercises", exercise)),
-    ...payload.workouts.map((workout) => put("workouts", workout)),
-    put("settings", { id: "settings", value: payload.settings }),
-  ]);
-};
-
-export const saveSettings = async (settings: GymExport["settings"]) => {
-  await put("settings", { id: "settings", value: settings });
 };

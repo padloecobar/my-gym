@@ -1,27 +1,30 @@
 "use client";
 
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
+import { useMemo } from "react";
 import ExerciseCard from "../../components/ExerciseCard";
-import { useGymStore } from "../../../store/gym";
-import { navigateWithTransition } from "../../../lib/navigation";
+import type { Command } from "../../../commands/types";
+import { makeCatalogMapsSelector } from "../../../store/selectors/catalogSelectors";
+import { makeWorkoutViewSelector } from "../../../store/selectors/sessionSelectors";
+import { useCatalogStore } from "../../../store/useCatalogStore";
+import { useSessionStore, useSessionStoreApi } from "../../../store/useSessionStore";
+import { useSettingsShallow } from "../../../store/useSettingsStore";
+import { useUiShallow, useUiStoreApi } from "../../../store/useUiStore";
 
 export default function WorkoutRunnerPage() {
   const params = useParams<{ workoutId: string }>();
-  const router = useRouter();
   const workoutId = params.workoutId;
-  const workout = useGymStore((state) => state.workouts.find((item) => item.id === workoutId));
-  const program = useGymStore((state) =>
-    workout ? state.programs.find((item) => item.id === workout.programId) : undefined
-  );
-  const exercises = useGymStore((state) => state.exercises);
-  const settings = useGymStore((state) => state.settings);
-  const toggleSetComplete = useGymStore((state) => state.toggleSetComplete);
-  const openEditSet = useGymStore((state) => state.openEditSet);
-  const deleteSet = useGymStore((state) => state.deleteSet);
-  const addSet = useGymStore((state) => state.addSet);
-  const openConfirm = useGymStore((state) => state.openConfirm);
-  const finishWorkout = useGymStore((state) => state.finishWorkout);
-  const vtHero = useGymStore((state) => state.ui.vtHero);
+  const workoutSelector = useMemo(() => makeWorkoutViewSelector(workoutId), [workoutId]);
+  const workout = useSessionStore(workoutSelector);
+  const catalogSelector = useMemo(() => makeCatalogMapsSelector(), []);
+  const { programById, exerciseById } = useCatalogStore(catalogSelector);
+  const program = workout ? programById.get(workout.programId) : undefined;
+  const { settings } = useSettingsShallow((state) => ({ settings: state.settings }));
+  const sessionStore = useSessionStoreApi();
+  const { vtHero } = useUiShallow((state) => ({ vtHero: state.vtHero }));
+  const uiStore = useUiStoreApi();
+  const { toggleSetComplete, deleteSet, addSet } = sessionStore.getState();
+  const { openEditSet, openConfirm, showSnackbar } = uiStore.getState();
 
   if (!workout || !program) {
     return (
@@ -32,14 +35,12 @@ export default function WorkoutRunnerPage() {
   }
 
   const handleFinish = () => {
+    const command: Command = { type: "FINISH_WORKOUT", payload: { workoutId, navigateTo: `/workout/${workoutId}/summary` } };
     openConfirm({
       title: "End workout?",
       message: "Finish now to lock this workout into history.",
       confirmLabel: "Finish",
-      onConfirm: () => {
-        finishWorkout(workoutId);
-        navigateWithTransition(router, `/workout/${workoutId}/summary`);
-      },
+      command,
     });
   };
 
@@ -59,7 +60,7 @@ export default function WorkoutRunnerPage() {
 
       <section className="page__section virtual-list">
         {workout.entries.map((entry) => {
-          const exercise = exercises.find((item) => item.id === entry.exerciseId);
+          const exercise = exerciseById.get(entry.exerciseId);
           if (!exercise) return null;
           return (
             <ExerciseCard
@@ -69,7 +70,12 @@ export default function WorkoutRunnerPage() {
               barWeight={settings.defaultBarWeight}
               onToggleSet={(setId) => toggleSetComplete(workoutId, entry.exerciseId, setId)}
               onEditSet={(setId) => openEditSet({ workoutId, exerciseId: entry.exerciseId, setId })}
-              onDeleteSet={(setId) => deleteSet(workoutId, entry.exerciseId, setId)}
+              onDeleteSet={(setId) => {
+                const payload = deleteSet(workoutId, entry.exerciseId, setId);
+                if (payload) {
+                  showSnackbar("Set deleted", "Undo", { type: "UNDO_DELETE_SET", payload });
+                }
+              }}
               onAddSet={() => addSet(workoutId, entry.exerciseId)}
             />
           );

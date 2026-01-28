@@ -1,31 +1,27 @@
 "use client";
 
-import { ReactNode, useEffect, useMemo } from "react";
+import { ReactNode, useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import BottomNav from "./BottomNav";
+import HydrationGate from "./HydrationGate";
 import SheetHost from "./SheetHost";
 import Snackbar from "./Snackbar";
-import { useGymStore } from "../../store/gym";
 import { registerServiceWorker } from "../../lib/sw";
 import { useReducedMotion } from "../../lib/useReducedMotion";
 
 export default function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const reduceMotion = useReducedMotion();
-  const init = useGymStore((state) => state.init);
-
-  const vtEnabled = useMemo(() => {
-    if (typeof document === "undefined") return false;
-    return "startViewTransition" in document && !reduceMotion;
-  }, [reduceMotion]);
-
-  useEffect(() => {
-    init();
-  }, [init]);
+  const [vtEnabled, setVtEnabled] = useState(false);
 
   useEffect(() => {
     registerServiceWorker();
   }, []);
+
+  useEffect(() => {
+    const enabled = typeof document !== "undefined" && "startViewTransition" in document && !reduceMotion;
+    setVtEnabled(enabled);
+  }, [reduceMotion]);
 
   return (
     <div className="app-shell">
@@ -35,7 +31,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
         data-vt={vtEnabled ? "true" : "false"}
         key={pathname}
       >
-        {children}
+        <HydrationGate>{children}</HydrationGate>
       </main>
       <BottomNav />
       <SheetHost />

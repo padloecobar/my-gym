@@ -1,17 +1,22 @@
 "use client";
 
 import HeaderBar from "../components/HeaderBar";
-import { useGymStore } from "../../store/gym";
+import { useAppActions } from "../../store/useAppActions";
+import { useSettingsShallow } from "../../store/useSettingsStore";
+import { useUiShallow } from "../../store/useUiStore";
 import { formatKg } from "../../lib/utils";
+import type { Command } from "../../commands/types";
 
 export default function SettingsPage() {
-  const settings = useGymStore((state) => state.settings);
-  const updateSettings = useGymStore((state) => state.updateSettings);
-  const exportData = useGymStore((state) => state.exportData);
-  const importData = useGymStore((state) => state.importData);
-  const openConfirm = useGymStore((state) => state.openConfirm);
-  const resetAll = useGymStore((state) => state.resetAll);
-  const showSnackbar = useGymStore((state) => state.showSnackbar);
+  const { settings, updateSettings } = useSettingsShallow((state) => ({
+    settings: state.settings,
+    updateSettings: state.updateSettings,
+  }));
+  const { exportData, importData } = useAppActions();
+  const { openConfirm, showSnackbar } = useUiShallow((state) => ({
+    openConfirm: state.openConfirm,
+    showSnackbar: state.showSnackbar,
+  }));
 
   const handleExport = async () => {
     const payload = await exportData();
@@ -103,15 +108,16 @@ export default function SettingsPage() {
         <button
           type="button"
           className="btn btn--danger"
-          onClick={() =>
+          onClick={() => {
+            const command: Command = { type: "RESET_ALL" };
             openConfirm({
               title: "Reset all data?",
               message: "This replaces everything with the default sample data.",
               confirmLabel: "Reset",
               tone: "danger",
-              onConfirm: () => resetAll(),
-            })
-          }
+              command,
+            });
+          }}
         >
           Reset all data
         </button>

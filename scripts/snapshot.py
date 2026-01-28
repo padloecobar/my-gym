@@ -58,6 +58,7 @@ DEFAULT_EXCLUDES = [
     "**/.turbo/**",
     "**/.cache/**",
     "**/.DS_Store",
+    "**/*.md"
 ]
 
 # Directory names to prune during scanning (performance win)

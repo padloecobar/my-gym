@@ -3,31 +3,38 @@
 import { useRouter } from "next/navigation";
 import HeaderBar from "./components/HeaderBar";
 import ProgramCard from "./components/ProgramCard";
-import { useActiveWorkout, useGymStore } from "../store/gym";
+import { useCatalogShallow } from "../store/useCatalogStore";
+import { useSessionShallow, useSessionStoreApi } from "../store/useSessionStore";
+import { useUiShallow, useUiStoreApi } from "../store/useUiStore";
 import { navigateWithTransition } from "../lib/navigation";
 import { formatTime } from "../lib/utils";
 
 export default function TodayPage() {
   const router = useRouter();
-  const programs = useGymStore((state) => state.programs);
-  const startWorkout = useGymStore((state) => state.startWorkout);
-  const setVtHero = useGymStore((state) => state.setVtHero);
-  const vtHero = useGymStore((state) => state.ui.vtHero);
-  const activeWorkout = useActiveWorkout();
-  const activeProgram = useGymStore((state) =>
-    activeWorkout ? state.programs.find((program) => program.id === activeWorkout.programId) : undefined
-  );
+  const { programs } = useCatalogShallow((state) => ({ programs: state.programs }));
+  const { activeWorkoutId, workoutsById } = useSessionShallow((state) => ({
+    activeWorkoutId: state.activeWorkoutId,
+    workoutsById: state.workoutsById,
+  }));
+  const sessionStore = useSessionStoreApi();
+  const { vtHero } = useUiShallow((state) => ({ vtHero: state.vtHero }));
+  const uiStore = useUiStoreApi();
+
+  const activeWorkout = activeWorkoutId ? workoutsById[activeWorkoutId] : undefined;
+  const activeProgram = activeWorkout
+    ? programs.find((program) => program.id === activeWorkout.programId)
+    : undefined;
 
   const handleStart = (programId: string) => {
-    const workoutId = startWorkout(programId);
+    const workoutId = sessionStore.getState().startWorkout(programId);
     if (!workoutId) return;
-    setVtHero({ type: "program", id: programId });
+    uiStore.getState().setVtHero({ type: "program", id: programId });
     navigateWithTransition(router, `/workout/${workoutId}`);
   };
 
   const handleResume = () => {
     if (!activeWorkout) return;
-    setVtHero({ type: "program", id: activeWorkout.programId });
+    uiStore.getState().setVtHero({ type: "program", id: activeWorkout.programId });
     navigateWithTransition(router, `/workout/${activeWorkout.id}`);
   };
 

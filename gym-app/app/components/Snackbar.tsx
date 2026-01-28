@@ -1,23 +1,29 @@
 "use client";
 
-import { useGymStore } from "../../store/gym";
+import { useCommandExecutor } from "../../commands/useCommandExecutor";
+import { useUiShallow } from "../../store/useUiStore";
 
 export default function Snackbar() {
-  const snackbar = useGymStore((state) => state.ui.snackbar);
-  const hide = useGymStore((state) => state.hideSnackbar);
+  const { snackbar, hideSnackbar } = useUiShallow((state) => ({
+    snackbar: state.snackbar,
+    hideSnackbar: state.hideSnackbar,
+  }));
+  const executeCommand = useCommandExecutor();
 
   if (!snackbar.open) return null;
 
   return (
     <div className="snackbar" role="status" aria-live="polite">
       <span>{snackbar.message}</span>
-      {snackbar.actionLabel ? (
+      {snackbar.actionLabel && snackbar.actionCommand ? (
         <button
           type="button"
           className="btn btn--ghost"
           onClick={() => {
-            snackbar.onAction?.();
-            hide();
+            if (snackbar.actionCommand) {
+              executeCommand(snackbar.actionCommand);
+            }
+            hideSnackbar();
           }}
         >
           {snackbar.actionLabel}

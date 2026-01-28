@@ -1,16 +1,22 @@
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
-import { useGymStore } from "../../../../store/gym";
+import { useMemo } from "react";
+import { getWorkoutStats, makeWorkoutViewSelector } from "../../../../store/selectors/sessionSelectors";
+import { useCatalogShallow } from "../../../../store/useCatalogStore";
+import { useSessionStore } from "../../../../store/useSessionStore";
 import { navigateWithTransition } from "../../../../lib/navigation";
 import { formatKg, formatLb } from "../../../../lib/utils";
 
 export default function WorkoutSummaryPage() {
   const params = useParams<{ workoutId: string }>();
   const router = useRouter();
-  const workout = useGymStore((state) => state.workouts.find((item) => item.id === params.workoutId));
-  const program = useGymStore((state) =>
-    workout ? state.programs.find((item) => item.id === workout.programId) : undefined
+  const workoutSelector = useMemo(() => makeWorkoutViewSelector(params.workoutId), [params.workoutId]);
+  const workout = useSessionStore(workoutSelector);
+  const { programs } = useCatalogShallow((state) => ({ programs: state.programs }));
+  const program = useMemo(
+    () => (workout ? programs.find((item) => item.id === workout.programId) : undefined),
+    [programs, workout]
   );
 
   if (!workout || !program) {
@@ -21,10 +27,7 @@ export default function WorkoutSummaryPage() {
     );
   }
 
-  const completedSets = workout.entries.flatMap((entry) => entry.sets.filter((set) => set.completed));
-  const totalSets = completedSets.length;
-  const totalVolume = completedSets.reduce((total, set) => total + set.weightKg * set.reps, 0);
-  const exercisesCompleted = workout.entries.filter((entry) => entry.sets.some((set) => set.completed)).length;
+  const { totalSets, totalVolume, exercisesCompleted } = getWorkoutStats(workout);
 
   return (
     <div className="page container">

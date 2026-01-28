@@ -3,16 +3,16 @@
 import { useRouter } from "next/navigation";
 import HeaderBar from "../components/HeaderBar";
 import ProgramCard from "../components/ProgramCard";
-import { useGymStore } from "../../store/gym";
+import { useCatalogShallow, useCatalogStoreApi } from "../../store/useCatalogStore";
 import { navigateWithTransition } from "../../lib/navigation";
 
 export default function ProgramsPage() {
   const router = useRouter();
-  const programs = useGymStore((state) => state.programs);
-  const createProgram = useGymStore((state) => state.createProgram);
+  const { programs } = useCatalogShallow((state) => ({ programs: state.programs }));
+  const catalogStore = useCatalogStoreApi();
 
   const handleNewProgram = () => {
-    const id = createProgram();
+    const id = catalogStore.getState().createProgram();
     navigateWithTransition(router, `/programs/${id}`);
   };
 

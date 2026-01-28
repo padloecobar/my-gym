@@ -2,32 +2,72 @@
 
 import HeaderBar from "../components/HeaderBar";
 import VtLink from "../components/VtLink";
-import { useGymStore } from "../../store/gym";
-import { byDateDesc, formatDate, formatKg } from "../../lib/utils";
+import { useMemo } from "react";
+import { useCatalogShallow } from "../../store/useCatalogStore";
+import { useSessionShallow } from "../../store/useSessionStore";
+import { useUiShallow } from "../../store/useUiStore";
+import type { SetEntry, Workout, WorkoutEntry } from "../../types/gym";
+import { formatDate, formatKg } from "../../lib/utils";
 
 export default function HistoryPage() {
-  const workouts = useGymStore((state) => state.workouts);
-  const programs = useGymStore((state) => state.programs);
-  const setVtHero = useGymStore((state) => state.setVtHero);
-  const vtHero = useGymStore((state) => state.ui.vtHero);
+  const { programs } = useCatalogShallow((state) => ({ programs: state.programs }));
+  const { setVtHero, vtHero } = useUiShallow((state) => ({
+    setVtHero: state.setVtHero,
+    vtHero: state.vtHero,
+  }));
+  const { workoutIds, workoutsById, entriesById, entryIdsByWorkoutId, setIdsByEntryId, setsById } =
+    useSessionShallow((state) => ({
+      workoutIds: state.workoutIds,
+      workoutsById: state.workoutsById,
+      entriesById: state.entriesById,
+      entryIdsByWorkoutId: state.entryIdsByWorkoutId,
+      setIdsByEntryId: state.setIdsByEntryId,
+      setsById: state.setsById,
+    }));
 
-  const completed = workouts.filter((workout) => workout.endedAt).sort(byDateDesc);
-  const grouped = completed.reduce<Record<string, typeof completed>>((acc, workout) => {
-    const dateKey = new Date(workout.endedAt ?? workout.startedAt).toDateString();
-    acc[dateKey] = acc[dateKey] ? [...acc[dateKey], workout] : [workout];
-    return acc;
-  }, {});
+  const completed = useMemo<Workout[]>(() => {
+    return workoutIds
+      .map((workoutId) => {
+        const workout = workoutsById[workoutId];
+        if (!workout || !workout.endedAt) return null;
+        const entryIds = entryIdsByWorkoutId[workoutId] ?? [];
+        const entries = entryIds
+          .map((entryId) => {
+            const entry = entriesById[entryId];
+            if (!entry) return null;
+            const setIds = setIdsByEntryId[entryId] ?? [];
+            const sets = setIds
+              .map((setId) => setsById[setId])
+              .filter((set): set is SetEntry => Boolean(set));
+            return { exerciseId: entry.exerciseId, suggested: entry.suggested, sets };
+          })
+          .filter((entry): entry is WorkoutEntry => Boolean(entry));
+        return { ...workout, entries };
+      })
+      .filter((workout): workout is Workout => Boolean(workout));
+  }, [workoutIds, workoutsById, entryIdsByWorkoutId, entriesById, setIdsByEntryId, setsById]);
 
-  const programById = new Map(programs.map((program) => [program.id, program]));
+  const grouped = useMemo(() => {
+    return completed.reduce<Record<string, Workout[]>>((acc, workout) => {
+      const dateKey = new Date(workout.endedAt ?? workout.startedAt).toDateString();
+      acc[dateKey] = acc[dateKey] ? [...acc[dateKey], workout] : [workout];
+      return acc;
+    }, {});
+  }, [completed]);
 
-  const calcVolume = (workoutId: string) => {
-    const workout = completed.find((item) => item.id === workoutId);
-    if (!workout) return 0;
-    return workout.entries.flatMap((entry) => entry.sets).reduce((total, set) => {
-      if (!set.completed) return total;
-      return total + set.weightKg * set.reps;
-    }, 0);
-  };
+  const programById = useMemo(() => new Map(programs.map((program) => [program.id, program])), [programs]);
+
+  const volumeByWorkoutId = useMemo(() => {
+    return new Map(
+      completed.map((workout) => {
+        const volume = workout.entries.flatMap((entry) => entry.sets).reduce((total, set) => {
+          if (!set.completed) return total;
+          return total + set.weightKg * set.reps;
+        }, 0);
+        return [workout.id, volume];
+      })
+    );
+  }, [completed]);
 
   return (
     <div className="page container">
@@ -40,7 +80,7 @@ export default function HistoryPage() {
             <div className="stack">
               {items.map((workout) => {
                 const program = programById.get(workout.programId);
-                const volume = calcVolume(workout.id);
+                const volume = volumeByWorkoutId.get(workout.id) ?? 0;
                 return (
                   <VtLink
                     key={workout.id}

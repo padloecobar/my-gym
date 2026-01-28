@@ -2,17 +2,22 @@
 
 import { useMemo, useState } from "react";
 import BottomSheet from "./BottomSheet";
-import { useGymStore } from "../../store/gym";
+import { useCatalogShallow } from "../../store/useCatalogStore";
+import { useUiShallow } from "../../store/useUiStore";
 import type { Exercise, ExerciseType, InputMode } from "../../types/gym";
 
 const exerciseTypes: ExerciseType[] = ["Barbell", "Dumbbell", "Machine", "Bodyweight", "Cable"];
 
 export default function SearchExerciseSheet() {
-  const sheet = useGymStore((state) => state.ui.sheet);
-  const closeSheet = useGymStore((state) => state.closeSheet);
-  const exercises = useGymStore((state) => state.exercises);
-  const addExerciseToProgram = useGymStore((state) => state.addExerciseToProgram);
-  const createExercise = useGymStore((state) => state.createExercise);
+  const { sheet, closeSheet } = useUiShallow((state) => ({
+    sheet: state.sheet,
+    closeSheet: state.closeSheet,
+  }));
+  const { exercises, addExerciseToProgram, createExercise } = useCatalogShallow((state) => ({
+    exercises: state.exercises,
+    addExerciseToProgram: state.addExerciseToProgram,
+    createExercise: state.createExercise,
+  }));
 
   if (sheet.type !== "searchExercise") return null;
 

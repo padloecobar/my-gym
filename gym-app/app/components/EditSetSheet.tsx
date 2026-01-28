@@ -2,25 +2,28 @@
 
 import { useMemo, useState, type FormEvent } from "react";
 import BottomSheet from "./BottomSheet";
-import { useGymStore } from "../../store/gym";
+import { useCatalogShallow } from "../../store/useCatalogStore";
+import { useSessionStore, useSessionStoreApi } from "../../store/useSessionStore";
+import { useSettingsShallow } from "../../store/useSettingsStore";
+import { useUiShallow } from "../../store/useUiStore";
 import { clamp, formatKg, formatLb } from "../../lib/utils";
 import type { Exercise, SetEntry, Settings } from "../../types/gym";
 
 export default function EditSetSheet() {
-  const sheet = useGymStore((state) => state.ui.sheet);
-  const closeSheet = useGymStore((state) => state.closeSheet);
-  const updateSet = useGymStore((state) => state.updateSet);
-  const settings = useGymStore((state) => state.settings);
+  const { sheet, closeSheet } = useUiShallow((state) => ({
+    sheet: state.sheet,
+    closeSheet: state.closeSheet,
+  }));
+  const sessionStore = useSessionStoreApi();
+  const { settings } = useSettingsShallow((state) => ({ settings: state.settings }));
   const payload = sheet.type === "editSet" ? sheet.payload : null;
 
-  const workout = useGymStore((state) =>
-    payload ? state.workouts.find((item) => item.id === payload.workoutId) : undefined
+  const setEntry = useSessionStore((state) =>
+    payload ? state.setsById[payload.setId] : undefined
   );
-  const entry = workout?.entries.find((item) => item.exerciseId === payload?.exerciseId);
-  const setEntry = entry?.sets.find((item) => item.id === payload?.setId);
-  const exercise = useGymStore((state) =>
-    payload ? state.exercises.find((item) => item.id === payload.exerciseId) : undefined
-  );
+  const { exercise } = useCatalogShallow((state) => ({
+    exercise: payload ? state.exercises.find((item) => item.id === payload.exerciseId) : undefined,
+  }));
 
   if (sheet.type !== "editSet" || !payload || !setEntry || !exercise) return null;
 
@@ -48,7 +51,7 @@ export default function EditSetSheet() {
         exercise={exercise}
         settings={settings}
         onSave={(next) => {
-          updateSet(payload.workoutId, payload.exerciseId, payload.setId, next);
+          sessionStore.getState().updateSet(payload.workoutId, payload.exerciseId, payload.setId, next);
           closeSheet();
         }}
       />

@@ -3,17 +3,20 @@
 import { useParams } from "next/navigation";
 import { useState } from "react";
 import HeaderBar from "../../components/HeaderBar";
-import { useGymStore } from "../../../store/gym";
+import { useCatalogShallow, useCatalogStoreApi } from "../../../store/useCatalogStore";
+import { useUiStoreApi } from "../../../store/useUiStore";
 
 export default function ProgramDetailPage() {
   const params = useParams<{ programId: string }>();
-  const program = useGymStore((state) => state.programs.find((item) => item.id === params.programId));
-  const exercises = useGymStore((state) => state.exercises);
-  const updateProgram = useGymStore((state) => state.updateProgram);
-  const reorderProgramExercise = useGymStore((state) => state.reorderProgramExercise);
-  const moveProgramExercise = useGymStore((state) => state.moveProgramExercise);
-  const removeExerciseFromProgram = useGymStore((state) => state.removeExerciseFromProgram);
-  const openSearchExercise = useGymStore((state) => state.openSearchExercise);
+  const { program, exercises } = useCatalogShallow((state) => ({
+    program: state.programs.find((item) => item.id === params.programId),
+    exercises: state.exercises,
+  }));
+  const catalogStore = useCatalogStoreApi();
+  const uiStore = useUiStoreApi();
+  const { updateProgram, reorderProgramExercise, moveProgramExercise, removeExerciseFromProgram } =
+    catalogStore.getState();
+  const { openSearchExercise } = uiStore.getState();
 
   const [dragId, setDragId] = useState<string | null>(null);
 

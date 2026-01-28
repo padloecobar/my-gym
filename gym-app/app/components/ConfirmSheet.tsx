@@ -1,15 +1,19 @@
 "use client";
 
 import BottomSheet from "./BottomSheet";
-import { useGymStore } from "../../store/gym";
+import { useCommandExecutor } from "../../commands/useCommandExecutor";
+import { useUiShallow } from "../../store/useUiStore";
 
 export default function ConfirmSheet() {
-  const sheet = useGymStore((state) => state.ui.sheet);
-  const closeSheet = useGymStore((state) => state.closeSheet);
+  const { sheet, closeSheet } = useUiShallow((state) => ({
+    sheet: state.sheet,
+    closeSheet: state.closeSheet,
+  }));
+  const executeCommand = useCommandExecutor();
 
   if (sheet.type !== "confirm") return null;
 
-  const { title, message, confirmLabel, tone, onConfirm } = sheet.payload;
+  const { title, message, confirmLabel, tone, command } = sheet.payload;
 
   return (
     <BottomSheet
@@ -25,7 +29,7 @@ export default function ConfirmSheet() {
             type="button"
             className={`btn ${tone === "danger" ? "btn--danger" : "btn--primary"}`}
             onClick={() => {
-              onConfirm();
+              executeCommand(command);
               closeSheet();
             }}
           >
