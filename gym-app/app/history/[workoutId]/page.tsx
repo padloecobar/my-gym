@@ -3,7 +3,7 @@
 import { useParams } from "next/navigation";
 import { useMemo } from "react";
 import HeaderBar from "../../components/HeaderBar";
-import { makeWorkoutViewSelector } from "../../../store/selectors/sessionSelectors";
+import { getWorkoutStats, makeWorkoutViewSelector } from "../../../store/selectors/sessionSelectors";
 import { useCatalogShallow } from "../../../store/useCatalogStore";
 import { useSessionStore } from "../../../store/useSessionStore";
 import { useUiShallow } from "../../../store/useUiStore";
@@ -23,7 +23,7 @@ export default function WorkoutDetailPage() {
     [programs, workout]
   );
 
-  if (!workout || !program) {
+  if (!workout) {
     return (
       <div className="page container">
         <p>Workout not found.</p>
@@ -31,9 +31,8 @@ export default function WorkoutDetailPage() {
     );
   }
 
-  const totalVolume = workout.entries
-    .flatMap((entry) => entry.sets)
-    .reduce((total, set) => (set.completed ? total + set.weightKg * set.reps : total), 0);
+  const { totalVolume } = getWorkoutStats(workout);
+  const programName = program?.name ?? "Deleted program";
 
   return (
     <div className="page container">
@@ -41,7 +40,7 @@ export default function WorkoutDetailPage() {
 
       <div className={`card ${vtHero?.type === "history" && vtHero.id === workout.id ? "vt-hero" : ""}`}>
         <div className="card__body">
-          <h2 className="card__title">{program.name}</h2>
+          <h2 className="card__title">{programName}</h2>
           <p className="card__meta">
             {formatDate(workout.endedAt ?? workout.startedAt)} - {formatTime(workout.endedAt ?? workout.startedAt)}
           </p>

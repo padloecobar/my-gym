@@ -39,8 +39,7 @@ export const createSettingsStore = (storage: StorageAdapter = indexedDbStorage) 
           hasHydrated: true,
           lastHydratedAt: Date.now(),
         },
-        false,
-        "settings/hydrate"
+        false
       );
     },
     updateSettings: (patch) => {
@@ -49,11 +48,10 @@ export const createSettingsStore = (storage: StorageAdapter = indexedDbStorage) 
           const nextSettings = { ...state.settings, ...patch };
           return { settings: nextSettings };
         },
-        false,
-        "settings/update"
+        false
       );
     },
     replaceSettings: (settings) => {
-      set({ settings }, false, "settings/replace");
+      set({ settings }, false);
     },
   }));

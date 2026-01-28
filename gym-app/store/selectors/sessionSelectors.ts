@@ -75,9 +75,9 @@ export const getWorkoutStats = (workout: Workout | null) => {
   if (!workout) {
     return { totalSets: 0, totalVolume: 0, exercisesCompleted: 0 };
   }
-  const completedSets = workout.entries.flatMap((entry) => entry.sets.filter((set) => set.completed));
-  const totalSets = completedSets.length;
-  const totalVolume = completedSets.reduce((total, set) => total + set.weightKg * set.reps, 0);
+  const allSets = workout.entries.flatMap((entry) => entry.sets);
+  const totalSets = allSets.length;
+  const totalVolume = allSets.reduce((total, set) => total + set.weightKg * set.reps, 0);
   const exercisesCompleted = workout.entries.filter((entry) => entry.sets.some((set) => set.completed)).length;
   return { totalSets, totalVolume, exercisesCompleted };
 };

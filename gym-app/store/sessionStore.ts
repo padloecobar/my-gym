@@ -222,8 +222,7 @@ export const createSessionStore = ({
             hasHydrated: true,
             lastHydratedAt: Date.now(),
           },
-          false,
-          "session/hydrate"
+          false
         );
         return;
       }
@@ -236,8 +235,7 @@ export const createSessionStore = ({
           hasHydrated: true,
           lastHydratedAt: Date.now(),
         },
-        false,
-        "session/hydrate"
+        false
       );
     },
     startWorkout: (programId) => {
@@ -279,8 +277,7 @@ export const createSessionStore = ({
             }),
           };
         },
-        false,
-        "session/startWorkout"
+        false
       );
       return workoutId;
     },
@@ -302,8 +299,7 @@ export const createSessionStore = ({
             }),
           };
         },
-        false,
-        "session/finishWorkout"
+        false
       );
     },
     toggleSetComplete: (_workoutId, _exerciseId, setId) => {
@@ -322,8 +318,7 @@ export const createSessionStore = ({
             }),
           };
         },
-        false,
-        "session/toggleSetComplete"
+        false
       );
     },
     updateSet: (_workoutId, _exerciseId, setId, patch) => {
@@ -342,8 +337,7 @@ export const createSessionStore = ({
             }),
           };
         },
-        false,
-        "session/updateSet"
+        false
       );
     },
     addSet: (workoutId, exerciseId) => {
@@ -372,8 +366,7 @@ export const createSessionStore = ({
             }),
           };
         },
-        false,
-        "session/addSet"
+        false
       );
     },
     deleteSet: (workoutId, exerciseId, setId) => {
@@ -401,8 +394,7 @@ export const createSessionStore = ({
             }),
           };
         },
-        false,
-        "session/deleteSet"
+        false
       );
 
       return { workoutId, exerciseId, set: removed, index: setIndex };
@@ -428,13 +420,12 @@ export const createSessionStore = ({
             }),
           };
         },
-        false,
-        "session/restoreDeletedSet"
+        false
       );
     },
     replaceFromWorkouts: (workouts) => {
       const normalized = normalizeWorkouts(workouts);
-      set({ ...normalized, pendingSyncEvent: null }, false, "session/replace");
+      set({ ...normalized, pendingSyncEvent: null }, false);
     },
     clearSession: () => {
       const cleared: SessionEntityState = {
@@ -452,8 +443,7 @@ export const createSessionStore = ({
           pendingSyncEvent: null,
           legacyClearToken: Date.now(),
         },
-        false,
-        "session/clear"
+        false
       );
     },
   }));

@@ -8,6 +8,7 @@ import { useSessionShallow } from "../../store/useSessionStore";
 import { useUiShallow } from "../../store/useUiStore";
 import type { SetEntry, Workout, WorkoutEntry } from "../../types/gym";
 import { formatDate, formatKg } from "../../lib/utils";
+import { getWorkoutStats } from "../../store/selectors/sessionSelectors";
 
 export default function HistoryPage() {
   const { programs } = useCatalogShallow((state) => ({ programs: state.programs }));
@@ -58,15 +59,7 @@ export default function HistoryPage() {
   const programById = useMemo(() => new Map(programs.map((program) => [program.id, program])), [programs]);
 
   const volumeByWorkoutId = useMemo(() => {
-    return new Map(
-      completed.map((workout) => {
-        const volume = workout.entries.flatMap((entry) => entry.sets).reduce((total, set) => {
-          if (!set.completed) return total;
-          return total + set.weightKg * set.reps;
-        }, 0);
-        return [workout.id, volume];
-      })
-    );
+    return new Map(completed.map((workout) => [workout.id, getWorkoutStats(workout).totalVolume]));
   }, [completed]);
 
   return (

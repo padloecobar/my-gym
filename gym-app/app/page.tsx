@@ -24,6 +24,7 @@ export default function TodayPage() {
   const activeProgram = activeWorkout
     ? programs.find((program) => program.id === activeWorkout.programId)
     : undefined;
+  const activeProgramName = activeProgram?.name ?? "Deleted program";
 
   const handleStart = (programId: string) => {
     const workoutId = sessionStore.getState().startWorkout(programId);
@@ -42,18 +43,18 @@ export default function TodayPage() {
     <div className="page container">
       <HeaderBar title="Today" />
 
-      {activeWorkout && activeProgram ? (
+      {activeWorkout ? (
         <div className="resume-card">
           <button
             type="button"
             className={`card program-card ${
-              vtHero?.type === "program" && vtHero.id === activeProgram.id ? "vt-hero" : ""
+              vtHero?.type === "program" && activeProgram && vtHero.id === activeProgram.id ? "vt-hero" : ""
             }`}
             onClick={handleResume}
           >
             <div className="card__body">
               <div className="program-card__header">
-                <h3 className="card__title">Resume {activeProgram.name}</h3>
+                <h3 className="card__title">Resume {activeProgramName}</h3>
                 <span className="badge badge--brand">Active</span>
               </div>
               <p className="card__meta">Started {formatTime(activeWorkout.startedAt)}</p>

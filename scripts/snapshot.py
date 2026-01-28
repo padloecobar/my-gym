@@ -27,6 +27,22 @@ STRUCTURE_MESSAGE = """\
 ### FILE STRUCTURE (for LLMs)
 This snapshot is a concatenation of multiple source files.
 
+Parsing Tools:
+1) get list of files in the snapshot
+---
+grep "^FILE: " project.txt | sed 's/^FILE: //'
+---
+
+2) get file content by path
+---
+awk -v file="/Users/pavelkulikou/Projects/my-gym/gym-app/app/page.tsx" '
+  $0 ~ "^FILE: " file {found=1; next} 
+  found && /^BEGIN$/ {capture=1; next} 
+  found && /^END$/ {exit} 
+  capture {print}
+' project.txt
+---
+
 Parsing rules:
 - The file begins with a header section:
     SNAPSHOT v1

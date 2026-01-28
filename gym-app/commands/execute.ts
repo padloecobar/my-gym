@@ -1,6 +1,7 @@
 import type { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
 import type { Command } from "./types";
 import { navigateWithTransition } from "../lib/navigation";
+import { startViewTransition } from "../lib/viewTransition";
 import type { CatalogStore, SessionStore, SettingsStore, UiStore } from "../store/AppStoreProvider";
 import { createAppActions } from "../store/appActions";
 
@@ -19,6 +20,20 @@ export const executeCommand = async (command: Command, context: CommandContext) 
       if (command.payload.navigateTo && context.router) {
         navigateWithTransition(context.router, command.payload.navigateTo);
       }
+      return;
+    }
+    case "DELETE_PROGRAM": {
+      const { programId, navigateTo } = command.payload;
+      if (navigateTo && context.router) {
+        startViewTransition(() => {
+          context.catalogStore.getState().deleteProgram(programId);
+          context.router?.push(navigateTo);
+        });
+        return;
+      }
+      startViewTransition(() => {
+        context.catalogStore.getState().deleteProgram(programId);
+      });
       return;
     }
     case "RESET_ALL": {

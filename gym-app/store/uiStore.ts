@@ -56,14 +56,14 @@ export const createUiStore = () =>
     snackbar: { open: false, message: "" },
     vtHero: null,
     setVtHero: (hero) => {
-      set((state) => ({ ...state, vtHero: hero }), false, "ui/setVtHero");
+      set((state) => ({ ...state, vtHero: hero }), false);
       if (hero && typeof window !== "undefined") {
         window.setTimeout(() => {
-          set((state) => ({ ...state, vtHero: null }), false, "ui/clearVtHero");
+          set((state) => ({ ...state, vtHero: null }), false);
         }, 700);
       }
     },
-    clearVtHero: () => set((state) => ({ ...state, vtHero: null }), false, "ui/clearVtHero"),
+    clearVtHero: () => set((state) => ({ ...state, vtHero: null }), false),
     openEditSet: (payload) => {
       startViewTransition(() => {
         sheetSession += 1;
@@ -72,8 +72,7 @@ export const createUiStore = () =>
             ...state,
             sheet: { type: "editSet", open: true, payload, sessionId: sheetSession },
           }),
-          false,
-          "ui/openEditSet"
+          false
         );
       });
     },
@@ -85,8 +84,7 @@ export const createUiStore = () =>
             ...state,
             sheet: { type: "confirm", open: true, payload, sessionId: sheetSession },
           }),
-          false,
-          "ui/openConfirm"
+          false
         );
       });
     },
@@ -98,8 +96,7 @@ export const createUiStore = () =>
             ...state,
             sheet: { type: "searchExercise", open: true, payload, sessionId: sheetSession },
           }),
-          false,
-          "ui/openSearchExercise"
+          false
         );
       });
     },
@@ -110,8 +107,7 @@ export const createUiStore = () =>
             if (state.sheet.type === null) return state;
             return { ...state, sheet: { ...state.sheet, open: false } };
           },
-          false,
-          "ui/closeSheet"
+          false
         );
       });
     },
@@ -130,8 +126,7 @@ export const createUiStore = () =>
             actionCommand,
           },
         }),
-        false,
-        "ui/showSnackbar"
+        false
       );
       snackbarTimer = window.setTimeout(() => {
         set(
@@ -139,8 +134,7 @@ export const createUiStore = () =>
             ...state,
             snackbar: { ...state.snackbar, open: false },
           }),
-          false,
-          "ui/hideSnackbar"
+          false
         );
       }, 4200);
     },
@@ -154,8 +148,7 @@ export const createUiStore = () =>
           ...state,
           snackbar: { ...state.snackbar, open: false },
         }),
-        false,
-        "ui/hideSnackbar"
+        false
       );
     },
   }));

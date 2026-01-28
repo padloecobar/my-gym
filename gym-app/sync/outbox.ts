@@ -36,16 +36,12 @@ const outboxStore = createStore<OutboxState>((set) => ({
       id: createId(),
       createdAt: Date.now(),
     };
-    set((state) => ({ pendingEvents: [...state.pendingEvents, next] }), false, "outbox/enqueue");
+    set((state) => ({ pendingEvents: [...state.pendingEvents, next] }), false);
     return next;
   },
   markSynced: (eventId) =>
-    set(
-      (state) => ({ pendingEvents: state.pendingEvents.filter((event) => event.id !== eventId) }),
-      false,
-      "outbox/markSynced"
-    ),
-  clear: () => set({ pendingEvents: [] }, false, "outbox/clear"),
+    set((state) => ({ pendingEvents: state.pendingEvents.filter((event) => event.id !== eventId) }), false),
+  clear: () => set({ pendingEvents: [] }, false),
 }));
 
 export const enqueueSyncEvent = (event: Omit<SyncEvent, "id" | "createdAt">) => {
@@ -114,8 +110,7 @@ export const hydrateOutbox = async (storage: StorageAdapter) => {
       pendingEvents: merged,
       hasHydrated: true,
     },
-    false,
-    "outbox/hydrate"
+    false
   );
 
   if (!record || storedVersion !== OUTBOX_SCHEMA_VERSION) {

@@ -10,6 +10,7 @@ import { useCatalogStore } from "../../../store/useCatalogStore";
 import { useSessionStore, useSessionStoreApi } from "../../../store/useSessionStore";
 import { useSettingsShallow } from "../../../store/useSettingsStore";
 import { useUiShallow, useUiStoreApi } from "../../../store/useUiStore";
+import { startViewTransition } from "../../../lib/viewTransition";
 
 export default function WorkoutRunnerPage() {
   const params = useParams<{ workoutId: string }>();
@@ -26,13 +27,15 @@ export default function WorkoutRunnerPage() {
   const { toggleSetComplete, deleteSet, addSet } = sessionStore.getState();
   const { openEditSet, openConfirm, showSnackbar } = uiStore.getState();
 
-  if (!workout || !program) {
+  if (!workout) {
     return (
       <div className="page container">
         <p>Workout not found.</p>
       </div>
     );
   }
+
+  const programName = program?.name ?? "Deleted program";
 
   const handleFinish = () => {
     const command: Command = { type: "FINISH_WORKOUT", payload: { workoutId, navigateTo: `/workout/${workoutId}/summary` } };
@@ -46,11 +49,15 @@ export default function WorkoutRunnerPage() {
 
   return (
     <div className="page container">
-      <div className={`runner-header ${vtHero?.type === "program" && vtHero.id === program.id ? "vt-hero" : ""}`}>
+      <div
+        className={`runner-header ${
+          vtHero?.type === "program" && program && vtHero.id === program.id ? "vt-hero" : ""
+        }`}
+      >
         <div className="runner-header__row">
           <div>
             <div className="muted">Workout Runner</div>
-            <div className="runner-header__title">{program.name}</div>
+            <div className="runner-header__title">{programName}</div>
           </div>
           <button type="button" className="btn btn--primary" onClick={handleFinish}>
             Finish
@@ -71,10 +78,12 @@ export default function WorkoutRunnerPage() {
               onToggleSet={(setId) => toggleSetComplete(workoutId, entry.exerciseId, setId)}
               onEditSet={(setId) => openEditSet({ workoutId, exerciseId: entry.exerciseId, setId })}
               onDeleteSet={(setId) => {
-                const payload = deleteSet(workoutId, entry.exerciseId, setId);
-                if (payload) {
-                  showSnackbar("Set deleted", "Undo", { type: "UNDO_DELETE_SET", payload });
-                }
+                startViewTransition(() => {
+                  const payload = deleteSet(workoutId, entry.exerciseId, setId);
+                  if (payload) {
+                    showSnackbar("Set deleted", "Undo", { type: "UNDO_DELETE_SET", payload });
+                  }
+                });
               }}
               onAddSet={() => addSet(workoutId, entry.exerciseId)}
             />

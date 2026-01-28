@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/refs */
 "use client";
 
 import { createContext, useEffect, useRef, type ReactNode } from "react";

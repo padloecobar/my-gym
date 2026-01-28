@@ -19,7 +19,7 @@ export default function WorkoutSummaryPage() {
     [programs, workout]
   );
 
-  if (!workout || !program) {
+  if (!workout) {
     return (
       <div className="page container">
         <p>Workout not found.</p>
@@ -28,12 +28,13 @@ export default function WorkoutSummaryPage() {
   }
 
   const { totalSets, totalVolume, exercisesCompleted } = getWorkoutStats(workout);
+  const programName = program?.name ?? "Deleted program";
 
   return (
     <div className="page container">
       <header className="stack">
         <h1 className="card__title">Workout Complete</h1>
-        <p className="muted">{program.name}</p>
+        <p className="muted">{programName}</p>
       </header>
 
       <section className="summary-stats">

@@ -1,6 +1,22 @@
 ### FILE STRUCTURE (for LLMs)
 This snapshot is a concatenation of multiple source files.
 
+Parsing Tools:
+1) get list of files in the snapshot
+---
+grep "^FILE: " project.txt | sed 's/^FILE: //'
+---
+
+2) get file content by path
+---
+awk -v file="/Users/pavelkulikou/Projects/my-gym/gym-app/app/page.tsx" '
+  $0 ~ "^FILE: " file {found=1; next} 
+  found && /^BEGIN$/ {capture=1; next} 
+  found && /^END$/ {exit} 
+  capture {print}
+' project.txt
+---
+
 Parsing rules:
 - The file begins with a header section:
     SNAPSHOT v1
@@ -23,7 +39,7 @@ Notes:
 SNAPSHOT v1
 ROOT: /Users/pavelkulikou/Projects/my-gym/gym-app
 SCOPE: .
-CREATED_UTC: 2026-01-28T01:27:17Z
+CREATED_UTC: 2026-01-28T03:06:20Z
 FILES_INCLUDED: 75
 
 FILE: /Users/pavelkulikou/Projects/my-gym/gym-app/.gitignore
@@ -929,9 +945,10 @@ export default function SetRow({
           className="set-row__edit"
           aria-label="Edit weight and reps"
           onClick={(event) => {
-          event.stopPropagation();
-          onEdit();
-        }}>
+            event.stopPropagation();
+            onEdit();
+          }}
+        >
           <span className="set-row__kg">{formatKg(set.weightKg)} kg</span>
           <span className="set-row__lb muted">{formatLb(set.weightKg)} lb</span>
           {set.mode === "plates" ? (
@@ -945,38 +962,51 @@ export default function SetRow({
           className="set-row__edit"
           aria-label="Edit weight and reps"
           onClick={(event) => {
-          event.stopPropagation();
-          onEdit();
-        }}>
+            event.stopPropagation();
+            onEdit();
+          }}
+        >
           <span className="set-row__reps-value">{set.reps}</span>
           <span className="set-row__reps-label muted">reps</span>
         </button>
       </div>
       <div className="set-row__meta">
-        <span className="set-row__status" aria-hidden="true">
-          {set.completed ? (
-            <svg viewBox="0 0 16 12" width="16" height="12" focusable="false" aria-hidden="true">
-              <path
-                d="M1 6l4 4 10-10"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          ) : null}
-        </span>
         <button
           type="button"
           className="set-row__menu"
           aria-label="Delete set"
+          title="Delete set"
           onClick={(event) => {
             event.stopPropagation();
             onDelete();
           }}
         >
-          ...
+          <svg viewBox="0 0 24 24" width="18" height="18" focusable="false" aria-hidden="true">
+            <path
+              d="M9 3h6l1 2h4v2H4V5h4l1-2Z"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.6"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+            <path
+              d="M6 7l1 13h10l1-13"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.6"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+            <path
+              d="M10 11v6M14 11v6"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.6"
+              strokeLinecap="round"
+            />
+          </svg>
+          <span className="sr-only">Delete set</span>
         </button>
       </div>
     </div>
@@ -1793,7 +1823,7 @@ BEGIN
 import { useParams } from "next/navigation";
 import { useMemo } from "react";
 import HeaderBar from "../../components/HeaderBar";
-import { makeWorkoutViewSelector } from "../../../store/selectors/sessionSelectors";
+import { getWorkoutStats, makeWorkoutViewSelector } from "../../../store/selectors/sessionSelectors";
 import { useCatalogShallow } from "../../../store/useCatalogStore";
 import { useSessionStore } from "../../../store/useSessionStore";
 import { useUiShallow } from "../../../store/useUiStore";
@@ -1813,7 +1843,7 @@ export default function WorkoutDetailPage() {
     [programs, workout]
   );
 
-  if (!workout || !program) {
+  if (!workout) {
     return (
       <div className="page container">
         <p>Workout not found.</p>
@@ -1821,9 +1851,8 @@ export default function WorkoutDetailPage() {
     );
   }
 
-  const totalVolume = workout.entries
-    .flatMap((entry) => entry.sets)
-    .reduce((total, set) => (set.completed ? total + set.weightKg * set.reps : total), 0);
+  const { totalVolume } = getWorkoutStats(workout);
+  const programName = program?.name ?? "Deleted program";
 
   return (
     <div className="page container">
@@ -1831,7 +1860,7 @@ export default function WorkoutDetailPage() {
 
       <div className={`card ${vtHero?.type === "history" && vtHero.id === workout.id ? "vt-hero" : ""}`}>
         <div className="card__body">
-          <h2 className="card__title">{program.name}</h2>
+          <h2 className="card__title">{programName}</h2>
           <p className="card__meta">
             {formatDate(workout.endedAt ?? workout.startedAt)} - {formatTime(workout.endedAt ?? workout.startedAt)}
           </p>
@@ -1905,6 +1934,7 @@ import { useSessionShallow } from "../../store/useSessionStore";
 import { useUiShallow } from "../../store/useUiStore";
 import type { SetEntry, Workout, WorkoutEntry } from "../../types/gym";
 import { formatDate, formatKg } from "../../lib/utils";
+import { getWorkoutStats } from "../../store/selectors/sessionSelectors";
 
 export default function HistoryPage() {
   const { programs } = useCatalogShallow((state) => ({ programs: state.programs }));
@@ -1955,15 +1985,7 @@ export default function HistoryPage() {
   const programById = useMemo(() => new Map(programs.map((program) => [program.id, program])), [programs]);
 
   const volumeByWorkoutId = useMemo(() => {
-    return new Map(
-      completed.map((workout) => {
-        const volume = workout.entries.flatMap((entry) => entry.sets).reduce((total, set) => {
-          if (!set.completed) return total;
-          return total + set.weightKg * set.reps;
-        }, 0);
-        return [workout.id, volume];
-      })
-    );
+    return new Map(completed.map((workout) => [workout.id, getWorkoutStats(workout).totalVolume]));
   }, [completed]);
 
   return (
@@ -2341,6 +2363,7 @@ BEGIN
 import { useParams } from "next/navigation";
 import { useState } from "react";
 import HeaderBar from "../../components/HeaderBar";
+import type { Command } from "../../../commands/types";
 import { useCatalogShallow, useCatalogStoreApi } from "../../../store/useCatalogStore";
 import { useUiStoreApi } from "../../../store/useUiStore";
 
@@ -2354,7 +2377,7 @@ export default function ProgramDetailPage() {
   const uiStore = useUiStoreApi();
   const { updateProgram, reorderProgramExercise, moveProgramExercise, removeExerciseFromProgram } =
     catalogStore.getState();
-  const { openSearchExercise } = uiStore.getState();
+  const { openSearchExercise, openConfirm } = uiStore.getState();
 
   const [dragId, setDragId] = useState<string | null>(null);
 
@@ -2462,6 +2485,61 @@ export default function ProgramDetailPage() {
             </div>
           ))}
           {orderedExercises.length === 0 ? <p className="muted">Add exercises to define the order.</p> : null}
+        </div>
+      </section>
+
+      <section className="page__section">
+        <div className="card">
+          <div className="card__body stack">
+            <div>
+              <h2 className="card__title">Danger zone</h2>
+              <p className="card__meta">Deleting a program keeps your workout history intact.</p>
+            </div>
+            <button
+              type="button"
+              className="btn btn--danger"
+              onClick={() => {
+                const command: Command = {
+                  type: "DELETE_PROGRAM",
+                  payload: { programId: program.id, navigateTo: "/programs" },
+                };
+                openConfirm({
+                  title: "Delete program?",
+                  message: "This removes the program from your list. Workouts already logged stay in history.",
+                  confirmLabel: "Delete program",
+                  tone: "danger",
+                  command,
+                });
+              }}
+            >
+              <svg viewBox="0 0 24 24" width="18" height="18" focusable="false" aria-hidden="true">
+                <path
+                  d="M9 3h6l1 2h4v2H4V5h4l1-2Z"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.6"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+                <path
+                  d="M6 7l1 13h10l1-13"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.6"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+                <path
+                  d="M10 11v6M14 11v6"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.6"
+                  strokeLinecap="round"
+                />
+              </svg>
+              Delete program
+            </button>
+          </div>
         </div>
       </section>
     </div>
@@ -2807,7 +2885,9 @@ BEGIN
   }
 
   .set-row.is-complete {
-    opacity: 0.85;
+    opacity: 0.9;
+    background: color-mix(in srgb, var(--success) 12%, var(--surface));
+    border-color: color-mix(in srgb, var(--success) 35%, var(--border-soft));
     animation: set-pulse var(--dur-2) var(--ease-1);
   }
 
@@ -2859,6 +2939,7 @@ BEGIN
     display: grid;
     gap: var(--space-2);
     justify-items: end;
+    align-items: center;
   }
 
   .set-row__status {
@@ -2881,10 +2962,41 @@ BEGIN
   }
 
   .set-row__menu {
-    border: none;
+    border: var(--border-1) solid transparent;
     background: transparent;
     color: var(--muted);
-    min-block-size: 32px;
+    min-inline-size: 36px;
+    min-block-size: 36px;
+    border-radius: var(--r-pill);
+    display: grid;
+    place-items: center;
+    transition:
+      transform var(--dur-1) var(--ease-1),
+      background-color var(--dur-2) var(--ease-1),
+      border-color var(--dur-2) var(--ease-1),
+      color var(--dur-2) var(--ease-1);
+  }
+
+  .set-row__menu:hover {
+    color: var(--danger);
+    background: color-mix(in srgb, var(--danger) 12%, transparent);
+    border-color: color-mix(in srgb, var(--danger) 35%, transparent);
+  }
+
+  .set-row__menu:active {
+    transform: scale(0.96);
+  }
+
+  .set-row__menu svg {
+    inline-size: 18px;
+    block-size: 18px;
+    transition: transform var(--dur-2) var(--ease-1);
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .set-row__menu:hover svg {
+      transform: rotate(-12deg) scale(1.05);
+    }
   }
 
   .runner-header {
@@ -3115,6 +3227,7 @@ import { useCatalogStore } from "../../../store/useCatalogStore";
 import { useSessionStore, useSessionStoreApi } from "../../../store/useSessionStore";
 import { useSettingsShallow } from "../../../store/useSettingsStore";
 import { useUiShallow, useUiStoreApi } from "../../../store/useUiStore";
+import { startViewTransition } from "../../../lib/viewTransition";
 
 export default function WorkoutRunnerPage() {
   const params = useParams<{ workoutId: string }>();
@@ -3131,13 +3244,15 @@ export default function WorkoutRunnerPage() {
   const { toggleSetComplete, deleteSet, addSet } = sessionStore.getState();
   const { openEditSet, openConfirm, showSnackbar } = uiStore.getState();
 
-  if (!workout || !program) {
+  if (!workout) {
     return (
       <div className="page container">
         <p>Workout not found.</p>
       </div>
     );
   }
+
+  const programName = program?.name ?? "Deleted program";
 
   const handleFinish = () => {
     const command: Command = { type: "FINISH_WORKOUT", payload: { workoutId, navigateTo: `/workout/${workoutId}/summary` } };
@@ -3151,11 +3266,15 @@ export default function WorkoutRunnerPage() {
 
   return (
     <div className="page container">
-      <div className={`runner-header ${vtHero?.type === "program" && vtHero.id === program.id ? "vt-hero" : ""}`}>
+      <div
+        className={`runner-header ${
+          vtHero?.type === "program" && program && vtHero.id === program.id ? "vt-hero" : ""
+        }`}
+      >
         <div className="runner-header__row">
           <div>
             <div className="muted">Workout Runner</div>
-            <div className="runner-header__title">{program.name}</div>
+            <div className="runner-header__title">{programName}</div>
           </div>
           <button type="button" className="btn btn--primary" onClick={handleFinish}>
             Finish
@@ -3176,10 +3295,12 @@ export default function WorkoutRunnerPage() {
               onToggleSet={(setId) => toggleSetComplete(workoutId, entry.exerciseId, setId)}
               onEditSet={(setId) => openEditSet({ workoutId, exerciseId: entry.exerciseId, setId })}
               onDeleteSet={(setId) => {
-                const payload = deleteSet(workoutId, entry.exerciseId, setId);
-                if (payload) {
-                  showSnackbar("Set deleted", "Undo", { type: "UNDO_DELETE_SET", payload });
-                }
+                startViewTransition(() => {
+                  const payload = deleteSet(workoutId, entry.exerciseId, setId);
+                  if (payload) {
+                    showSnackbar("Set deleted", "Undo", { type: "UNDO_DELETE_SET", payload });
+                  }
+                });
               }}
               onAddSet={() => addSet(workoutId, entry.exerciseId)}
             />
@@ -3214,7 +3335,7 @@ export default function WorkoutSummaryPage() {
     [programs, workout]
   );
 
-  if (!workout || !program) {
+  if (!workout) {
     return (
       <div className="page container">
         <p>Workout not found.</p>
@@ -3223,12 +3344,13 @@ export default function WorkoutSummaryPage() {
   }
 
   const { totalSets, totalVolume, exercisesCompleted } = getWorkoutStats(workout);
+  const programName = program?.name ?? "Deleted program";
 
   return (
     <div className="page container">
       <header className="stack">
         <h1 className="card__title">Workout Complete</h1>
-        <p className="muted">{program.name}</p>
+        <p className="muted">{programName}</p>
       </header>
 
       <section className="summary-stats">
@@ -4242,6 +4364,7 @@ BEGIN
 import type { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
 import type { Command } from "./types";
 import { navigateWithTransition } from "../lib/navigation";
+import { startViewTransition } from "../lib/viewTransition";
 import type { CatalogStore, SessionStore, SettingsStore, UiStore } from "../store/AppStoreProvider";
 import { createAppActions } from "../store/appActions";
 
@@ -4260,6 +4383,20 @@ export const executeCommand = async (command: Command, context: CommandContext) 
       if (command.payload.navigateTo && context.router) {
         navigateWithTransition(context.router, command.payload.navigateTo);
       }
+      return;
+    }
+    case "DELETE_PROGRAM": {
+      const { programId, navigateTo } = command.payload;
+      if (navigateTo && context.router) {
+        startViewTransition(() => {
+          context.catalogStore.getState().deleteProgram(programId);
+          context.router?.push(navigateTo);
+        });
+        return;
+      }
+      startViewTransition(() => {
+        context.catalogStore.getState().deleteProgram(programId);
+      });
       return;
     }
     case "RESET_ALL": {
@@ -4284,6 +4421,7 @@ import type { UndoDeleteSetPayload } from "../types/session";
 
 export type Command =
   | { type: "FINISH_WORKOUT"; payload: { workoutId: string; navigateTo?: string } }
+  | { type: "DELETE_PROGRAM"; payload: { programId: string; navigateTo?: string } }
   | { type: "RESET_ALL" }
   | { type: "UNDO_DELETE_SET"; payload: UndoDeleteSetPayload };
 END
@@ -5351,6 +5489,7 @@ export type CatalogState = {
   hydrate: () => Promise<void>;
   createProgram: () => string;
   updateProgram: (id: string, patch: Partial<Program>) => void;
+  deleteProgram: (id: string) => void;
   reorderProgramExercise: (programId: string, fromId: string, toId: string) => void;
   moveProgramExercise: (programId: string, exerciseId: string, direction: "up" | "down") => void;
   addExerciseToProgram: (programId: string, exerciseId: string) => void;
@@ -5427,6 +5566,15 @@ export const createCatalogStore = (storage: StorageAdapter = indexedDbStorage) =
         },
         false,
         "catalog/updateProgram"
+      );
+    },
+    deleteProgram: (id) => {
+      set(
+        (state) => ({
+          programs: state.programs.filter((program) => program.id !== id),
+        }),
+        false,
+        "catalog/deleteProgram"
       );
     },
     reorderProgramExercise: (programId, fromId, toId) => {
@@ -5623,9 +5771,9 @@ export const getWorkoutStats = (workout: Workout | null) => {
   if (!workout) {
     return { totalSets: 0, totalVolume: 0, exercisesCompleted: 0 };
   }
-  const completedSets = workout.entries.flatMap((entry) => entry.sets.filter((set) => set.completed));
-  const totalSets = completedSets.length;
-  const totalVolume = completedSets.reduce((total, set) => total + set.weightKg * set.reps, 0);
+  const allSets = workout.entries.flatMap((entry) => entry.sets);
+  const totalSets = allSets.length;
+  const totalVolume = allSets.reduce((total, set) => total + set.weightKg * set.reps, 0);
   const exercisesCompleted = workout.entries.filter((entry) => entry.sets.some((set) => set.completed)).length;
   return { totalSets, totalVolume, exercisesCompleted };
 };

@@ -159,7 +159,9 @@
   }
 
   .set-row.is-complete {
-    opacity: 0.85;
+    opacity: 0.9;
+    background: color-mix(in srgb, var(--success) 12%, var(--surface));
+    border-color: color-mix(in srgb, var(--success) 35%, var(--border-soft));
     animation: set-pulse var(--dur-2) var(--ease-1);
   }
 
@@ -211,6 +213,7 @@
     display: grid;
     gap: var(--space-2);
     justify-items: end;
+    align-items: center;
   }
 
   .set-row__status {
@@ -233,10 +236,41 @@
   }
 
   .set-row__menu {
-    border: none;
+    border: var(--border-1) solid transparent;
     background: transparent;
     color: var(--muted);
-    min-block-size: 32px;
+    min-inline-size: 36px;
+    min-block-size: 36px;
+    border-radius: var(--r-pill);
+    display: grid;
+    place-items: center;
+    transition:
+      transform var(--dur-1) var(--ease-1),
+      background-color var(--dur-2) var(--ease-1),
+      border-color var(--dur-2) var(--ease-1),
+      color var(--dur-2) var(--ease-1);
+  }
+
+  .set-row__menu:hover {
+    color: var(--danger);
+    background: color-mix(in srgb, var(--danger) 12%, transparent);
+    border-color: color-mix(in srgb, var(--danger) 35%, transparent);
+  }
+
+  .set-row__menu:active {
+    transform: scale(0.96);
+  }
+
+  .set-row__menu svg {
+    inline-size: 18px;
+    block-size: 18px;
+    transition: transform var(--dur-2) var(--ease-1);
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .set-row__menu:hover svg {
+      transform: rotate(-12deg) scale(1.05);
+    }
   }
 
   .runner-header {
