@@ -3,6 +3,7 @@
 import { useParams } from "next/navigation";
 import { useMemo } from "react";
 import HeaderBar from "../../components/HeaderBar";
+import BackButton from "../../components/BackButton";
 import { getWorkoutStats, makeWorkoutViewSelector } from "../../../store/selectors/sessionSelectors";
 import { useCatalogShallow } from "../../../store/useCatalogStore";
 import { useSessionStore } from "../../../store/useSessionStore";
@@ -36,7 +37,7 @@ export default function WorkoutDetailPage() {
 
   return (
     <div className="page container">
-      <HeaderBar title="Workout Detail" />
+      <HeaderBar title="Workout Detail" right={<BackButton />} />
 
       <div className={`card ${vtHero?.type === "history" && vtHero.id === workout.id ? "vt-hero" : ""}`}>
         <div className="card__body">

@@ -544,8 +544,8 @@
 -------------------------------------------- */
 @layer enhancements {
   /* View Transitions (progressive enhancement) */
-  @supports (view-transition-name: hero) {
-    .vt-hero { view-transition-name: hero; }
+  @supports (view-transition-name: vt-hero) {
+    .vt-hero { view-transition-name: vt-hero; }
   }
 
   /* Scroll-driven animations (progressive enhancement) */

@@ -17,6 +17,10 @@ export default function SettingsPage() {
     openConfirm: state.openConfirm,
     showSnackbar: state.showSnackbar,
   }));
+  const { motionStyle, setMotionStyle } = useUiShallow((s) => ({
+    motionStyle: s.motionStyle,
+    setMotionStyle: s.setMotionStyle,
+  }));
 
   const handleExport = async () => {
     const payload = await exportData();
@@ -86,6 +90,34 @@ export default function SettingsPage() {
               }}
             />
             <span className="help">Current: {formatKg(settings.defaultBarWeight)} kg</span>
+          </div>
+
+          <div className="field">
+            <span className="label">Animations</span>
+            <div className="cluster">
+              <button
+                type="button"
+                className={`btn${motionStyle === "fade" ? " btn--primary" : ""}`}
+                onClick={() => setMotionStyle("fade")}
+              >
+                Gentle
+              </button>
+              <button
+                type="button"
+                className={`btn${motionStyle === "push" ? " btn--primary" : ""}`}
+                onClick={() => setMotionStyle("push")}
+              >
+                iOS push
+              </button>
+              <button
+                type="button"
+                className={`btn${motionStyle === "zoom" ? " btn--primary" : ""}`}
+                onClick={() => setMotionStyle("zoom")}
+              >
+                Snappy zoom
+              </button>
+            </div>
+            <span className="help">Choose transition style for route changes</span>
           </div>
         </div>
       </div>

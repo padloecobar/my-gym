@@ -8,11 +8,13 @@ import SheetHost from "./SheetHost";
 import Snackbar from "./Snackbar";
 import { registerServiceWorker } from "../../lib/sw";
 import { useReducedMotion } from "../../lib/useReducedMotion";
+import { useUiShallow } from "../../store/useUiStore";
 
 export default function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const reduceMotion = useReducedMotion();
   const [vtEnabled, setVtEnabled] = useState(false);
+  const { motionStyle } = useUiShallow((s) => ({ motionStyle: s.motionStyle }));
 
   useEffect(() => {
     registerServiceWorker();
@@ -23,12 +25,20 @@ export default function AppShell({ children }: { children: ReactNode }) {
     setVtEnabled(enabled);
   }, [reduceMotion]);
 
+  useEffect(() => {
+    if (typeof document !== "undefined") {
+      // mirror to <html> after first render to avoid hydration footguns
+      document.documentElement.dataset.motion = motionStyle;
+    }
+  }, [motionStyle]);
+
   return (
     <div className="app-shell">
       <main
         className="app-main route-view"
         data-anim="enter"
         data-vt={vtEnabled ? "true" : "false"}
+        data-motion={motionStyle}
         key={pathname}
       >
         <HydrationGate>{children}</HydrationGate>

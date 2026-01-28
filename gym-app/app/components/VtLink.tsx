@@ -4,6 +4,7 @@ import Link, { LinkProps } from "next/link";
 import { MouseEvent, ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { useReducedMotion } from "../../lib/useReducedMotion";
+import { navigateWithTransition } from "../../lib/navigation";
 
 type VtLinkProps = LinkProps & {
   className?: string;
@@ -31,14 +32,8 @@ export default function VtLink({ href, className, children, onClick, ariaCurrent
     event.preventDefault();
     onClick?.(event);
 
-    const navigate = () => router.push(href.toString());
-    if (!reduceMotion && typeof document !== "undefined" && "startViewTransition" in document) {
-      (document as Document & { startViewTransition: (callback: () => void) => void }).startViewTransition(
-        navigate
-      );
-    } else {
-      navigate();
-    }
+    // Use centralized navigation helper which applies data-nav and transitions
+    navigateWithTransition(router, href.toString());
   };
 
   return (

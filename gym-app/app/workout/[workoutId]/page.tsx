@@ -3,6 +3,7 @@
 import { useParams } from "next/navigation";
 import { useMemo } from "react";
 import ExerciseCard from "../../components/ExerciseCard";
+import BackButton from "../../components/BackButton";
 import type { Command } from "../../../commands/types";
 import { makeCatalogMapsSelector } from "../../../store/selectors/catalogSelectors";
 import { makeWorkoutViewSelector } from "../../../store/selectors/sessionSelectors";
@@ -55,9 +56,12 @@ export default function WorkoutRunnerPage() {
         }`}
       >
         <div className="runner-header__row">
-          <div>
-            <div className="muted">Workout Runner</div>
-            <div className="runner-header__title">{programName}</div>
+          <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+            <BackButton label="Back" />
+            <div>
+              <div className="muted">Workout Runner</div>
+              <div className="runner-header__title">{programName}</div>
+            </div>
           </div>
           <button type="button" className="btn btn--primary" onClick={handleFinish}>
             Finish

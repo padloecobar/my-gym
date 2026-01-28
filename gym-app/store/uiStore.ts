@@ -2,6 +2,8 @@ import { createStore } from "zustand/vanilla";
 import type { Command } from "../commands/types";
 import { startViewTransition } from "../lib/viewTransition";
 
+export type MotionStyle = "fade" | "push" | "zoom";
+
 export type ConfirmPayload = {
   title: string;
   message: string;
@@ -37,8 +39,10 @@ export type UiState = {
   sheet: SheetState;
   snackbar: SnackbarState;
   vtHero: { type: "program" | "history"; id: string } | null;
+  motionStyle: MotionStyle;
   setVtHero: (hero: UiState["vtHero"]) => void;
   clearVtHero: () => void;
+  setMotionStyle: (style: MotionStyle) => void;
   openEditSet: (payload: EditSetPayload) => void;
   openConfirm: (payload: ConfirmPayload) => void;
   openSearchExercise: (payload: SearchExercisePayload) => void;
@@ -55,6 +59,7 @@ export const createUiStore = () =>
     sheet: { type: null, open: false },
     snackbar: { open: false, message: "" },
     vtHero: null,
+    motionStyle: "fade",
     setVtHero: (hero) => {
       set((state) => ({ ...state, vtHero: hero }), false);
       if (hero && typeof window !== "undefined") {
@@ -64,6 +69,7 @@ export const createUiStore = () =>
       }
     },
     clearVtHero: () => set((state) => ({ ...state, vtHero: null }), false),
+    setMotionStyle: (style) => set((state) => ({ ...state, motionStyle: style }), false),
     openEditSet: (payload) => {
       startViewTransition(() => {
         sheetSession += 1;

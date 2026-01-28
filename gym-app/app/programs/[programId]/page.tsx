@@ -3,6 +3,7 @@
 import { useParams } from "next/navigation";
 import { useState } from "react";
 import HeaderBar from "../../components/HeaderBar";
+import BackButton from "../../components/BackButton";
 import type { Command } from "../../../commands/types";
 import { useCatalogShallow, useCatalogStoreApi } from "../../../store/useCatalogStore";
 import { useUiStoreApi } from "../../../store/useUiStore";
@@ -35,7 +36,7 @@ export default function ProgramDetailPage() {
 
   return (
     <div className="page container">
-      <HeaderBar title="Program" subtitle={<span className="muted">{program.name}</span>} />
+      <HeaderBar title="Program" subtitle={<span className="muted">{program.name}</span>} right={<BackButton />} />
 
       <div className="card">
         <div className="card__body stack">

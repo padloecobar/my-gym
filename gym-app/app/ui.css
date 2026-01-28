@@ -485,3 +485,99 @@
     }
   }
 }
+
+/* View Transition styles for motion themes (guarded and scoped) */
+@supports (view-transition-name: test) {
+  @media (prefers-reduced-motion: no-preference) {
+    /* Ensure we only target when the JS API is available too by scoping with data-vt="true" */
+    .route-view[data-vt="true"][data-motion="fade"] ::view-transition-old(root),
+    .route-view[data-vt="true"][data-motion="fade"] ::view-transition-new(root) {
+      animation-duration: 280ms;
+      animation-timing-function: cubic-bezier(.2,.9,.2,1);
+      animation-fill-mode: both;
+    }
+
+    .route-view[data-vt="true"][data-motion="fade"] ::view-transition-old(root) {
+      animation-name: vt-fade-old;
+    }
+    .route-view[data-vt="true"][data-motion="fade"] ::view-transition-new(root) {
+      animation-name: vt-fade-new;
+    }
+
+    @keyframes vt-fade-old {
+      from { opacity: 1; transform: translateY(0); }
+      to { opacity: 0; transform: translateY(-6px); }
+    }
+    @keyframes vt-fade-new {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Push / iOS-style (directional) */
+    html[data-nav="forward"] .route-view[data-vt="true"][data-motion="push"] ::view-transition-old(root) {
+      animation-name: vt-push-old-forward;
+      animation-duration: 320ms;
+      animation-timing-function: cubic-bezier(.2,.9,.2,1);
+    }
+    html[data-nav="forward"] .route-view[data-vt="true"][data-motion="push"] ::view-transition-new(root) {
+      animation-name: vt-push-new-forward;
+      animation-duration: 320ms;
+      animation-timing-function: cubic-bezier(.2,.9,.2,1);
+    }
+
+    html[data-nav="back"] .route-view[data-vt="true"][data-motion="push"] ::view-transition-old(root) {
+      animation-name: vt-push-old-back;
+      animation-duration: 320ms;
+      animation-timing-function: cubic-bezier(.2,.9,.2,1);
+    }
+    html[data-nav="back"] .route-view[data-vt="true"][data-motion="push"] ::view-transition-new(root) {
+      animation-name: vt-push-new-back;
+      animation-duration: 320ms;
+      animation-timing-function: cubic-bezier(.2,.9,.2,1);
+    }
+
+    @keyframes vt-push-old-forward { from { transform: translateX(0); } to { transform: translateX(-12%); opacity: 0.8; } }
+    @keyframes vt-push-new-forward { from { transform: translateX(12%); opacity: 0.9; } to { transform: translateX(0); opacity: 1; } }
+    @keyframes vt-push-old-back { from { transform: translateX(0); } to { transform: translateX(12%); opacity: 0.8; } }
+    @keyframes vt-push-new-back { from { transform: translateX(-12%); opacity: 0.9; } to { transform: translateX(0); opacity: 1; } }
+
+    /* Zoom / snappy */
+    .route-view[data-vt="true"][data-motion="zoom"] ::view-transition-old(root) {
+      animation-name: vt-zoom-old;
+      animation-duration: 220ms;
+      animation-timing-function: cubic-bezier(.2,.9,.2,1);
+    }
+    .route-view[data-vt="true"][data-motion="zoom"] ::view-transition-new(root) {
+      animation-name: vt-zoom-new;
+      animation-duration: 220ms;
+      animation-timing-function: cubic-bezier(.2,.9,.2,1);
+    }
+
+    @keyframes vt-zoom-old { from { opacity: 1; transform: scale(1); } to { opacity: 0; transform: scale(0.98); } }
+    @keyframes vt-zoom-new { 0% { opacity: 0; transform: scale(0.98); } 60% { opacity: 1; transform: scale(1.02); } 100% { transform: scale(1); } }
+
+    /* Hero variants: respect selected motion style */
+
+    html .route-view[data-vt="true"][data-motion="fade"] ::view-transition-old(vt-hero) { animation: vt-fade-old 280ms both; }
+    html .route-view[data-vt="true"][data-motion="fade"] ::view-transition-new(vt-hero) { animation: vt-fade-new 280ms both; }
+
+    html[data-nav="forward"] .route-view[data-vt="true"][data-motion="push"] ::view-transition-old(vt-hero) { animation: vt-push-old-forward 320ms both; }
+    html[data-nav="forward"] .route-view[data-vt="true"][data-motion="push"] ::view-transition-new(vt-hero) { animation: vt-push-new-forward 320ms both; }
+
+    html[data-nav="back"] .route-view[data-vt="true"][data-motion="push"] ::view-transition-old(vt-hero) { animation: vt-push-old-back 320ms both; }
+    html[data-nav="back"] .route-view[data-vt="true"][data-motion="push"] ::view-transition-new(vt-hero) { animation: vt-push-new-back 320ms both; }
+
+    html .route-view[data-vt="true"][data-motion="zoom"] ::view-transition-old(vt-hero) { animation: vt-zoom-old 220ms both; }
+    html .route-view[data-vt="true"][data-motion="zoom"] ::view-transition-new(vt-hero) { animation: vt-zoom-new 220ms both; }
+  }
+
+  /* Reduced motion: explicitly disable VT animations and hero effects */
+  @media (prefers-reduced-motion: reduce) {
+    .route-view ::view-transition-old(root),
+    .route-view ::view-transition-new(root),
+    .route-view ::view-transition-old(vt-hero),
+    .route-view ::view-transition-new(vt-hero) {
+      animation: none !important;
+    }
+  }
+}
