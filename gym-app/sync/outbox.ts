@@ -10,7 +10,6 @@ export type SyncEvent = {
   type:
     | "WORKOUT_STARTED"
     | "WORKOUT_FINISHED"
-    | "SET_TOGGLED"
     | "SET_UPDATED"
     | "SET_ADDED"
     | "SET_DELETED"

@@ -21,7 +21,6 @@ const createDefaultSet = (mode: InputMode, settings: Settings): SetEntry => {
     id: createId(),
     weightKg: weight,
     reps: 8,
-    completed: false,
     mode,
   };
 };
@@ -74,7 +73,7 @@ const normalizeWorkouts = (workouts: Workout[]): SessionEntityState => {
       const setIds = entry.sets.map((set) => set.id);
       setIdsByEntryId[entryId] = setIds;
       entry.sets.forEach((set) => {
-        setsById[set.id] = set;
+        setsById[set.id] = { id: set.id, weightKg: set.weightKg, reps: set.reps, mode: set.mode };
       });
     });
     entryIdsByWorkoutId[workout.id] = entryIds;
@@ -138,7 +137,6 @@ const buildWorkoutEntries = (
         suggestedSets = previousSets.map((set) => ({
           ...set,
           id: createId(),
-          completed: false,
         }));
       }
     }
@@ -178,9 +176,8 @@ export type SessionState = SessionEntityState & {
   hydrate: () => Promise<void>;
   startWorkout: (programId: string) => string;
   finishWorkout: (workoutId: string) => void;
-  toggleSetComplete: (workoutId: string, exerciseId: string, setId: string) => void;
   updateSet: (workoutId: string, exerciseId: string, setId: string, patch: Partial<SetEntry>) => void;
-  addSet: (workoutId: string, exerciseId: string) => void;
+  addSet: (workoutId: string, exerciseId: string) => string | undefined;
   deleteSet: (workoutId: string, exerciseId: string, setId: string) => UndoDeleteSetPayload | null;
   restoreDeletedSet: (payload: UndoDeleteSetPayload) => void;
   replaceFromWorkouts: (workouts: Workout[]) => void;
@@ -302,25 +299,6 @@ export const createSessionStore = ({
         false
       );
     },
-    toggleSetComplete: (_workoutId, _exerciseId, setId) => {
-      set(
-        (state) => {
-          const setEntry = state.setsById[setId];
-          if (!setEntry) return state;
-          return {
-            setsById: {
-              ...state.setsById,
-              [setId]: { ...setEntry, completed: !setEntry.completed },
-            },
-            pendingSyncEvent: createPendingSyncEvent({
-              type: "SET_TOGGLED",
-              payload: { setId },
-            }),
-          };
-        },
-        false
-      );
-    },
     updateSet: (_workoutId, _exerciseId, setId, patch) => {
       set(
         (state) => {
@@ -344,7 +322,7 @@ export const createSessionStore = ({
       const settings = getSettings();
       const { exercises } = getCatalog();
       const entryId = getEntryId(workoutId, exerciseId);
-
+      let addedSetId: string | undefined;
       set(
         (state) => {
           const currentSetIds = state.setIdsByEntryId[entryId] ?? [];
@@ -352,8 +330,9 @@ export const createSessionStore = ({
           const lastSet = lastSetId ? state.setsById[lastSetId] : undefined;
           const exercise = exercises.find((item) => item.id === exerciseId);
           const nextSet: SessionSet = lastSet
-            ? { ...lastSet, id: createId(), completed: false }
+            ? { ...lastSet, id: createId() }
             : createDefaultSet(exercise?.defaultInputMode ?? "total", settings);
+          addedSetId = nextSet.id;
           return {
             setsById: { ...state.setsById, [nextSet.id]: nextSet },
             setIdsByEntryId: {
@@ -368,6 +347,7 @@ export const createSessionStore = ({
         },
         false
       );
+      return addedSetId;
     },
     deleteSet: (workoutId, exerciseId, setId) => {
       const entryId = getEntryId(workoutId, exerciseId);

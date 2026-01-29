@@ -6,25 +6,23 @@ import { formatKg, formatLb } from "../../lib/utils";
 
 export default function SetRow({
   set,
-  isNext,
   barWeight,
-  onToggle,
   onEdit,
   onDelete,
+  highlight,
 }: {
   set: SetEntry;
-  isNext: boolean;
   barWeight: number;
-  onToggle: () => void;
   onEdit: () => void;
   onDelete: () => void;
+  highlight?: boolean;
 }) {
   const perSide = useMemo(() => Math.max(0, (set.weightKg - barWeight) / 2), [set.weightKg, barWeight]);
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
     if (event.key === "Enter" || event.key === " ") {
       event.preventDefault();
-      onToggle();
+      onEdit();
     }
   };
 
@@ -32,10 +30,9 @@ export default function SetRow({
     <div
       role="button"
       tabIndex={0}
-      className={`set-row${set.completed ? " is-complete" : ""}${isNext ? " is-next" : ""}`}
-      aria-label={`${formatKg(set.weightKg)} kg x ${set.reps} reps`}
-      aria-pressed={set.completed}
-      onClick={onToggle}
+      className={`set-row${highlight ? " set-row--highlight" : ""}`}
+      aria-label={`${formatKg(set.weightKg)} kg x ${set.reps} reps. Tap to edit.`}
+      onClick={onEdit}
       onKeyDown={handleKeyDown}
     >
       <div className="set-row__weight">

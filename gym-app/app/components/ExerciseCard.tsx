@@ -7,21 +7,19 @@ export default function ExerciseCard({
   exercise,
   entry,
   barWeight,
-  onToggleSet,
   onEditSet,
   onDeleteSet,
   onAddSet,
+  highlightedSetId,
 }: {
   exercise: Exercise;
   entry: WorkoutEntry;
   barWeight: number;
-  onToggleSet: (setId: string) => void;
   onEditSet: (setId: string) => void;
   onDeleteSet: (setId: string) => void;
   onAddSet: () => void;
+  highlightedSetId?: string | null;
 }) {
-  const nextIndex = entry.sets.findIndex((set) => !set.completed);
-
   return (
     <article className="card exercise-card">
       <div className="card__body">
@@ -35,15 +33,14 @@ export default function ExerciseCard({
           </div>
         </div>
         <div className="exercise-card__sets">
-          {entry.sets.map((set, index) => (
+          {entry.sets.map((set) => (
             <SetRow
               key={set.id}
               set={set}
               barWeight={barWeight}
-              isNext={index === nextIndex}
-              onToggle={() => onToggleSet(set.id)}
               onEdit={() => onEditSet(set.id)}
               onDelete={() => onDeleteSet(set.id)}
+              highlight={highlightedSetId === set.id}
             />
           ))}
         </div>

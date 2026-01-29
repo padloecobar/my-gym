@@ -1,7 +1,7 @@
 "use client";
 
 import { useParams } from "next/navigation";
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import ExerciseCard from "../../components/ExerciseCard";
 import BackButton from "../../components/BackButton";
 import type { Command } from "../../../commands/types";
@@ -25,8 +25,14 @@ export default function WorkoutRunnerPage() {
   const sessionStore = useSessionStoreApi();
   const { vtHero } = useUiShallow((state) => ({ vtHero: state.vtHero }));
   const uiStore = useUiStoreApi();
-  const { toggleSetComplete, deleteSet, addSet } = sessionStore.getState();
+  const { deleteSet, addSet } = sessionStore.getState();
   const { openEditSet, openConfirm, showSnackbar } = uiStore.getState();
+  const [lastAddedSetId, setLastAddedSetId] = useState<string | null>(null);
+  useEffect(() => {
+    if (lastAddedSetId == null) return;
+    const t = setTimeout(() => setLastAddedSetId(null), 1800);
+    return () => clearTimeout(t);
+  }, [lastAddedSetId]);
 
   if (!workout) {
     return (
@@ -79,7 +85,6 @@ export default function WorkoutRunnerPage() {
               exercise={exercise}
               entry={entry}
               barWeight={settings.defaultBarWeight}
-              onToggleSet={(setId) => toggleSetComplete(workoutId, entry.exerciseId, setId)}
               onEditSet={(setId) => openEditSet({ workoutId, exerciseId: entry.exerciseId, setId })}
               onDeleteSet={(setId) => {
                 startViewTransition(() => {
@@ -89,7 +94,11 @@ export default function WorkoutRunnerPage() {
                   }
                 });
               }}
-              onAddSet={() => addSet(workoutId, entry.exerciseId)}
+              onAddSet={() => {
+                const id = addSet(workoutId, entry.exerciseId);
+                if (id) setLastAddedSetId(id);
+              }}
+              highlightedSetId={lastAddedSetId}
             />
           );
         })}

@@ -1,6 +1,6 @@
 @layer tokens {
   :root {
-    --nav-height: 3.75rem;
+    --nav-height: 3rem;
     --fab-size: 3.25rem;
     --sheet-max: 34rem;
     --sheet-backdrop: color-mix(in srgb, var(--text) 35%, transparent);
@@ -54,30 +54,60 @@
     z-index: 10;
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    gap: var(--space-2);
-    padding: var(--space-2) var(--gutter) calc(var(--space-2) + env(safe-area-inset-bottom));
-    background: color-mix(in srgb, var(--surface) 85%, transparent);
+    gap: var(--space-1);
+    padding-block: var(--space-2) calc(var(--space-2) + env(safe-area-inset-bottom));
+    padding-inline: var(--gutter);
+    background: var(--surface);
     border-top: var(--border-1) solid var(--border-soft);
-    backdrop-filter: blur(10px);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+  }
+
+  @supports (backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px)) {
+    .bottom-nav {
+      background: color-mix(in srgb, var(--surface) 92%, transparent);
+    }
   }
 
   .bottom-nav__item {
-    min-block-size: 48px;
-    display: grid;
-    place-items: center;
+    min-block-size: 44px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
     border-radius: var(--r-2);
-    font-size: var(--fs-1);
+    font-size: 0.6875rem;
+    font-weight: 500;
     color: var(--muted);
-    transition: background var(--dur-2) var(--ease-1), color var(--dur-2) var(--ease-1);
+    transition: color var(--dur-2) var(--ease-1);
+    position: relative;
   }
 
   .bottom-nav__item[aria-current="page"] {
-    color: var(--text);
-    background: var(--brand-soft);
+    color: var(--brand);
+  }
+
+  .bottom-nav__item[aria-current="page"]::after {
+    content: "";
+    position: absolute;
+    inset-inline: 50%;
+    inset-block-end: 0;
+    transform: translateX(-50%);
+    inline-size: 20px;
+    block-size: 3px;
+    border-radius: var(--r-pill);
+    background: var(--brand);
+  }
+
+  .bottom-nav__icon {
+    inline-size: 22px;
+    block-size: 22px;
+    color: currentColor;
   }
 
   .bottom-nav__label {
-    font-weight: 600;
+    font-weight: 500;
   }
 
   .header-bar {
@@ -112,6 +142,11 @@
     cursor: pointer;
   }
 
+  .program-card .card__body {
+    padding: var(--space-4);
+    gap: var(--space-3);
+  }
+
   .program-card__header {
     display: flex;
     align-items: center;
@@ -121,6 +156,11 @@
 
   .program-card__note {
     font-size: var(--fs-1);
+  }
+
+  .exercise-card .card__body {
+    padding: var(--space-4);
+    gap: var(--space-3);
   }
 
   .exercise-card__sets {
@@ -148,26 +188,20 @@
     padding: var(--space-3);
     border-radius: var(--r-2);
     border: var(--border-1) solid var(--border-soft);
-    background: color-mix(in srgb, var(--surface) 70%, var(--bg));
-    min-block-size: 60px;
+    background: var(--surface-2);
+    min-block-size: 56px;
     cursor: pointer;
     transition: transform var(--dur-1) var(--ease-1), opacity var(--dur-1) var(--ease-1);
   }
 
-  .set-row.is-next {
+  .set-row--highlight {
     box-shadow: 0 0 0 2px color-mix(in srgb, var(--brand) 35%, transparent);
+    animation: set-highlight-fade var(--dur-2) var(--ease-1) forwards;
   }
 
-  .set-row.is-complete {
-    opacity: 0.9;
-    background: color-mix(in srgb, var(--success) 12%, var(--surface));
-    border-color: color-mix(in srgb, var(--success) 35%, var(--border-soft));
-    animation: set-pulse var(--dur-2) var(--ease-1);
-  }
-
-  @keyframes set-pulse {
-    0% { transform: scale(0.98); opacity: 0.75; }
-    100% { transform: scale(1); opacity: 1; }
+  @keyframes set-highlight-fade {
+    0% { opacity: 0.85; }
+    100% { opacity: 1; }
   }
 
   .set-row__edit {
@@ -216,23 +250,9 @@
     align-items: center;
   }
 
-  .set-row__status {
-    inline-size: 24px;
-    block-size: 24px;
-    display: grid;
-    place-items: center;
-    border-radius: var(--r-pill);
-    background: color-mix(in srgb, var(--border) 30%, transparent);
-    color: var(--success);
-    font-weight: 700;
-  }
-
-  .set-row.is-complete .set-row__status {
-    background: color-mix(in srgb, var(--success) 20%, transparent);
-  }
-
   .set-row--static {
     cursor: default;
+    grid-template-columns: 1fr auto;
   }
 
   .set-row__menu {
@@ -322,12 +342,16 @@
 
   .sheet__panel {
     inline-size: min(100%, var(--sheet-max));
+    max-block-size: min(80dvh, 100%);
     margin-inline: auto;
     margin-block-end: env(safe-area-inset-bottom);
     border-radius: var(--r-3) var(--r-3) 0 0;
     transform: translateY(20%);
     opacity: 0;
     transition: transform var(--dur-3) var(--ease-2), opacity var(--dur-2) var(--ease-1);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
   }
 
   .sheet[data-open="true"] .sheet__panel {
@@ -356,7 +380,8 @@
     padding: var(--space-5);
     display: grid;
     gap: var(--space-4);
-    max-block-size: min(60dvh, 32rem);
+    flex: 1;
+    min-block-size: 0;
     overflow: auto;
   }
 
@@ -379,7 +404,7 @@
     padding: var(--space-3);
     border-radius: var(--r-2);
     border: var(--border-1) solid var(--border-soft);
-    background: color-mix(in srgb, var(--surface) 70%, var(--bg));
+    background: var(--surface-2);
   }
 
   .stepper {
@@ -430,6 +455,54 @@
     z-index: 5;
   }
 
+  .summary-page {
+    padding-block-end: calc(var(--space-6) + env(safe-area-inset-bottom));
+  }
+
+  .summary-page__header {
+    position: relative;
+    padding-block-start: var(--space-2);
+  }
+
+  .summary-page__badge {
+    inline-size: 48px;
+    block-size: 48px;
+    border-radius: 50%;
+    background: color-mix(in srgb, var(--success) 14%, transparent);
+    color: var(--success);
+    display: grid;
+    place-items: center;
+    margin-block-end: var(--space-2);
+  }
+
+  .summary-page__badge svg {
+    inline-size: 26px;
+    block-size: 26px;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .summary-page__badge {
+      animation: summary-badge-in var(--dur-3) var(--ease-1) both;
+    }
+  }
+
+  @keyframes summary-badge-in {
+    from { opacity: 0; transform: scale(0.85); }
+    to { opacity: 1; transform: scale(1); }
+  }
+
+  .summary-page__sticky {
+    position: sticky;
+    inset-block-end: 0;
+    padding-block-start: var(--space-6);
+    padding-block-end: env(safe-area-inset-bottom);
+    background: var(--bg);
+  }
+
+  .summary-page__done {
+    inline-size: 100%;
+  }
+
   .summary-stats {
     display: grid;
     gap: var(--space-3);
@@ -439,7 +512,7 @@
     padding: var(--space-4);
     border-radius: var(--r-2);
     border: var(--border-1) solid var(--border-soft);
-    background: color-mix(in srgb, var(--surface) 70%, var(--bg));
+    background: var(--surface-2);
   }
 
   .summary-stat__value {
@@ -477,8 +550,9 @@
   @media (prefers-reduced-motion: reduce) {
     .route-view[data-anim="enter"],
     .snackbar,
-    .set-row.is-complete,
+    .set-row--highlight,
     .summary-stats,
+    .summary-page__badge,
     .sheet__panel,
     .sheet__backdrop {
       animation: none;
@@ -486,21 +560,20 @@
   }
 }
 
-/* View Transition styles for motion themes (guarded and scoped) */
+/* View Transition styles for motion themes (scoped via html[data-vt][data-motion]) */
 @supports (view-transition-name: test) {
   @media (prefers-reduced-motion: no-preference) {
-    /* Ensure we only target when the JS API is available too by scoping with data-vt="true" */
-    .route-view[data-vt="true"][data-motion="fade"] ::view-transition-old(root),
-    .route-view[data-vt="true"][data-motion="fade"] ::view-transition-new(root) {
+    html[data-vt="true"][data-motion="fade"]::view-transition-old(root),
+    html[data-vt="true"][data-motion="fade"]::view-transition-new(root) {
       animation-duration: 280ms;
-      animation-timing-function: cubic-bezier(.2,.9,.2,1);
+      animation-timing-function: cubic-bezier(0.2, 0.9, 0.2, 1);
       animation-fill-mode: both;
     }
 
-    .route-view[data-vt="true"][data-motion="fade"] ::view-transition-old(root) {
+    html[data-vt="true"][data-motion="fade"]::view-transition-old(root) {
       animation-name: vt-fade-old;
     }
-    .route-view[data-vt="true"][data-motion="fade"] ::view-transition-new(root) {
+    html[data-vt="true"][data-motion="fade"]::view-transition-new(root) {
       animation-name: vt-fade-new;
     }
 
@@ -514,26 +587,26 @@
     }
 
     /* Push / iOS-style (directional) */
-    html[data-nav="forward"] .route-view[data-vt="true"][data-motion="push"] ::view-transition-old(root) {
+    html[data-vt="true"][data-motion="push"][data-nav="forward"]::view-transition-old(root) {
       animation-name: vt-push-old-forward;
       animation-duration: 320ms;
-      animation-timing-function: cubic-bezier(.2,.9,.2,1);
+      animation-timing-function: cubic-bezier(0.2, 0.9, 0.2, 1);
     }
-    html[data-nav="forward"] .route-view[data-vt="true"][data-motion="push"] ::view-transition-new(root) {
+    html[data-vt="true"][data-motion="push"][data-nav="forward"]::view-transition-new(root) {
       animation-name: vt-push-new-forward;
       animation-duration: 320ms;
-      animation-timing-function: cubic-bezier(.2,.9,.2,1);
+      animation-timing-function: cubic-bezier(0.2, 0.9, 0.2, 1);
     }
 
-    html[data-nav="back"] .route-view[data-vt="true"][data-motion="push"] ::view-transition-old(root) {
+    html[data-vt="true"][data-motion="push"][data-nav="back"]::view-transition-old(root) {
       animation-name: vt-push-old-back;
       animation-duration: 320ms;
-      animation-timing-function: cubic-bezier(.2,.9,.2,1);
+      animation-timing-function: cubic-bezier(0.2, 0.9, 0.2, 1);
     }
-    html[data-nav="back"] .route-view[data-vt="true"][data-motion="push"] ::view-transition-new(root) {
+    html[data-vt="true"][data-motion="push"][data-nav="back"]::view-transition-new(root) {
       animation-name: vt-push-new-back;
       animation-duration: 320ms;
-      animation-timing-function: cubic-bezier(.2,.9,.2,1);
+      animation-timing-function: cubic-bezier(0.2, 0.9, 0.2, 1);
     }
 
     @keyframes vt-push-old-forward { from { transform: translateX(0); } to { transform: translateX(-12%); opacity: 0.8; } }
@@ -542,41 +615,40 @@
     @keyframes vt-push-new-back { from { transform: translateX(-12%); opacity: 0.9; } to { transform: translateX(0); opacity: 1; } }
 
     /* Zoom / snappy */
-    .route-view[data-vt="true"][data-motion="zoom"] ::view-transition-old(root) {
+    html[data-vt="true"][data-motion="zoom"]::view-transition-old(root) {
       animation-name: vt-zoom-old;
       animation-duration: 220ms;
-      animation-timing-function: cubic-bezier(.2,.9,.2,1);
+      animation-timing-function: cubic-bezier(0.2, 0.9, 0.2, 1);
     }
-    .route-view[data-vt="true"][data-motion="zoom"] ::view-transition-new(root) {
+    html[data-vt="true"][data-motion="zoom"]::view-transition-new(root) {
       animation-name: vt-zoom-new;
       animation-duration: 220ms;
-      animation-timing-function: cubic-bezier(.2,.9,.2,1);
+      animation-timing-function: cubic-bezier(0.2, 0.9, 0.2, 1);
     }
 
     @keyframes vt-zoom-old { from { opacity: 1; transform: scale(1); } to { opacity: 0; transform: scale(0.98); } }
     @keyframes vt-zoom-new { 0% { opacity: 0; transform: scale(0.98); } 60% { opacity: 1; transform: scale(1.02); } 100% { transform: scale(1); } }
 
     /* Hero variants: respect selected motion style */
+    html[data-vt="true"][data-motion="fade"]::view-transition-old(vt-hero) { animation: vt-fade-old 280ms both; }
+    html[data-vt="true"][data-motion="fade"]::view-transition-new(vt-hero) { animation: vt-fade-new 280ms both; }
 
-    html .route-view[data-vt="true"][data-motion="fade"] ::view-transition-old(vt-hero) { animation: vt-fade-old 280ms both; }
-    html .route-view[data-vt="true"][data-motion="fade"] ::view-transition-new(vt-hero) { animation: vt-fade-new 280ms both; }
+    html[data-vt="true"][data-motion="push"][data-nav="forward"]::view-transition-old(vt-hero) { animation: vt-push-old-forward 320ms both; }
+    html[data-vt="true"][data-motion="push"][data-nav="forward"]::view-transition-new(vt-hero) { animation: vt-push-new-forward 320ms both; }
 
-    html[data-nav="forward"] .route-view[data-vt="true"][data-motion="push"] ::view-transition-old(vt-hero) { animation: vt-push-old-forward 320ms both; }
-    html[data-nav="forward"] .route-view[data-vt="true"][data-motion="push"] ::view-transition-new(vt-hero) { animation: vt-push-new-forward 320ms both; }
+    html[data-vt="true"][data-motion="push"][data-nav="back"]::view-transition-old(vt-hero) { animation: vt-push-old-back 320ms both; }
+    html[data-vt="true"][data-motion="push"][data-nav="back"]::view-transition-new(vt-hero) { animation: vt-push-new-back 320ms both; }
 
-    html[data-nav="back"] .route-view[data-vt="true"][data-motion="push"] ::view-transition-old(vt-hero) { animation: vt-push-old-back 320ms both; }
-    html[data-nav="back"] .route-view[data-vt="true"][data-motion="push"] ::view-transition-new(vt-hero) { animation: vt-push-new-back 320ms both; }
-
-    html .route-view[data-vt="true"][data-motion="zoom"] ::view-transition-old(vt-hero) { animation: vt-zoom-old 220ms both; }
-    html .route-view[data-vt="true"][data-motion="zoom"] ::view-transition-new(vt-hero) { animation: vt-zoom-new 220ms both; }
+    html[data-vt="true"][data-motion="zoom"]::view-transition-old(vt-hero) { animation: vt-zoom-old 220ms both; }
+    html[data-vt="true"][data-motion="zoom"]::view-transition-new(vt-hero) { animation: vt-zoom-new 220ms both; }
   }
 
   /* Reduced motion: explicitly disable VT animations and hero effects */
   @media (prefers-reduced-motion: reduce) {
-    .route-view ::view-transition-old(root),
-    .route-view ::view-transition-new(root),
-    .route-view ::view-transition-old(vt-hero),
-    .route-view ::view-transition-new(vt-hero) {
+    html::view-transition-old(root),
+    html::view-transition-new(root),
+    html::view-transition-old(vt-hero),
+    html::view-transition-new(vt-hero) {
       animation: none !important;
     }
   }

@@ -27,10 +27,15 @@ export default function AppShell({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (typeof document !== "undefined") {
-      // mirror to <html> after first render to avoid hydration footguns
       document.documentElement.dataset.motion = motionStyle;
     }
   }, [motionStyle]);
+
+  useEffect(() => {
+    if (typeof document !== "undefined") {
+      document.documentElement.dataset.vt = vtEnabled ? "true" : "false";
+    }
+  }, [vtEnabled]);
 
   return (
     <div className="app-shell">

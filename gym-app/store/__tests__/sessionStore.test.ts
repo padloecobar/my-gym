@@ -46,25 +46,21 @@ describe("sessionStore", () => {
 
     const setEntry = state.setsById[setIds[0]];
     expect(setEntry.weightKg).toBe(20);
-    expect(setEntry.completed).toBe(false);
   });
 
-  it("addSet, toggleSetComplete, deleteSet, restoreDeletedSet", () => {
+  it("addSet, deleteSet, restoreDeletedSet", () => {
     const { sessionStore } = setupStores();
     const workoutId = sessionStore.getState().startWorkout("program-1");
 
-    sessionStore.getState().addSet(workoutId, "exercise-1");
+    const newSetId = sessionStore.getState().addSet(workoutId, "exercise-1");
     let state = sessionStore.getState();
 
     const entryId = state.entryIdsByWorkoutId[workoutId][0];
     const setIds = state.setIdsByEntryId[entryId];
     expect(setIds).toHaveLength(2);
+    expect(newSetId).toBe(setIds[1]);
 
     const targetSetId = setIds[0];
-    sessionStore.getState().toggleSetComplete(workoutId, "exercise-1", targetSetId);
-    state = sessionStore.getState();
-    expect(state.setsById[targetSetId].completed).toBe(true);
-
     const undoPayload = sessionStore.getState().deleteSet(workoutId, "exercise-1", targetSetId);
     state = sessionStore.getState();
     expect(state.setsById[targetSetId]).toBeUndefined();
@@ -99,7 +95,7 @@ describe("sessionStore", () => {
           exerciseId: "exercise-1",
           suggested: false,
           sets: [
-            { id: "set-1", weightKg: 60, reps: 5, completed: false, mode: "total" },
+            { id: "set-1", weightKg: 60, reps: 5, mode: "total" },
           ],
         },
       ],

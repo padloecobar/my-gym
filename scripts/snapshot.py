@@ -157,7 +157,10 @@ def main() -> int:
     )
     ap.add_argument("--exclude", action="append", default=[], help="Glob exclude (repeatable).")
     ap.add_argument("--max-bytes", type=int, default=700_000, help="Skip files larger than this many bytes.")
-    ap.add_argument("--out", help="Output snapshot file (required unless --dry-run).")
+    ap.add_argument(
+    "--out",
+    help="Output snapshot file (default: project-snapshot-{date}-{time}.txt)."
+    )
     ap.add_argument("--dry-run", action="store_true", help="Print included files and exit.")
     args = ap.parse_args()
 
@@ -221,7 +224,8 @@ def main() -> int:
         return 0
 
     if not args.out:
-        raise SystemExit("[FATAL] --out is required unless --dry-run")
+        ts = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
+        args.out = f"project-snapshot-{ts}.txt"
 
     out = Path(args.out).expanduser().resolve()
     out.parent.mkdir(parents=True, exist_ok=True)

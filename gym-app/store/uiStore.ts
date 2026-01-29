@@ -4,6 +4,30 @@ import { startViewTransition } from "../lib/viewTransition";
 
 export type MotionStyle = "fade" | "push" | "zoom";
 
+const UI_STORAGE_KEY = "gym-ui";
+
+function getPersistedMotionStyle(): MotionStyle {
+  if (typeof localStorage === "undefined") return "fade";
+  try {
+    const raw = localStorage.getItem(UI_STORAGE_KEY);
+    if (!raw) return "fade";
+    const parsed = JSON.parse(raw) as { motionStyle?: string };
+    if (parsed?.motionStyle === "push" || parsed?.motionStyle === "zoom") return parsed.motionStyle;
+    return "fade";
+  } catch {
+    return "fade";
+  }
+}
+
+function persistMotionStyle(motionStyle: MotionStyle) {
+  if (typeof localStorage === "undefined") return;
+  try {
+    localStorage.setItem(UI_STORAGE_KEY, JSON.stringify({ motionStyle }));
+  } catch {
+    /* ignore */
+  }
+}
+
 export type ConfirmPayload = {
   title: string;
   message: string;
@@ -59,7 +83,7 @@ export const createUiStore = () =>
     sheet: { type: null, open: false },
     snackbar: { open: false, message: "" },
     vtHero: null,
-    motionStyle: "fade",
+    motionStyle: getPersistedMotionStyle(),
     setVtHero: (hero) => {
       set((state) => ({ ...state, vtHero: hero }), false);
       if (hero && typeof window !== "undefined") {
@@ -69,7 +93,10 @@ export const createUiStore = () =>
       }
     },
     clearVtHero: () => set((state) => ({ ...state, vtHero: null }), false),
-    setMotionStyle: (style) => set((state) => ({ ...state, motionStyle: style }), false),
+    setMotionStyle: (style) => {
+      set((state) => ({ ...state, motionStyle: style }), false);
+      persistMotionStyle(style);
+    },
     openEditSet: (payload) => {
       startViewTransition(() => {
         sheetSession += 1;

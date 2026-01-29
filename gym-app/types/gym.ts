@@ -19,7 +19,6 @@ export type SetEntry = {
   id: string;
   weightKg: number;
   reps: number;
-  completed: boolean;
   mode: InputMode;
 };
 

@@ -27,20 +27,26 @@ export default function WorkoutSummaryPage() {
     );
   }
 
-  const { totalSets, totalVolume, exercisesCompleted } = getWorkoutStats(workout);
+  const { totalSets, totalVolume, exerciseCount } = getWorkoutStats(workout);
   const programName = program?.name ?? "Deleted program";
 
   return (
-    <div className="page container">
-      <header className="stack">
+    <div className="page container summary-page">
+      <header className="stack summary-page__header">
+        <div className="summary-page__badge" aria-hidden>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="12" cy="12" r="10" />
+            <path d="M8 12l3 3 5-6" />
+          </svg>
+        </div>
         <h1 className="card__title">Workout Complete</h1>
         <p className="muted">{programName}</p>
       </header>
 
       <section className="summary-stats">
         <div className="summary-stat">
-          <div className="summary-stat__value">{exercisesCompleted}</div>
-          <div className="muted">Exercises completed</div>
+          <div className="summary-stat__value">{exerciseCount}</div>
+          <div className="muted">Exercises</div>
         </div>
         <div className="summary-stat">
           <div className="summary-stat__value">{totalSets}</div>
@@ -52,13 +58,15 @@ export default function WorkoutSummaryPage() {
         </div>
       </section>
 
-      <button
-        type="button"
-        className="btn btn--primary"
-        onClick={() => navigateWithTransition(router, "/")}
-      >
-        Done
-      </button>
+      <div className="summary-page__sticky">
+        <button
+          type="button"
+          className="btn btn--primary summary-page__done"
+          onClick={() => navigateWithTransition(router, "/")}
+        >
+          Done
+        </button>
+      </div>
     </div>
   );
 }

@@ -65,7 +65,7 @@ export default function WorkoutDetailPage() {
                 </div>
                 <div className="stack">
                   {entry.sets.map((set) => (
-                    <div key={set.id} className={`set-row set-row--static ${set.completed ? "is-complete" : ""}`}>
+                    <div key={set.id} className="set-row set-row--static">
                       <div>
                         <div className="set-row__kg">{formatKg(set.weightKg)} kg</div>
                         <div className="set-row__lb muted">{formatLb(set.weightKg)} lb</div>
@@ -73,22 +73,6 @@ export default function WorkoutDetailPage() {
                       <div className="set-row__reps">
                         <span className="set-row__reps-value">{set.reps}</span>
                         <span className="set-row__reps-label muted">reps</span>
-                      </div>
-                      <div className="set-row__meta">
-                        <span className="set-row__status" aria-hidden="true">
-                          {set.completed ? (
-                            <svg viewBox="0 0 16 12" width="16" height="12" focusable="false" aria-hidden="true">
-                              <path
-                                d="M1 6l4 4 10-10"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth="2"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              />
-                            </svg>
-                          ) : null}
-                        </span>
                       </div>
                     </div>
                   ))}
