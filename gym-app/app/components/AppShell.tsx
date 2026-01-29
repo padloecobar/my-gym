@@ -7,12 +7,12 @@ import HydrationGate from "./HydrationGate";
 import SheetHost from "./SheetHost";
 import Snackbar from "./Snackbar";
 import { registerServiceWorker } from "../../lib/sw";
-import { useReducedMotion } from "../../lib/useReducedMotion";
+import { useMotionMode } from "../../lib/useReducedMotion";
 import { useUiShallow } from "../../store/useUiStore";
 
 export default function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
-  const reduceMotion = useReducedMotion();
+  const motionMode = useMotionMode();
   const [vtEnabled, setVtEnabled] = useState(false);
   const { motionStyle } = useUiShallow((s) => ({ motionStyle: s.motionStyle }));
 
@@ -21,15 +21,18 @@ export default function AppShell({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
-    const enabled = typeof document !== "undefined" && "startViewTransition" in document && !reduceMotion;
+    const enabled = typeof document !== "undefined" && "startViewTransition" in document && motionMode === "full";
     setVtEnabled(enabled);
-  }, [reduceMotion]);
+  }, [motionMode]);
 
   useEffect(() => {
     if (typeof document !== "undefined") {
-      document.documentElement.dataset.motion = motionStyle;
+      // Set motion style (fade/push/zoom) for view transition animations
+      document.documentElement.dataset.motionStyle = motionStyle;
+      // Set motion mode (reduced/full) for CSS gating per improve-1.md
+      document.documentElement.dataset.motionMode = motionMode;
     }
-  }, [motionStyle]);
+  }, [motionStyle, motionMode]);
 
   useEffect(() => {
     if (typeof document !== "undefined") {
@@ -43,8 +46,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
         className="app-main route-view"
         data-anim="enter"
         data-vt={vtEnabled ? "true" : "false"}
-        data-motion={motionStyle}
-        key={pathname}
+        data-motion-style={motionStyle}
       >
         <HydrationGate>{children}</HydrationGate>
       </main>

@@ -6,7 +6,7 @@
 /* --------------------------------------------
    0) Cascade Layers
 -------------------------------------------- */
-@layer reset, tokens, base, layout, components, enhancements, utilities, overrides;
+@layer reset, tokens, base, layout, components, motion, utilities, overrides;
 
 /* --------------------------------------------
    1) Reset (minimal, modern, non-destructive)
@@ -121,12 +121,29 @@
     --shadow-1: 0 1px 2px hsl(0 0% 0% / 0.15);
     --shadow-2: 0 6px 20px hsl(0 0% 0% / 0.18);
 
-    /* Motion */
+    /* Motion durations per improve-1.md guidelines */
+    --dur-press: 120ms;        /* Press feedback: 90-120ms */
+    --dur-quick: 180ms;        /* Quick state change: 150-200ms */
+    --dur-enter: 225ms;        /* Element enter */
+    --dur-exit: 195ms;         /* Element exit */
+    --dur-page: 300ms;         /* Full-screen navigation */
+    --dur-page-lg: 375ms;      /* Large/complex full-screen (max) */
+    /* Legacy durations for backward compatibility */
     --dur-1: 120ms;
     --dur-2: 200ms;
     --dur-3: 320ms;
+
+    /* Motion easing curves per improve-1.md (Material Design) */
+    --ease-standard: cubic-bezier(0.4, 0.0, 0.2, 1);  /* Standard */
+    --ease-decel: cubic-bezier(0.0, 0.0, 0.2, 1);     /* Deceleration (enter) */
+    --ease-accel: cubic-bezier(0.4, 0.0, 1, 1);       /* Acceleration (exit) */
+    --ease-sharp: cubic-bezier(0.4, 0.0, 0.6, 1);     /* Sharp (rare) */
+    /* Legacy easings for backward compatibility */
     --ease-1: cubic-bezier(0.2, 0.8, 0.2, 1);
     --ease-2: cubic-bezier(0.2, 0.0, 0.0, 1);
+
+    /* Touch targets per improve-1.md */
+    --tap: 48px;
 
     /* Layout primitives */
     --container-max: 72rem;
@@ -544,9 +561,13 @@
 }
 
 /* --------------------------------------------
-   6) Enhancements (Tier B features with guardrails)
+   6) Motion (View Transitions, Animations, Motion Safety)
 -------------------------------------------- */
-@layer enhancements {
+@layer motion {
+  /* Motion reduction gating per improve-1.md:
+     - OS preference: @media (prefers-reduced-motion: reduce)
+     - App override: [data-motion="reduced"] */
+  
   /* View Transitions (progressive enhancement) */
   @supports (view-transition-name: vt-hero) {
     .vt-hero { view-transition-name: vt-hero; }
@@ -565,8 +586,12 @@
       to   { opacity: 1; transform: translateY(0); }
     }
 
+    /* Respect OS preference OR app-level override */
     @media (prefers-reduced-motion: reduce) {
       .reveal-on-scroll { animation: none; }
+    }
+    [data-motion-mode="reduced"] .reveal-on-scroll {
+      animation: none;
     }
   }
 

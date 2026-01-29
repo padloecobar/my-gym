@@ -37,7 +37,8 @@ export default function WorkoutDetailPage() {
 
   return (
     <div className="page container">
-      <HeaderBar title="Workout Detail" right={<BackButton />} />
+      <HeaderBar title="Workout Detail" />
+      <BackButton />
 
       <div className={`card ${vtHero?.type === "history" && vtHero.id === workout.id ? "vt-hero" : ""}`}>
         <div className="card__body">

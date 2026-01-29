@@ -39,6 +39,7 @@ export type Workout = {
 export type Settings = {
   unitsPreference: "kg" | "lb";
   defaultBarWeight: number;
+  reduceMotion?: boolean;
 };
 
 export type GymExport = {

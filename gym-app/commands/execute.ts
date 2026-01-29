@@ -1,4 +1,5 @@
 import type { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
+import { flushSync } from "react-dom";
 import type { Command } from "./types";
 import { navigateWithTransition } from "../lib/navigation";
 import { startViewTransition } from "../lib/viewTransition";
@@ -26,13 +27,18 @@ export const executeCommand = async (command: Command, context: CommandContext) 
       const { programId, navigateTo } = command.payload;
       if (navigateTo && context.router) {
         startViewTransition(() => {
-          context.catalogStore.getState().deleteProgram(programId);
+          // Per improve-1.md: wrap React state commits in flushSync
+          flushSync(() => {
+            context.catalogStore.getState().deleteProgram(programId);
+          });
           context.router?.push(navigateTo);
         });
         return;
       }
       startViewTransition(() => {
-        context.catalogStore.getState().deleteProgram(programId);
+        flushSync(() => {
+          context.catalogStore.getState().deleteProgram(programId);
+        });
       });
       return;
     }

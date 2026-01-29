@@ -97,27 +97,41 @@ export default function SettingsPage() {
             <div className="cluster">
               <button
                 type="button"
-                className={`btn${motionStyle === "fade" ? " btn--primary" : ""}`}
-                onClick={() => setMotionStyle("fade")}
+                className={`btn${motionStyle === "lift" ? " btn--primary" : ""}`}
+                onClick={() => setMotionStyle("lift")}
               >
-                Gentle
+                💪 Lift
               </button>
               <button
                 type="button"
-                className={`btn${motionStyle === "push" ? " btn--primary" : ""}`}
-                onClick={() => setMotionStyle("push")}
+                className={`btn${motionStyle === "slide" ? " btn--primary" : ""}`}
+                onClick={() => setMotionStyle("slide")}
               >
-                iOS push
+                ⚡ Slide
               </button>
               <button
                 type="button"
-                className={`btn${motionStyle === "zoom" ? " btn--primary" : ""}`}
-                onClick={() => setMotionStyle("zoom")}
+                className={`btn${motionStyle === "spring" ? " btn--primary" : ""}`}
+                onClick={() => setMotionStyle("spring")}
               >
-                Snappy zoom
+                🔥 Spring
               </button>
             </div>
             <span className="help">Choose transition style for route changes</span>
+          </div>
+
+          <div className="field">
+            <label className="label" htmlFor="reduce-motion">
+              <input
+                id="reduce-motion"
+                type="checkbox"
+                checked={settings.reduceMotion ?? false}
+                onChange={(e) => updateSettings({ reduceMotion: e.target.checked })}
+                style={{ marginRight: "0.5rem" }}
+              />
+              Reduce motion
+            </label>
+            <span className="help">Disable all animations and view transitions</span>
           </div>
         </div>
       </div>

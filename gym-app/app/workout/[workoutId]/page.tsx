@@ -11,7 +11,6 @@ import { useCatalogStore } from "../../../store/useCatalogStore";
 import { useSessionStore, useSessionStoreApi } from "../../../store/useSessionStore";
 import { useSettingsShallow } from "../../../store/useSettingsStore";
 import { useUiShallow, useUiStoreApi } from "../../../store/useUiStore";
-import { startViewTransition } from "../../../lib/viewTransition";
 
 export default function WorkoutRunnerPage() {
   const params = useParams<{ workoutId: string }>();
@@ -62,12 +61,9 @@ export default function WorkoutRunnerPage() {
         }`}
       >
         <div className="runner-header__row">
-          <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
-            <BackButton label="Back" />
-            <div>
-              <div className="muted">Workout Runner</div>
-              <div className="runner-header__title">{programName}</div>
-            </div>
+          <div>
+            <div className="muted">Workout Runner</div>
+            <div className="runner-header__title">{programName}</div>
           </div>
           <button type="button" className="btn btn--primary" onClick={handleFinish}>
             Finish
@@ -87,12 +83,11 @@ export default function WorkoutRunnerPage() {
               barWeight={settings.defaultBarWeight}
               onEditSet={(setId) => openEditSet({ workoutId, exerciseId: entry.exerciseId, setId })}
               onDeleteSet={(setId) => {
-                startViewTransition(() => {
-                  const payload = deleteSet(workoutId, entry.exerciseId, setId);
-                  if (payload) {
-                    showSnackbar("Set deleted", "Undo", { type: "UNDO_DELETE_SET", payload });
-                  }
-                });
+                // Per improve-1.md: ultra-frequent actions must NOT use view transitions
+                const payload = deleteSet(workoutId, entry.exerciseId, setId);
+                if (payload) {
+                  showSnackbar("Set deleted", "Undo", { type: "UNDO_DELETE_SET", payload });
+                }
               }}
               onAddSet={() => {
                 const id = addSet(workoutId, entry.exerciseId);
@@ -103,6 +98,7 @@ export default function WorkoutRunnerPage() {
           );
         })}
       </section>
+      <BackButton />
     </div>
   );
 }

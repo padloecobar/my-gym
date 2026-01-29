@@ -36,7 +36,8 @@ export default function ProgramDetailPage() {
 
   return (
     <div className="page container">
-      <HeaderBar title="Program" subtitle={<span className="muted">{program.name}</span>} right={<BackButton />} />
+      <HeaderBar title="Program" subtitle={<span className="muted">{program.name}</span>} />
+      <BackButton />
 
       <div className="card">
         <div className="card__body stack">

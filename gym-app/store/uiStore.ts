@@ -1,21 +1,20 @@
 import { createStore } from "zustand/vanilla";
 import type { Command } from "../commands/types";
-import { startViewTransition } from "../lib/viewTransition";
 
-export type MotionStyle = "fade" | "push" | "zoom";
+export type MotionStyle = "lift" | "slide" | "spring";
 
 const UI_STORAGE_KEY = "gym-ui";
 
 function getPersistedMotionStyle(): MotionStyle {
-  if (typeof localStorage === "undefined") return "fade";
+  if (typeof localStorage === "undefined") return "lift";
   try {
     const raw = localStorage.getItem(UI_STORAGE_KEY);
-    if (!raw) return "fade";
+    if (!raw) return "lift";
     const parsed = JSON.parse(raw) as { motionStyle?: string };
-    if (parsed?.motionStyle === "push" || parsed?.motionStyle === "zoom") return parsed.motionStyle;
-    return "fade";
+    if (parsed?.motionStyle === "slide" || parsed?.motionStyle === "spring") return parsed.motionStyle;
+    return "lift";
   } catch {
-    return "fade";
+    return "lift";
   }
 }
 
@@ -98,51 +97,43 @@ export const createUiStore = () =>
       persistMotionStyle(style);
     },
     openEditSet: (payload) => {
-      startViewTransition(() => {
-        sheetSession += 1;
-        set(
-          (state) => ({
-            ...state,
-            sheet: { type: "editSet", open: true, payload, sessionId: sheetSession },
-          }),
-          false
-        );
-      });
+      sheetSession += 1;
+      set(
+        (state) => ({
+          ...state,
+          sheet: { type: "editSet", open: true, payload, sessionId: sheetSession },
+        }),
+        false
+      );
     },
     openConfirm: (payload) => {
-      startViewTransition(() => {
-        sheetSession += 1;
-        set(
-          (state) => ({
-            ...state,
-            sheet: { type: "confirm", open: true, payload, sessionId: sheetSession },
-          }),
-          false
-        );
-      });
+      sheetSession += 1;
+      set(
+        (state) => ({
+          ...state,
+          sheet: { type: "confirm", open: true, payload, sessionId: sheetSession },
+        }),
+        false
+      );
     },
     openSearchExercise: (payload) => {
-      startViewTransition(() => {
-        sheetSession += 1;
-        set(
-          (state) => ({
-            ...state,
-            sheet: { type: "searchExercise", open: true, payload, sessionId: sheetSession },
+      sheetSession += 1;
+      set(
+        (state) => ({
+          ...state,
+          sheet: { type: "searchExercise", open: true, payload, sessionId: sheetSession },
           }),
           false
         );
-      });
     },
     closeSheet: () => {
-      startViewTransition(() => {
-        set(
-          (state) => {
-            if (state.sheet.type === null) return state;
-            return { ...state, sheet: { ...state.sheet, open: false } };
-          },
-          false
-        );
-      });
+      set(
+        (state) => {
+          if (state.sheet.type === null) return state;
+          return { ...state, sheet: { ...state.sheet, open: false } };
+        },
+        false
+      );
     },
     showSnackbar: (message, actionLabel, actionCommand) => {
       if (typeof window === "undefined") return;
