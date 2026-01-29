@@ -1,7 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import "./ui.css";
-import AppShell from "./components/AppShell";
+import "./motion.css";
+import AppShell from "./shared/components/AppShell";
 import AppStoreProvider from "../store/AppStoreProvider";
 
 export const metadata: Metadata = {

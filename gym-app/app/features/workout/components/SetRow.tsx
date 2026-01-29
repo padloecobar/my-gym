@@ -1,8 +1,9 @@
 "use client";
 
 import { useMemo } from "react";
-import type { SetEntry } from "../../types/gym";
-import { formatKg, formatLb } from "../../lib/utils";
+import type { SetEntry } from "../../../../types/gym";
+import { formatKg, formatLb } from "../../../shared/lib/utils";
+import { TrashIcon } from "../../../shared/components/icons/TrashIcon";
 
 export default function SetRow({
   set,
@@ -77,32 +78,7 @@ export default function SetRow({
             onDelete();
           }}
         >
-          <svg viewBox="0 0 24 24" width="18" height="18" focusable="false" aria-hidden="true">
-            <path
-              d="M9 3h6l1 2h4v2H4V5h4l1-2Z"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.6"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-            <path
-              d="M6 7l1 13h10l1-13"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.6"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-            <path
-              d="M10 11v6M14 11v6"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.6"
-              strokeLinecap="round"
-            />
-          </svg>
-          <span className="sr-only">Delete set</span>
+          <TrashIcon size="sm" />
         </button>
       </div>
     </div>

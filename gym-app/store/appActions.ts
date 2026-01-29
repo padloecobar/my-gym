@@ -1,5 +1,5 @@
 import type { GymExport } from "../types/gym";
-import { defaultSettings, seedExercises, seedPrograms } from "../lib/seed";
+import { defaultSettings, seedExercises, seedPrograms } from "../app/shared/lib/seed";
 import type { CatalogStore, SessionStore, SettingsStore } from "./AppStoreProvider";
 import { buildWorkoutsForExport } from "./selectors/sessionSelectors";
 

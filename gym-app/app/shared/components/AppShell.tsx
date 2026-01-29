@@ -6,9 +6,9 @@ import BottomNav from "./BottomNav";
 import HydrationGate from "./HydrationGate";
 import SheetHost from "./SheetHost";
 import Snackbar from "./Snackbar";
-import { registerServiceWorker } from "../../lib/sw";
-import { useMotionMode } from "../../lib/useReducedMotion";
-import { useUiShallow } from "../../store/useUiStore";
+import { registerServiceWorker } from "../lib/sw";
+import { useMotionMode } from "../lib/useReducedMotion";
+import { useUiShallow } from "../../../store/useUiStore";
 
 export default function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();

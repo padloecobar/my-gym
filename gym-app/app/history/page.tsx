@@ -1,13 +1,13 @@
 "use client";
 
-import HeaderBar from "../components/HeaderBar";
-import VtLink from "../components/VtLink";
+import HeaderBar from "../shared/components/HeaderBar";
+import VtLink from "../shared/components/VtLink";
 import { useMemo } from "react";
 import { useCatalogShallow } from "../../store/useCatalogStore";
 import { useSessionShallow } from "../../store/useSessionStore";
 import { useUiShallow } from "../../store/useUiStore";
 import type { SetEntry, Workout, WorkoutEntry } from "../../types/gym";
-import { formatDate, formatKg } from "../../lib/utils";
+import { formatDate, formatKg } from "../../app/shared/lib/utils";
 import { getWorkoutStats } from "../../store/selectors/sessionSelectors";
 
 export default function HistoryPage() {

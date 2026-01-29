@@ -1,10 +1,10 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import BottomSheet from "./BottomSheet";
-import { useCatalogShallow } from "../../store/useCatalogStore";
-import { useUiShallow } from "../../store/useUiStore";
-import type { Exercise, ExerciseType, InputMode } from "../../types/gym";
+import BottomSheet from "../../../shared/components/BottomSheet";
+import { useCatalogShallow } from "../../../../store/useCatalogStore";
+import { useUiShallow } from "../../../../store/useUiStore";
+import type { Exercise, ExerciseType, InputMode } from "../../../../types/gym";
 
 const exerciseTypes: ExerciseType[] = ["Barbell", "Dumbbell", "Machine", "Bodyweight", "Cable"];
 

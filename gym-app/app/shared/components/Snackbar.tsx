@@ -1,7 +1,7 @@
 "use client";
 
-import { useCommandExecutor } from "../../commands/useCommandExecutor";
-import { useUiShallow } from "../../store/useUiStore";
+import { useCommandExecutor } from "../../../commands/useCommandExecutor";
+import { useUiShallow } from "../../../store/useUiStore";
 
 export default function Snackbar() {
   const { snackbar, hideSnackbar } = useUiShallow((state) => ({

@@ -4,7 +4,7 @@ import { useContext } from "react";
 import { useStore } from "zustand";
 import { useShallow } from "zustand/react/shallow";
 import { CatalogStoreContext } from "./AppStoreProvider";
-import type { CatalogState } from "./catalogStore";
+import type { CatalogState } from "./catalogStore/index";
 
 export const useCatalogStoreApi = () => {
   const store = useContext(CatalogStoreContext);

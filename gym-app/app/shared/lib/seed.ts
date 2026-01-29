@@ -1,4 +1,4 @@
-import type { Exercise, Program, Settings } from "../types/gym";
+import type { Exercise, Program, Settings } from "../../../types/gym";
 import { createId } from "./utils";
 
 export const defaultSettings: Settings = {

@@ -3,8 +3,8 @@
 import Link, { LinkProps } from "next/link";
 import { MouseEvent, ReactNode } from "react";
 import { useRouter } from "next/navigation";
-import { useReducedMotion } from "../../lib/useReducedMotion";
-import { navigateWithTransition } from "../../lib/navigation";
+import { useReducedMotion } from "../lib/useReducedMotion";
+import { navigateWithTransition } from "../lib/navigation";
 
 type VtLinkProps = LinkProps & {
   className?: string;

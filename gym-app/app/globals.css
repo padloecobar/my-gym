@@ -413,6 +413,87 @@
     --_bd: var(--border-soft);
   }
 
+  /* Shared Button component variants */
+  .button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+    padding-inline: var(--space-4);
+    border-radius: var(--r-2);
+    font-weight: 500;
+    border: var(--border-1) solid var(--_bd, transparent);
+    background: var(--_bg, transparent);
+    color: var(--_fg, var(--text));
+    cursor: pointer;
+    transition: all var(--dur-1) var(--ease-1);
+    min-block-size: var(--_height, var(--tap, 48px));
+  }
+
+  .button:hover:not(:disabled) {
+    opacity: 0.9;
+    transform: translateY(-1px);
+  }
+
+  .button:active:not(:disabled) {
+    transform: translateY(0);
+  }
+
+  .button:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+    pointer-events: none;
+  }
+
+  .button:focus-visible {
+    outline: 2px solid var(--brand);
+    outline-offset: 2px;
+  }
+
+  /* Button variants */
+  .button--primary {
+    --_bg: var(--brand);
+    --_fg: color-mix(in srgb, white 92%, var(--text));
+    --_bd: color-mix(in srgb, var(--brand) 70%, black);
+  }
+
+  .button--secondary {
+    --_bg: var(--surface-2);
+    --_fg: var(--text);
+    --_bd: var(--border-soft);
+  }
+
+  .button--ghost {
+    --_bg: transparent;
+    --_fg: var(--brand);
+    --_bd: transparent;
+  }
+
+  .button--danger {
+    --_bg: color-mix(in srgb, var(--danger) 18%, transparent);
+    --_fg: var(--danger);
+    --_bd: color-mix(in srgb, var(--danger) 35%, transparent);
+  }
+
+  /* Button sizes */
+  .button--sm {
+    --_height: 40px;
+    padding-inline: var(--space-3);
+    font-size: var(--fs-1);
+  }
+
+  .button--md {
+    --_height: 48px;
+    padding-inline: var(--space-4);
+    font-size: var(--fs-2);
+  }
+
+  .button--lg {
+    --_height: 56px;
+    padding-inline: var(--space-5);
+    font-size: var(--fs-3);
+  }
+
   /* Card */
   .card {
     container-type: inline-size; /* component-first responsiveness */

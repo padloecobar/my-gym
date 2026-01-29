@@ -1,10 +1,10 @@
 "use client";
 
-import HeaderBar from "../components/HeaderBar";
+import HeaderBar from "../shared/components/HeaderBar";
 import { useAppActions } from "../../store/useAppActions";
 import { useSettingsShallow } from "../../store/useSettingsStore";
 import { useUiShallow } from "../../store/useUiStore";
-import { formatKg } from "../../lib/utils";
+import { formatKg } from "../../app/shared/lib/utils";
 import type { Command } from "../../commands/types";
 
 export default function SettingsPage() {

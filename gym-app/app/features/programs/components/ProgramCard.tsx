@@ -1,7 +1,7 @@
 "use client";
 
-import type { Program } from "../../types/gym";
-import VtLink from "./VtLink";
+import type { Program } from "../../../../types/gym";
+import VtLink from "../../../shared/components/VtLink";
 
 type ProgramCardProps = {
   program: Program;

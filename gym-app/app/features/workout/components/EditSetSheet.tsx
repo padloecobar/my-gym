@@ -1,13 +1,13 @@
 "use client";
 
 import { useMemo, useState, type FormEvent } from "react";
-import BottomSheet from "./BottomSheet";
-import { useCatalogShallow } from "../../store/useCatalogStore";
-import { useSessionStore, useSessionStoreApi } from "../../store/useSessionStore";
-import { useSettingsShallow } from "../../store/useSettingsStore";
-import { useUiShallow } from "../../store/useUiStore";
-import { clamp, formatKg, formatLb } from "../../lib/utils";
-import type { Exercise, SetEntry, Settings } from "../../types/gym";
+import BottomSheet from "../../../shared/components/BottomSheet";
+import { useCatalogShallow } from "../../../../store/useCatalogStore";
+import { useSessionStore, useSessionStoreApi } from "../../../../store/useSessionStore";
+import { useSettingsShallow } from "../../../../store/useSettingsStore";
+import { useUiShallow } from "../../../../store/useUiStore";
+import { clamp, formatKg, formatLb } from "../../../shared/lib/utils";
+import type { Exercise, SetEntry, Settings } from "../../../../types/gym";
 
 export default function EditSetSheet() {
   const { sheet, closeSheet } = useUiShallow((state) => ({

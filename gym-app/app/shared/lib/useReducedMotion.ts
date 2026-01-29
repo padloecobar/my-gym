@@ -1,7 +1,7 @@
 "use client";
 
 import { useSyncExternalStore } from "react";
-import { useSettingsShallow } from "../store/useSettingsStore";
+import { useSettingsShallow } from "../../../store/useSettingsStore";
 
 const subscribe = (callback: () => void) => {
   if (typeof window === "undefined") {

@@ -2,11 +2,11 @@
 "use client";
 
 import { createContext, useEffect, useRef, type ReactNode } from "react";
-import { createCatalogStore } from "./catalogStore";
-import { createSessionStore } from "./sessionStore";
+import { createCatalogStore } from "./catalogStore/index";
+import { createSessionStore } from "./sessionStore/index";
 import { createSettingsStore } from "./settingsStore";
 import { createUiStore } from "./uiStore";
-import { defaultSettings } from "../lib/seed";
+import { defaultSettings } from "../app/shared/lib/seed";
 import { indexedDbStorage } from "../storage/adapter";
 import { attachStoreSubscriptions } from "./storeSubscriptions";
 import { attachOutboxPersistence, hydrateOutbox } from "../sync/outbox";

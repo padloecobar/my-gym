@@ -1,8 +1,8 @@
 "use client";
 
-import BottomSheet from "./BottomSheet";
-import { useCommandExecutor } from "../../commands/useCommandExecutor";
-import { useUiShallow } from "../../store/useUiStore";
+import BottomSheet from "../../../shared/components/BottomSheet";
+import { useCommandExecutor } from "../../../../commands/useCommandExecutor";
+import { useUiShallow } from "../../../../store/useUiStore";
 
 export default function ConfirmSheet() {
   const { sheet, closeSheet } = useUiShallow((state) => ({

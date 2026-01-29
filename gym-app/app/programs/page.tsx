@@ -1,10 +1,10 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import HeaderBar from "../components/HeaderBar";
-import ProgramCard from "../components/ProgramCard";
+import HeaderBar from "../shared/components/HeaderBar";
+import ProgramCard from "../features/programs/components/ProgramCard";
 import { useCatalogShallow, useCatalogStoreApi } from "../../store/useCatalogStore";
-import { navigateWithTransition } from "../../lib/navigation";
+import { navigateWithTransition } from "../../app/shared/lib/navigation";
 
 export default function ProgramsPage() {
   const router = useRouter();

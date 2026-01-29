@@ -5,8 +5,8 @@ import { useMemo } from "react";
 import { getWorkoutStats, makeWorkoutViewSelector } from "../../../../store/selectors/sessionSelectors";
 import { useCatalogShallow } from "../../../../store/useCatalogStore";
 import { useSessionStore } from "../../../../store/useSessionStore";
-import { navigateWithTransition } from "../../../../lib/navigation";
-import { formatKg, formatLb } from "../../../../lib/utils";
+import { navigateWithTransition } from "../../../../app/shared/lib/navigation";
+import { formatKg, formatLb } from "../../../../app/shared/lib/utils";
 
 export default function WorkoutSummaryPage() {
   const params = useParams<{ workoutId: string }>();

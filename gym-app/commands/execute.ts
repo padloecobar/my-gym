@@ -1,8 +1,8 @@
 import type { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
 import { flushSync } from "react-dom";
 import type { Command } from "./types";
-import { navigateWithTransition } from "../lib/navigation";
-import { startViewTransition } from "../lib/viewTransition";
+import { navigateWithTransition } from "../app/shared/lib/navigation";
+import { startViewTransition } from "../app/shared/lib/viewTransition";
 import type { CatalogStore, SessionStore, SettingsStore, UiStore } from "../store/AppStoreProvider";
 import { createAppActions } from "../store/appActions";
 

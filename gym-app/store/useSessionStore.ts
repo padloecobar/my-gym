@@ -4,7 +4,7 @@ import { useContext } from "react";
 import { useStore } from "zustand";
 import { useShallow } from "zustand/react/shallow";
 import { SessionStoreContext } from "./AppStoreProvider";
-import type { SessionState } from "./sessionStore";
+import type { SessionState } from "./sessionStore/index";
 
 export const useSessionStoreApi = () => {
   const store = useContext(SessionStoreContext);

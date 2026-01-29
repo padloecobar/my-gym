@@ -1,7 +1,7 @@
 "use client";
 
 import { ReactNode, useEffect, useRef } from "react";
-import { useReducedMotion } from "../../lib/useReducedMotion";
+import { useReducedMotion } from "../lib/useReducedMotion";
 
 const getFocusable = (element: HTMLElement | null) => {
   if (!element) return [] as HTMLElement[];

@@ -1,6 +1,7 @@
 import { createStore } from "zustand/vanilla";
-import { createId } from "../lib/utils";
+import { createId } from "../app/shared/lib/utils";
 import type { StorageAdapter } from "../storage/adapter";
+import { createDebounced } from "../app/shared/lib/debounce";
 
 export const OUTBOX_SCHEMA_VERSION = 1;
 const OUTBOX_STORAGE_KEY = "outbox";
@@ -75,26 +76,6 @@ const persistOutbox = async (storage: StorageAdapter, events: SyncEvent[]) => {
     value: events,
     updatedAt: Date.now(),
   } satisfies OutboxRecord);
-};
-
-const createDebounced = (delayMs: number) => {
-  let timeout: ReturnType<typeof setTimeout> | null = null;
-
-  const schedule = (action: () => void) => {
-    if (timeout) clearTimeout(timeout);
-    timeout = setTimeout(() => {
-      timeout = null;
-      action();
-    }, delayMs);
-  };
-
-  const cancel = () => {
-    if (!timeout) return;
-    clearTimeout(timeout);
-    timeout = null;
-  };
-
-  return { schedule, cancel };
 };
 
 export const hydrateOutbox = async (storage: StorageAdapter) => {

@@ -2,8 +2,8 @@
 
 import { useParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
-import ExerciseCard from "../../components/ExerciseCard";
-import BackButton from "../../components/BackButton";
+import ExerciseCard from "../../features/workout/components/ExerciseCard";
+import BackButton from "../../shared/components/BackButton";
 import type { Command } from "../../../commands/types";
 import { makeCatalogMapsSelector } from "../../../store/selectors/catalogSelectors";
 import { makeWorkoutViewSelector } from "../../../store/selectors/sessionSelectors";

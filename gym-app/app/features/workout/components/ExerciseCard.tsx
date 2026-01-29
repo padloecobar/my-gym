@@ -1,6 +1,6 @@
 "use client";
 
-import type { Exercise, WorkoutEntry } from "../../types/gym";
+import type { Exercise, WorkoutEntry } from "../../../../types/gym";
 import SetRow from "./SetRow";
 
 export default function ExerciseCard({

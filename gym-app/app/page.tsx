@@ -1,13 +1,13 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import HeaderBar from "./components/HeaderBar";
-import ProgramCard from "./components/ProgramCard";
+import HeaderBar from "./shared/components/HeaderBar";
+import ProgramCard from "./features/programs/components/ProgramCard";
 import { useCatalogShallow } from "../store/useCatalogStore";
 import { useSessionShallow, useSessionStoreApi } from "../store/useSessionStore";
 import { useUiShallow, useUiStoreApi } from "../store/useUiStore";
-import { navigateWithTransition } from "../lib/navigation";
-import { formatTime } from "../lib/utils";
+import { navigateWithTransition } from "../app/shared/lib/navigation";
+import { formatTime } from "../app/shared/lib/utils";
 
 export default function TodayPage() {
   const router = useRouter();

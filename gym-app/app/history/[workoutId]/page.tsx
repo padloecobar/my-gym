@@ -2,13 +2,13 @@
 
 import { useParams } from "next/navigation";
 import { useMemo } from "react";
-import HeaderBar from "../../components/HeaderBar";
-import BackButton from "../../components/BackButton";
+import HeaderBar from "../../shared/components/HeaderBar";
+import BackButton from "../../shared/components/BackButton";
 import { getWorkoutStats, makeWorkoutViewSelector } from "../../../store/selectors/sessionSelectors";
 import { useCatalogShallow } from "../../../store/useCatalogStore";
 import { useSessionStore } from "../../../store/useSessionStore";
 import { useUiShallow } from "../../../store/useUiStore";
-import { formatDate, formatKg, formatLb, formatTime } from "../../../lib/utils";
+import { formatDate, formatKg, formatLb, formatTime } from "../../../app/shared/lib/utils";
 
 export default function WorkoutDetailPage() {
   const params = useParams<{ workoutId: string }>();

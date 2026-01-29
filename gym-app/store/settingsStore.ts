@@ -1,6 +1,6 @@
 import { createStore } from "zustand/vanilla";
 import type { Settings } from "../types/gym";
-import { defaultSettings } from "../lib/seed";
+import { defaultSettings } from "../app/shared/lib/seed";
 import type { StorageAdapter } from "../storage/adapter";
 import { indexedDbStorage } from "../storage/adapter";
 

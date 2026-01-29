@@ -2,11 +2,12 @@
 
 import { useParams } from "next/navigation";
 import { useState } from "react";
-import HeaderBar from "../../components/HeaderBar";
-import BackButton from "../../components/BackButton";
+import HeaderBar from "../../shared/components/HeaderBar";
+import BackButton from "../../shared/components/BackButton";
 import type { Command } from "../../../commands/types";
 import { useCatalogShallow, useCatalogStoreApi } from "../../../store/useCatalogStore";
 import { useUiStoreApi } from "../../../store/useUiStore";
+import { TrashIcon } from "../../shared/components/icons/TrashIcon";
 
 export default function ProgramDetailPage() {
   const params = useParams<{ programId: string }>();
@@ -154,33 +155,10 @@ export default function ProgramDetailPage() {
                 });
               }}
             >
-              <svg viewBox="0 0 24 24" width="18" height="18" focusable="false" aria-hidden="true">
-                <path
-                  d="M9 3h6l1 2h4v2H4V5h4l1-2Z"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="1.6"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-                <path
-                  d="M6 7l1 13h10l1-13"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="1.6"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-                <path
-                  d="M10 11v6M14 11v6"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="1.6"
-                  strokeLinecap="round"
-                />
-              </svg>
-              Delete program
+              <TrashIcon size="sm" />
+              <span>Delete program</span>
             </button>
+
           </div>
         </div>
       </section>

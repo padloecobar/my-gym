@@ -1,9 +1,9 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { useCatalogStore } from "../../store/useCatalogStore";
-import { useSessionStore } from "../../store/useSessionStore";
-import { useSettingsStore } from "../../store/useSettingsStore";
+import { useCatalogStore } from "../../../store/useCatalogStore";
+import { useSessionStore } from "../../../store/useSessionStore";
+import { useSettingsStore } from "../../../store/useSettingsStore";
 
 type HydrationGateProps = {
   children: ReactNode;

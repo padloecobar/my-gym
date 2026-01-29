@@ -1,35 +1,16 @@
 import type { CatalogStore, SessionStore, SettingsStore } from "./AppStoreProvider";
 import type { StorageAdapter } from "../storage/adapter";
-import { CATALOG_SCHEMA_VERSION } from "./catalogStore";
-import { selectSessionSnapshot, SESSION_SCHEMA_VERSION, type SessionState } from "./sessionStore";
+import { CATALOG_SCHEMA_VERSION } from "./catalogStore/index";
+import { selectSessionSnapshot, SESSION_SCHEMA_VERSION, type SessionState } from "./sessionStore/index";
 import { SETTINGS_SCHEMA_VERSION } from "./settingsStore";
 import { enqueueSyncEvent } from "../sync/outbox";
+import { createDebounced } from "../app/shared/lib/debounce";
 
 type StoreSubscriptionsDeps = {
   settingsStore: SettingsStore;
   catalogStore: CatalogStore;
   sessionStore: SessionStore;
   storage: StorageAdapter;
-};
-
-const createDebounced = (delayMs: number) => {
-  let timeout: ReturnType<typeof setTimeout> | null = null;
-
-  const schedule = (action: () => void) => {
-    if (timeout) clearTimeout(timeout);
-    timeout = setTimeout(() => {
-      timeout = null;
-      action();
-    }, delayMs);
-  };
-
-  const cancel = () => {
-    if (!timeout) return;
-    clearTimeout(timeout);
-    timeout = null;
-  };
-
-  return { schedule, cancel };
 };
 
 const didSessionEntityChange = (next: SessionState, prev: SessionState) =>
