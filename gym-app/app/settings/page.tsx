@@ -4,7 +4,7 @@ import HeaderBar from "../shared/components/HeaderBar";
 import { useAppActions } from "../../store/useAppActions";
 import { useSettingsShallow } from "../../store/useSettingsStore";
 import { useUiShallow } from "../../store/useUiStore";
-import { formatKg } from "../../app/shared/lib/utils";
+import { formatWeight, kgToLb, lbToKg } from "../../app/shared/lib/utils";
 import type { Command } from "../../commands/types";
 
 export default function SettingsPage() {
@@ -48,6 +48,12 @@ export default function SettingsPage() {
     }
   };
 
+  const inputUnits = settings.unitsPreference;
+  const barWeightInput =
+    inputUnits === "lb"
+      ? Math.round(kgToLb(settings.defaultBarWeight) * 100) / 100
+      : settings.defaultBarWeight;
+
   return (
     <div className="page container">
       <HeaderBar title="Settings" />
@@ -55,7 +61,7 @@ export default function SettingsPage() {
       <div className="card">
         <div className="card__body stack">
           <div className="field">
-            <span className="label">Units preference</span>
+            <span className="label">Input units</span>
             <div className="cluster">
               <button
                 type="button"
@@ -71,25 +77,27 @@ export default function SettingsPage() {
               >
                 lb
               </button>
-              <span className="badge">kg always visible</span>
+              <span className="badge">kg & lb always visible</span>
             </div>
           </div>
 
           <div className="field">
             <label className="label" htmlFor="bar-weight">
-              Default bar weight
+              Default bar weight ({inputUnits})
             </label>
             <input
               id="bar-weight"
               className="input"
               inputMode="decimal"
-              value={settings.defaultBarWeight}
+              value={Number.isFinite(barWeightInput) ? barWeightInput : 0}
               onChange={(event) => {
                 const next = Number(event.target.value);
-                updateSettings({ defaultBarWeight: Number.isFinite(next) ? next : 0 });
+                const safe = Number.isFinite(next) ? next : 0;
+                const nextKg = inputUnits === "lb" ? lbToKg(safe) : safe;
+                updateSettings({ defaultBarWeight: nextKg });
               }}
             />
-            <span className="help">Current: {formatKg(settings.defaultBarWeight)} kg</span>
+            <span className="help">Current: {formatWeight(settings.defaultBarWeight)}</span>
           </div>
 
           <div className="field">

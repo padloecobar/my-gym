@@ -6,7 +6,7 @@ import { getWorkoutStats, makeWorkoutViewSelector } from "../../../../store/sele
 import { useCatalogShallow } from "../../../../store/useCatalogStore";
 import { useSessionStore } from "../../../../store/useSessionStore";
 import { navigateWithTransition } from "../../../../app/shared/lib/navigation";
-import { formatKg, formatLb } from "../../../../app/shared/lib/utils";
+import { formatWeight } from "../../../../app/shared/lib/utils";
 
 export default function WorkoutSummaryPage() {
   const params = useParams<{ workoutId: string }>();
@@ -53,8 +53,8 @@ export default function WorkoutSummaryPage() {
           <div className="muted">Total sets</div>
         </div>
         <div className="summary-stat">
-          <div className="summary-stat__value">{formatKg(totalVolume)} kg</div>
-          <div className="muted">{formatLb(totalVolume)} lb total volume</div>
+          <div className="summary-stat__value">{formatWeight(totalVolume)}</div>
+          <div className="muted">Total volume</div>
         </div>
       </section>
 

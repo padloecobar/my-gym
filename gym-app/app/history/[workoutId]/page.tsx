@@ -8,7 +8,7 @@ import { getWorkoutStats, makeWorkoutViewSelector } from "../../../store/selecto
 import { useCatalogShallow } from "../../../store/useCatalogStore";
 import { useSessionStore } from "../../../store/useSessionStore";
 import { useUiShallow } from "../../../store/useUiStore";
-import { formatDate, formatKg, formatLb, formatTime } from "../../../app/shared/lib/utils";
+import { formatDate, formatKg, formatLb, formatTime, formatWeight } from "../../../app/shared/lib/utils";
 
 export default function WorkoutDetailPage() {
   const params = useParams<{ workoutId: string }>();
@@ -47,8 +47,7 @@ export default function WorkoutDetailPage() {
             {formatDate(workout.endedAt ?? workout.startedAt)} - {formatTime(workout.endedAt ?? workout.startedAt)}
           </p>
           <div className="cluster">
-            <span className="badge">{formatKg(totalVolume)} kg</span>
-            <span className="badge">{formatLb(totalVolume)} lb</span>
+            <span className="badge">{formatWeight(totalVolume)}</span>
           </div>
         </div>
       </div>

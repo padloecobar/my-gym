@@ -1,9 +1,9 @@
 "use client";
 
 import { useMemo } from "react";
-import type { SetEntry } from "../../../../types/gym";
-import { formatKg, formatLb, formatWeight } from "../../../shared/lib/utils";
-import { TrashIcon } from "../../../shared/components/icons/TrashIcon";
+import type { SetEntry } from "../../types/gym";
+import { formatKg, formatLb, formatWeight } from "../../app/shared/lib/utils";
+import { TrashIcon } from "../shared/components/icons/TrashIcon";
 
 export default function SetRow({
   set,

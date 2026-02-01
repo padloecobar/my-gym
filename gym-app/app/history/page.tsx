@@ -7,7 +7,7 @@ import { useCatalogShallow } from "../../store/useCatalogStore";
 import { useSessionShallow } from "../../store/useSessionStore";
 import { useUiShallow } from "../../store/useUiStore";
 import type { SetEntry, Workout, WorkoutEntry } from "../../types/gym";
-import { formatDate, formatKg } from "../../app/shared/lib/utils";
+import { formatDate, formatWeight } from "../../app/shared/lib/utils";
 import { getWorkoutStats } from "../../store/selectors/sessionSelectors";
 
 export default function HistoryPage() {
@@ -86,7 +86,7 @@ export default function HistoryPage() {
                     <div className="card__body">
                       <div className="program-card__header">
                         <h3 className="card__title">{program?.name ?? "Workout"}</h3>
-                        <span className="badge">{formatKg(volume)} kg</span>
+                        <span className="badge">{formatWeight(volume)}</span>
                       </div>
                       <p className="card__meta">{formatDate(workout.endedAt ?? workout.startedAt)}</p>
                     </div>

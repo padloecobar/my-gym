@@ -1,15 +1,14 @@
-export const KG_TO_LB = 2.20462;
+export const KG_TO_LB = 2.2046226218;
+export const LB_TO_KG = 1 / KG_TO_LB;
 
-export const formatKg = (value: number) => {
-  const rounded = Math.round(value * 10) / 10;
-  return rounded % 1 === 0 ? String(rounded.toFixed(0)) : rounded.toFixed(1);
-};
+export const kgToLb = (kg: number) => kg * KG_TO_LB;
+export const lbToKg = (lb: number) => lb * LB_TO_KG;
 
-export const formatLb = (value: number) => {
-  const lb = value * KG_TO_LB;
-  const rounded = Math.round(lb * 10) / 10;
-  return rounded % 1 === 0 ? String(rounded.toFixed(0)) : rounded.toFixed(1);
-};
+export const formatKg = (value: number) => value.toFixed(2);
+
+export const formatLb = (value: number) => kgToLb(value).toFixed(2);
+
+export const formatWeight = (valueKg: number) => `${formatKg(valueKg)} kg / ${formatLb(valueKg)} lb`;
 
 export const formatDate = (timestamp: number, opts?: Intl.DateTimeFormatOptions) => {
   return new Intl.DateTimeFormat("en-US", {

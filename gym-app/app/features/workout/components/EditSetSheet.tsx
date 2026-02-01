@@ -6,7 +6,7 @@ import { useCatalogShallow } from "../../../../store/useCatalogStore";
 import { useSessionStore, useSessionStoreApi } from "../../../../store/useSessionStore";
 import { useSettingsShallow } from "../../../../store/useSettingsStore";
 import { useUiShallow } from "../../../../store/useUiStore";
-import { clamp, formatKg, formatLb } from "../../../shared/lib/utils";
+import { clamp, formatWeight, kgToLb, lbToKg } from "../../../shared/lib/utils";
 import type { Exercise, SetEntry, Settings } from "../../../../types/gym";
 
 export default function EditSetSheet() {
@@ -18,9 +18,7 @@ export default function EditSetSheet() {
   const { settings } = useSettingsShallow((state) => ({ settings: state.settings }));
   const payload = sheet.type === "editSet" ? sheet.payload : null;
 
-  const setEntry = useSessionStore((state) =>
-    payload ? state.setsById[payload.setId] : undefined
-  );
+  const setEntry = useSessionStore((state) => (payload ? state.setsById[payload.setId] : undefined));
   const { exercise } = useCatalogShallow((state) => ({
     exercise: payload ? state.exercises.find((item) => item.id === payload.exerciseId) : undefined,
   }));
@@ -67,14 +65,22 @@ type EditSetFormProps = {
 };
 
 function EditSetForm({ setEntry, exercise, settings, onSave }: EditSetFormProps) {
-  const [weight, setWeight] = useState(setEntry.weightKg);
+  const [weight, setWeight] = useState(setEntry.weightKg); // canonical total kg stored
   const [reps, setReps] = useState(setEntry.reps);
-  const [mode, setMode] = useState<"total" | "plates">(setEntry.mode);
-
-  const perSide = useMemo(
+  const [mode, setMode] = useState<"total" | "plates">(
+    exercise.type === "Barbell" ? "plates" : setEntry.mode
+  );
+  const inputUnits = settings.unitsPreference;
+  const perSideKg = useMemo(
     () => Math.max(0, (weight - settings.defaultBarWeight) / 2),
     [weight, settings.defaultBarWeight]
   );
+
+  const perSideInput = useMemo(
+    () => (inputUnits === "lb" ? kgToLb(perSideKg) : perSideKg),
+    [inputUnits, perSideKg]
+  );
+  const totalInput = useMemo(() => (inputUnits === "lb" ? kgToLb(weight) : weight), [inputUnits, weight]);
 
   const handleSave = (event: FormEvent) => {
     event.preventDefault();
@@ -85,46 +91,64 @@ function EditSetForm({ setEntry, exercise, settings, onSave }: EditSetFormProps)
     });
   };
 
+  /**
+   * In "total" mode: value is in input units.
+   * In "plates" mode: value is per-side in input units, we convert to total kg:
+   * totalKg = barKg + 2 * perSideKg
+   */
   const handleWeightChange = (value: number) => {
     if (mode === "plates") {
-      const total = settings.defaultBarWeight + value * 2;
-      setWeight(clamp(total, 0, 1000));
+      const perSideInputClamped = clamp(value, 0, 2000);
+      const perSideKg = inputUnits === "lb" ? lbToKg(perSideInputClamped) : perSideInputClamped;
+      const totalKg = settings.defaultBarWeight + perSideKg * 2;
+      setWeight(clamp(totalKg, 0, 1000));
     } else {
-      setWeight(clamp(value, 0, 1000));
+      const totalKg = inputUnits === "lb" ? lbToKg(value) : value;
+      setWeight(clamp(totalKg, 0, 1000));
     }
   };
 
-  const weightDisplay = mode === "plates" ? perSide : weight;
+  // Display value: per-side or total in input units
+  const weightDisplay = mode === "plates" ? perSideInput : totalInput;
+  const weightDisplayValue = Number.isFinite(weightDisplay) ? Math.round(weightDisplay * 100) / 100 : 0;
+
+  // Step sizes in input units
+  const step = 2.5;
 
   return (
     <form id="edit-set-form" className="stack" onSubmit={handleSave}>
       <div className="field">
         <label className="label" htmlFor="weight-input">
-          Weight ({mode === "plates" ? "per side" : "total"})
+          {mode === "plates" ? `Weight per side (${inputUnits})` : `Total weight (${inputUnits})`}
         </label>
+
         <div className="stepper">
-          <button type="button" className="btn" onClick={() => handleWeightChange(weightDisplay - 2.5)}>
+          <button type="button" className="btn" onClick={() => handleWeightChange(weightDisplayValue - step)}>
             -
           </button>
+
           <input
             id="weight-input"
             className="input"
             inputMode="decimal"
-            value={weightDisplay}
+            value={weightDisplayValue}
             onChange={(event) => {
               const next = Number(event.target.value);
               handleWeightChange(Number.isFinite(next) ? next : 0);
             }}
           />
-          <button type="button" className="btn" onClick={() => handleWeightChange(weightDisplay + 2.5)}>
+
+          <button type="button" className="btn" onClick={() => handleWeightChange(weightDisplayValue + step)}>
             +
           </button>
         </div>
-        <div className="help">
-          {formatKg(weight)} kg / {formatLb(weight)} lb
-        </div>
+
+        <div className="help">{formatWeight(weight)}</div>
+
         {mode === "plates" ? (
-          <div className="help">Bar weight {formatKg(settings.defaultBarWeight)} kg</div>
+          <div className="help">
+            Bar weight {formatWeight(settings.defaultBarWeight)}
+          </div>
         ) : null}
       </div>
 
