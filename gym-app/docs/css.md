@@ -111,7 +111,7 @@ Use this order:
 - **tokens:** all design tokens (`:root`, theme variants, token fallbacks)
 - **base:** element defaults (`body`, `a`, `p`, focus styles, reduced motion)
 - **layout:** `.container`, `.stack`, `.grid`, `.cluster`, structural helpers
-- **components:** reusable components (`.btn`, `.card`, `.field`, etc.)
+- **components:** reusable components (`.button`, `.card`, `.field`, etc.)
 - **enhancements:** progressive enhancement for Tier B features with `@supports`
 - **utilities:** small, composable helpers (`.sr-only`, spacing helpers, truncation)
 - **overrides:** last resort patches (keep near-empty)

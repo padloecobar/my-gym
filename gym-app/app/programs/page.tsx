@@ -88,14 +88,14 @@ export default function ProgramsPage() {
             <h2 className="card__title">Exercises</h2>
             <button
               type="button"
-              className="btn btn--ghost"
+              className="button button--ghost"
               onClick={() => openSearchExercise({ programId: program.id })}
             >
               + Add
             </button>
           </div>
 
-          <div className="stack virtual-list">
+          <div className="stack virtual-list list-surface">
             {orderedExercises.map((exercise) => (
               <div
                 key={exercise.id}
@@ -121,7 +121,7 @@ export default function ProgramsPage() {
                   <div className="cluster">
                     <button
                       type="button"
-                      className="btn"
+                      className="button button--secondary"
                       aria-label={`Move ${exercise.name} up`}
                       onClick={() => moveProgramExercise(program.id, exercise.id, "up")}
                     >
@@ -129,7 +129,7 @@ export default function ProgramsPage() {
                     </button>
                     <button
                       type="button"
-                      className="btn"
+                      className="button button--secondary"
                       aria-label={`Move ${exercise.name} down`}
                       onClick={() => moveProgramExercise(program.id, exercise.id, "down")}
                     >
@@ -137,7 +137,7 @@ export default function ProgramsPage() {
                     </button>
                     <button
                       type="button"
-                      className="btn btn--ghost"
+                      className="button button--ghost"
                       aria-label={`Remove ${exercise.name}`}
                       onClick={() => removeExerciseFromProgram(program.id, exercise.id)}
                     >
@@ -160,7 +160,7 @@ export default function ProgramsPage() {
               </div>
               <button
                 type="button"
-                className="btn btn--danger"
+                className="button button--danger"
                 onClick={() => {
                   const command: Command = {
                     type: "DELETE_PROGRAM",
@@ -189,7 +189,7 @@ export default function ProgramsPage() {
     <div className="page container">
       <HeaderBar title="Programs" />
 
-      <div className="stack virtual-list">
+      <div className="stack virtual-list list-surface">
         {programs.map((program) => (
           <ProgramCard
             key={program.id}
@@ -201,7 +201,7 @@ export default function ProgramsPage() {
         ))}
       </div>
 
-      <button type="button" className="btn btn--primary fab" onClick={handleNewProgram}>
+      <button type="button" className="button button--primary fab" onClick={handleNewProgram}>
         +
       </button>
     </div>

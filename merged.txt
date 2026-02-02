@@ -1,69 +1,3 @@
-/Users/pavelkulikou/Projects/my-gym/gym-app/README.md
-```
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
-
-## Getting Started
-
-First, run the development server:
-
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
-
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
-```
-
-/Users/pavelkulikou/Projects/my-gym/gym-app/STATE_RULES.md
-```
-# State Rules (Zustand v5)
-
-## ✅ Global Rules
-- ✅ No Zustand hooks in Server Components (files using hooks must include `"use client"`).
-- ✅ SSR determinism: server HTML must match first client render (don’t read `window/document/matchMedia/time/random/storage` during render to affect markup).
-- ✅ Selectors must not return new arrays/objects/functions unless stabilized with `useShallow`.
-- ✅ Prefer one subscription per component (group selectors + `useShallow` for heavy screens).
-- ✅ Persisted slices must be serializable (no functions, DOM nodes, or class instances).
-- ✅ UI store is never persisted.
-
-## ✅ Persistence Rules
-- All persistence goes through `storage/adapter` (stores never touch IndexedDB directly).
-- Persisted stores must expose `hasHydrated`, `hydrate()`, and `schemaVersion`.
-- Migrations must be explicit and versioned.
-- Hydration must be centralized (don’t trigger hydrate/rehydrate from multiple components).
-
-## ✅ UI Commands
-- No callbacks stored in Zustand state (use command objects + centralized executor).
-
-## ✅ Data Shape
-- Session store uses normalized entities and ID maps.
-- Avoid deep nested mutations; update by IDs.
-```
-
 /Users/pavelkulikou/Projects/my-gym/gym-app/app/components/BackButton.tsx
 ```
 "use client";
@@ -93,7 +27,7 @@ export default function BackButton({ label = "Back" }: { label?: string }) {
 
 import type { ReactNode } from "react";
 import { usePathname } from "next/navigation";
-import VtLink from "./VtLink";
+import VtLink from "../shared/components/VtLink";
 import { CalendarIcon } from "../shared/components/icons/CalendarIcon";
 import { BookIcon } from "../shared/components/icons/BookIcon";
 import { ClockIcon } from "../shared/components/icons/ClockIcon";
@@ -136,7 +70,7 @@ export default function BottomNav() {
 
 import { useMemo } from "react";
 import type { SetEntry } from "../../types/gym";
-import { formatKg, formatLb } from "../../app/shared/lib/utils";
+import { formatKg, formatLb, formatWeight } from "../../app/shared/lib/utils";
 import { TrashIcon } from "../shared/components/icons/TrashIcon";
 
 export default function SetRow({
@@ -166,7 +100,7 @@ export default function SetRow({
       role="button"
       tabIndex={0}
       className={`set-row${highlight ? " set-row--highlight" : ""}`}
-      aria-label={`${formatKg(set.weightKg)} kg x ${set.reps} reps. Tap to edit.`}
+      aria-label={`${formatWeight(set.weightKg)} x ${set.reps} reps. Tap to edit.`}
       onClick={onEdit}
       onKeyDown={handleKeyDown}
     >
@@ -183,7 +117,7 @@ export default function SetRow({
           <span className="set-row__kg">{formatKg(set.weightKg)} kg</span>
           <span className="set-row__lb muted">{formatLb(set.weightKg)} lb</span>
           {set.mode === "plates" ? (
-            <span className="set-row__plates muted">{formatKg(perSide)} kg / side</span>
+            <span className="set-row__plates muted">{formatWeight(perSide)} / side</span>
           ) : null}
         </button>
       </div>
@@ -491,7 +425,7 @@ import { useCatalogShallow } from "../../../../store/useCatalogStore";
 import { useSessionStore, useSessionStoreApi } from "../../../../store/useSessionStore";
 import { useSettingsShallow } from "../../../../store/useSettingsStore";
 import { useUiShallow } from "../../../../store/useUiStore";
-import { clamp, formatKg, formatLb } from "../../../shared/lib/utils";
+import { clamp, formatWeight, kgToLb, lbToKg } from "../../../shared/lib/utils";
 import type { Exercise, SetEntry, Settings } from "../../../../types/gym";
 
 export default function EditSetSheet() {
@@ -503,9 +437,7 @@ export default function EditSetSheet() {
   const { settings } = useSettingsShallow((state) => ({ settings: state.settings }));
   const payload = sheet.type === "editSet" ? sheet.payload : null;
 
-  const setEntry = useSessionStore((state) =>
-    payload ? state.setsById[payload.setId] : undefined
-  );
+  const setEntry = useSessionStore((state) => (payload ? state.setsById[payload.setId] : undefined));
   const { exercise } = useCatalogShallow((state) => ({
     exercise: payload ? state.exercises.find((item) => item.id === payload.exerciseId) : undefined,
   }));
@@ -552,14 +484,22 @@ type EditSetFormProps = {
 };
 
 function EditSetForm({ setEntry, exercise, settings, onSave }: EditSetFormProps) {
-  const [weight, setWeight] = useState(setEntry.weightKg);
+  const [weight, setWeight] = useState(setEntry.weightKg); // canonical total kg stored
   const [reps, setReps] = useState(setEntry.reps);
-  const [mode, setMode] = useState<"total" | "plates">(setEntry.mode);
-
-  const perSide = useMemo(
+  const [mode, setMode] = useState<"total" | "plates">(
+    exercise.type === "Barbell" ? "plates" : setEntry.mode
+  );
+  const inputUnits = settings.unitsPreference;
+  const perSideKg = useMemo(
     () => Math.max(0, (weight - settings.defaultBarWeight) / 2),
     [weight, settings.defaultBarWeight]
   );
+
+  const perSideInput = useMemo(
+    () => (inputUnits === "lb" ? kgToLb(perSideKg) : perSideKg),
+    [inputUnits, perSideKg]
+  );
+  const totalInput = useMemo(() => (inputUnits === "lb" ? kgToLb(weight) : weight), [inputUnits, weight]);
 
   const handleSave = (event: FormEvent) => {
     event.preventDefault();
@@ -570,46 +510,64 @@ function EditSetForm({ setEntry, exercise, settings, onSave }: EditSetFormProps)
     });
   };
 
+  /**
+   * In "total" mode: value is in input units.
+   * In "plates" mode: value is per-side in input units, we convert to total kg:
+   * totalKg = barKg + 2 * perSideKg
+   */
   const handleWeightChange = (value: number) => {
     if (mode === "plates") {
-      const total = settings.defaultBarWeight + value * 2;
-      setWeight(clamp(total, 0, 1000));
+      const perSideInputClamped = clamp(value, 0, 2000);
+      const perSideKg = inputUnits === "lb" ? lbToKg(perSideInputClamped) : perSideInputClamped;
+      const totalKg = settings.defaultBarWeight + perSideKg * 2;
+      setWeight(clamp(totalKg, 0, 1000));
     } else {
-      setWeight(clamp(value, 0, 1000));
+      const totalKg = inputUnits === "lb" ? lbToKg(value) : value;
+      setWeight(clamp(totalKg, 0, 1000));
     }
   };
 
-  const weightDisplay = mode === "plates" ? perSide : weight;
+  // Display value: per-side or total in input units
+  const weightDisplay = mode === "plates" ? perSideInput : totalInput;
+  const weightDisplayValue = Number.isFinite(weightDisplay) ? Math.round(weightDisplay * 100) / 100 : 0;
+
+  // Step sizes in input units
+  const step = 2.5;
 
   return (
     <form id="edit-set-form" className="stack" onSubmit={handleSave}>
       <div className="field">
         <label className="label" htmlFor="weight-input">
-          Weight ({mode === "plates" ? "per side" : "total"})
+          {mode === "plates" ? `Weight per side (${inputUnits})` : `Total weight (${inputUnits})`}
         </label>
+
         <div className="stepper">
-          <button type="button" className="btn" onClick={() => handleWeightChange(weightDisplay - 2.5)}>
+          <button type="button" className="btn" onClick={() => handleWeightChange(weightDisplayValue - step)}>
             -
           </button>
+
           <input
             id="weight-input"
             className="input"
             inputMode="decimal"
-            value={weightDisplay}
+            value={weightDisplayValue}
             onChange={(event) => {
               const next = Number(event.target.value);
               handleWeightChange(Number.isFinite(next) ? next : 0);
             }}
           />
-          <button type="button" className="btn" onClick={() => handleWeightChange(weightDisplay + 2.5)}>
+
+          <button type="button" className="btn" onClick={() => handleWeightChange(weightDisplayValue + step)}>
             +
           </button>
         </div>
-        <div className="help">
-          {formatKg(weight)} kg / {formatLb(weight)} lb
-        </div>
+
+        <div className="help">{formatWeight(weight)}</div>
+
         {mode === "plates" ? (
-          <div className="help">Bar weight {formatKg(settings.defaultBarWeight)} kg</div>
+          <div className="help">
+            Bar weight {formatWeight(settings.defaultBarWeight)}
+          </div>
         ) : null}
       </div>
 
@@ -726,7 +684,7 @@ export default function ExerciseCard({
 
 import { useMemo } from "react";
 import type { SetEntry } from "../../../../types/gym";
-import { formatKg, formatLb } from "../../../shared/lib/utils";
+import { formatKg, formatLb, formatWeight } from "../../../shared/lib/utils";
 import { TrashIcon } from "../../../shared/components/icons/TrashIcon";
 
 export default function SetRow({
@@ -756,7 +714,7 @@ export default function SetRow({
       role="button"
       tabIndex={0}
       className={`set-row${highlight ? " set-row--highlight" : ""}`}
-      aria-label={`${formatKg(set.weightKg)} kg x ${set.reps} reps. Tap to edit.`}
+      aria-label={`${formatWeight(set.weightKg)} x ${set.reps} reps. Tap to edit.`}
       onClick={onEdit}
       onKeyDown={handleKeyDown}
     >
@@ -773,7 +731,7 @@ export default function SetRow({
           <span className="set-row__kg">{formatKg(set.weightKg)} kg</span>
           <span className="set-row__lb muted">{formatLb(set.weightKg)} lb</span>
           {set.mode === "plates" ? (
-            <span className="set-row__plates muted">{formatKg(perSide)} kg / side</span>
+            <span className="set-row__plates muted">{formatWeight(perSide)} / side</span>
           ) : null}
         </button>
       </div>
@@ -1606,114 +1564,31 @@ export default function SetRow({
 }
 ```
 
-/Users/pavelkulikou/Projects/my-gym/gym-app/app/history/[workoutId]/page.tsx
-```
-"use client";
-
-import { useParams } from "next/navigation";
-import { useMemo } from "react";
-import HeaderBar from "../../shared/components/HeaderBar";
-import BackButton from "../../shared/components/BackButton";
-import { getWorkoutStats, makeWorkoutViewSelector } from "../../../store/selectors/sessionSelectors";
-import { useCatalogShallow } from "../../../store/useCatalogStore";
-import { useSessionStore } from "../../../store/useSessionStore";
-import { useUiShallow } from "../../../store/useUiStore";
-import { formatDate, formatKg, formatLb, formatTime } from "../../../app/shared/lib/utils";
-
-export default function WorkoutDetailPage() {
-  const params = useParams<{ workoutId: string }>();
-  const workoutSelector = useMemo(() => makeWorkoutViewSelector(params.workoutId), [params.workoutId]);
-  const workout = useSessionStore(workoutSelector);
-  const { programs, exercises } = useCatalogShallow((state) => ({
-    programs: state.programs,
-    exercises: state.exercises,
-  }));
-  const { vtHero } = useUiShallow((state) => ({ vtHero: state.vtHero }));
-  const program = useMemo(
-    () => (workout ? programs.find((item) => item.id === workout.programId) : undefined),
-    [programs, workout]
-  );
-
-  if (!workout) {
-    return (
-      <div className="page container">
-        <p>Workout not found.</p>
-      </div>
-    );
-  }
-
-  const { totalVolume } = getWorkoutStats(workout);
-  const programName = program?.name ?? "Deleted program";
-
-  return (
-    <div className="page container">
-      <HeaderBar title="Workout Detail" />
-      <BackButton />
-
-      <div className={`card ${vtHero?.type === "history" && vtHero.id === workout.id ? "vt-hero" : ""}`}>
-        <div className="card__body">
-          <h2 className="card__title">{programName}</h2>
-          <p className="card__meta">
-            {formatDate(workout.endedAt ?? workout.startedAt)} - {formatTime(workout.endedAt ?? workout.startedAt)}
-          </p>
-          <div className="cluster">
-            <span className="badge">{formatKg(totalVolume)} kg</span>
-            <span className="badge">{formatLb(totalVolume)} lb</span>
-          </div>
-        </div>
-      </div>
-
-      <section className="stack">
-        {workout.entries.map((entry) => {
-          const exercise = exercises.find((item) => item.id === entry.exerciseId);
-          if (!exercise) return null;
-          return (
-            <div key={entry.exerciseId} className="card">
-              <div className="card__body">
-                <div className="cluster cluster--between">
-                  <h3 className="card__title">{exercise.name}</h3>
-                  <span className="badge">{exercise.type}</span>
-                </div>
-                <div className="stack">
-                  {entry.sets.map((set) => (
-                    <div key={set.id} className="set-row set-row--static">
-                      <div>
-                        <div className="set-row__kg">{formatKg(set.weightKg)} kg</div>
-                        <div className="set-row__lb muted">{formatLb(set.weightKg)} lb</div>
-                      </div>
-                      <div className="set-row__reps">
-                        <span className="set-row__reps-value">{set.reps}</span>
-                        <span className="set-row__reps-label muted">reps</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          );
-        })}
-      </section>
-    </div>
-  );
-}
-```
-
 /Users/pavelkulikou/Projects/my-gym/gym-app/app/history/page.tsx
 ```
 "use client";
 
-import HeaderBar from "../shared/components/HeaderBar";
-import VtLink from "../shared/components/VtLink";
 import { useMemo } from "react";
+import { useSearchParams } from "next/navigation";
+import HeaderBar from "../shared/components/HeaderBar";
+import BackButton from "../shared/components/BackButton";
+import VtLink from "../shared/components/VtLink";
 import { useCatalogShallow } from "../../store/useCatalogStore";
-import { useSessionShallow } from "../../store/useSessionStore";
+import { useSessionShallow, useSessionStore } from "../../store/useSessionStore";
 import { useUiShallow } from "../../store/useUiStore";
 import type { SetEntry, Workout, WorkoutEntry } from "../../types/gym";
-import { formatDate, formatKg } from "../../app/shared/lib/utils";
-import { getWorkoutStats } from "../../store/selectors/sessionSelectors";
+import { formatDate, formatKg, formatLb, formatTime, formatWeight } from "../../app/shared/lib/utils";
+import { getWorkoutStats, makeWorkoutViewSelector } from "../../store/selectors/sessionSelectors";
 
 export default function HistoryPage() {
-  const { programs } = useCatalogShallow((state) => ({ programs: state.programs }));
+  const searchParams = useSearchParams();
+  const workoutId = searchParams.get("workoutId") ?? undefined;
+  const showDetail = Boolean(workoutId);
+
+  const { programs, exercises } = useCatalogShallow((state) => ({
+    programs: state.programs,
+    exercises: state.exercises,
+  }));
   const { setVtHero, vtHero } = useUiShallow((state) => ({
     setVtHero: state.setVtHero,
     vtHero: state.vtHero,
@@ -1728,12 +1603,18 @@ export default function HistoryPage() {
       setsById: state.setsById,
     }));
 
+  const workoutSelector = useMemo(() => (workoutId ? makeWorkoutViewSelector(workoutId) : () => null), [
+    workoutId,
+  ]);
+  const workout = useSessionStore(workoutSelector);
+
   const completed = useMemo<Workout[]>(() => {
+    if (showDetail) return [];
     return workoutIds
-      .map((workoutId) => {
-        const workout = workoutsById[workoutId];
+      .map((workoutKey) => {
+        const workout = workoutsById[workoutKey];
         if (!workout || !workout.endedAt) return null;
-        const entryIds = entryIdsByWorkoutId[workoutId] ?? [];
+        const entryIds = entryIdsByWorkoutId[workoutKey] ?? [];
         const entries = entryIds
           .map((entryId) => {
             const entry = entriesById[entryId];
@@ -1748,58 +1629,126 @@ export default function HistoryPage() {
         return { ...workout, entries };
       })
       .filter((workout): workout is Workout => Boolean(workout));
-  }, [workoutIds, workoutsById, entryIdsByWorkoutId, entriesById, setIdsByEntryId, setsById]);
+  }, [showDetail, workoutIds, workoutsById, entryIdsByWorkoutId, entriesById, setIdsByEntryId, setsById]);
 
   const grouped = useMemo(() => {
+    if (showDetail) return {} as Record<string, Workout[]>;
     return completed.reduce<Record<string, Workout[]>>((acc, workout) => {
       const dateKey = new Date(workout.endedAt ?? workout.startedAt).toDateString();
       acc[dateKey] = acc[dateKey] ? [...acc[dateKey], workout] : [workout];
       return acc;
     }, {});
-  }, [completed]);
+  }, [completed, showDetail]);
 
   const programById = useMemo(() => new Map(programs.map((program) => [program.id, program])), [programs]);
 
   const volumeByWorkoutId = useMemo(() => {
+    if (showDetail) return new Map<string, number>();
     return new Map(completed.map((workout) => [workout.id, getWorkoutStats(workout).totalVolume]));
-  }, [completed]);
+  }, [completed, showDetail]);
+
+  const detailProgramName = useMemo(() => {
+    if (!workout) return "";
+    return programById.get(workout.programId)?.name ?? "Deleted program";
+  }, [programById, workout]);
+
+  const detailVolume = useMemo(() => {
+    if (!workout) return 0;
+    return getWorkoutStats(workout).totalVolume;
+  }, [workout]);
 
   return (
     <div className="page container">
       <HeaderBar title="History" />
 
-      <div className="stack virtual-list">
-        {Object.entries(grouped).map(([dateKey, items]) => (
-          <section key={dateKey} className="page__section">
-            <h2 className="card__title">{formatDate(new Date(dateKey).getTime())}</h2>
-            <div className="stack">
-              {items.map((workout) => {
-                const program = programById.get(workout.programId);
-                const volume = volumeByWorkoutId.get(workout.id) ?? 0;
-                return (
-                  <VtLink
-                    key={workout.id}
-                    href={`/history/${workout.id}`}
-                    className={`card program-card ${
-                      vtHero?.type === "history" && vtHero.id === workout.id ? "vt-hero" : ""
-                    }`}
-                    onClick={() => setVtHero({ type: "history", id: workout.id })}
-                  >
-                    <div className="card__body">
-                      <div className="program-card__header">
-                        <h3 className="card__title">{program?.name ?? "Workout"}</h3>
-                        <span className="badge">{formatKg(volume)} kg</span>
+      {showDetail ? (
+        <>
+          <BackButton />
+
+          {!workout ? (
+            <p>Workout not found.</p>
+          ) : (
+            <>
+              <div className={`card ${vtHero?.type === "history" && vtHero.id === workout.id ? "vt-hero" : ""}`}>
+                <div className="card__body">
+                  <h2 className="card__title">{detailProgramName}</h2>
+                  <p className="card__meta">
+                    {formatDate(workout.endedAt ?? workout.startedAt)} -{" "}
+                    {formatTime(workout.endedAt ?? workout.startedAt)}
+                  </p>
+                  <div className="cluster">
+                    <span className="badge">{formatWeight(detailVolume)}</span>
+                  </div>
+                </div>
+              </div>
+
+              <section className="stack">
+                {workout.entries.map((entry) => {
+                  const exercise = exercises.find((item) => item.id === entry.exerciseId);
+                  if (!exercise) return null;
+                  return (
+                    <div key={entry.exerciseId} className="card">
+                      <div className="card__body">
+                        <div className="cluster cluster--between">
+                          <h3 className="card__title">{exercise.name}</h3>
+                          <span className="badge">{exercise.type}</span>
+                        </div>
+                        <div className="stack">
+                          {entry.sets.map((set) => (
+                            <div key={set.id} className="set-row set-row--static">
+                              <div>
+                                <div className="set-row__kg">{formatKg(set.weightKg)} kg</div>
+                                <div className="set-row__lb muted">{formatLb(set.weightKg)} lb</div>
+                              </div>
+                              <div className="set-row__reps">
+                                <span className="set-row__reps-value">{set.reps}</span>
+                                <span className="set-row__reps-label muted">reps</span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
                       </div>
-                      <p className="card__meta">{formatDate(workout.endedAt ?? workout.startedAt)}</p>
                     </div>
-                  </VtLink>
-                );
-              })}
-            </div>
-          </section>
-        ))}
-        {completed.length === 0 ? <p className="muted">No workouts yet.</p> : null}
-      </div>
+                  );
+                })}
+              </section>
+            </>
+          )}
+        </>
+      ) : (
+        <div className="stack virtual-list">
+          {Object.entries(grouped).map(([dateKey, items]) => (
+            <section key={dateKey} className="page__section">
+              <h2 className="card__title">{formatDate(new Date(dateKey).getTime())}</h2>
+              <div className="stack">
+                {items.map((workout) => {
+                  const program = programById.get(workout.programId);
+                  const volume = volumeByWorkoutId.get(workout.id) ?? 0;
+                  return (
+                    <VtLink
+                      key={workout.id}
+                      href={`/history?workoutId=${encodeURIComponent(workout.id)}`}
+                      className={`card program-card ${
+                        vtHero?.type === "history" && vtHero.id === workout.id ? "vt-hero" : ""
+                      }`}
+                      onClick={() => setVtHero({ type: "history", id: workout.id })}
+                    >
+                      <div className="card__body">
+                        <div className="program-card__header">
+                          <h3 className="card__title">{program?.name ?? "Workout"}</h3>
+                          <span className="badge">{formatWeight(volume)}</span>
+                        </div>
+                        <p className="card__meta">{formatDate(workout.endedAt ?? workout.startedAt)}</p>
+                      </div>
+                    </VtLink>
+                  );
+                })}
+              </div>
+            </section>
+          ))}
+          {completed.length === 0 ? <p className="muted">No workouts yet.</p> : null}
+        </div>
+      )}
     </div>
   );
 }
@@ -1850,6 +1799,8 @@ export default function RootLayout({
 /Users/pavelkulikou/Projects/my-gym/gym-app/app/manifest.ts
 ```
 import type { MetadataRoute } from "next";
+
+export const dynamic = "force-static";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
@@ -2242,13 +2193,13 @@ export default function TodayPage() {
     const workoutId = sessionStore.getState().startWorkout(programId);
     if (!workoutId) return;
     uiStore.getState().setVtHero({ type: "program", id: programId });
-    navigateWithTransition(router, `/workout/${workoutId}`);
+    navigateWithTransition(router, `/workout?workoutId=${encodeURIComponent(workoutId)}`);
   };
 
   const handleResume = () => {
     if (!activeWorkout) return;
     uiStore.getState().setVtHero({ type: "program", id: activeWorkout.programId });
-    navigateWithTransition(router, `/workout/${activeWorkout.id}`);
+    navigateWithTransition(router, `/workout?workoutId=${encodeURIComponent(activeWorkout.id)}`);
   };
 
   return (
@@ -2309,196 +2260,194 @@ export default function TodayPage() {
 }
 ```
 
-/Users/pavelkulikou/Projects/my-gym/gym-app/app/programs/[programId]/page.tsx
+/Users/pavelkulikou/Projects/my-gym/gym-app/app/programs/page.tsx
 ```
 "use client";
 
-import { useParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
-import HeaderBar from "../../shared/components/HeaderBar";
-import BackButton from "../../shared/components/BackButton";
-import type { Command } from "../../../commands/types";
-import { useCatalogShallow, useCatalogStoreApi } from "../../../store/useCatalogStore";
-import { useUiStoreApi } from "../../../store/useUiStore";
-import { TrashIcon } from "../../shared/components/icons/TrashIcon";
+import HeaderBar from "../shared/components/HeaderBar";
+import BackButton from "../shared/components/BackButton";
+import ProgramCard from "../features/programs/components/ProgramCard";
+import type { Command } from "../../commands/types";
+import { useCatalogShallow, useCatalogStoreApi } from "../../store/useCatalogStore";
+import { useUiStoreApi } from "../../store/useUiStore";
+import { navigateWithTransition } from "../../app/shared/lib/navigation";
+import { TrashIcon } from "../shared/components/icons/TrashIcon";
 
-export default function ProgramDetailPage() {
-  const params = useParams<{ programId: string }>();
-  const { program, exercises } = useCatalogShallow((state) => ({
-    program: state.programs.find((item) => item.id === params.programId),
+export default function ProgramsPage() {
+  const searchParams = useSearchParams();
+  const programId = searchParams.get("programId") ?? undefined;
+  const showDetail = Boolean(programId);
+  const router = useRouter();
+
+  const { programs, exercises } = useCatalogShallow((state) => ({
+    programs: state.programs,
     exercises: state.exercises,
   }));
   const catalogStore = useCatalogStoreApi();
   const uiStore = useUiStoreApi();
-  const { updateProgram, reorderProgramExercise, moveProgramExercise, removeExerciseFromProgram } =
+  const { updateProgram, reorderProgramExercise, moveProgramExercise, removeExerciseFromProgram, createProgram } =
     catalogStore.getState();
   const { openSearchExercise, openConfirm } = uiStore.getState();
 
   const [dragId, setDragId] = useState<string | null>(null);
 
-  if (!program) {
+  const program = programId ? programs.find((item) => item.id === programId) : undefined;
+
+  const handleNewProgram = () => {
+    const id = createProgram();
+    navigateWithTransition(router, `/programs?programId=${encodeURIComponent(id)}`);
+  };
+
+  if (showDetail) {
+    if (!program) {
+      return (
+        <div className="page container">
+          <HeaderBar title="Program" />
+          <BackButton />
+          <p>Program not found.</p>
+        </div>
+      );
+    }
+
+    const orderedExercises = program.exerciseIds
+      .map((id) => exercises.find((exercise) => exercise.id === id))
+      .filter((exercise): exercise is NonNullable<typeof exercise> => Boolean(exercise));
+
     return (
-      <div className="page">
-        <p>Program not found.</p>
+      <div className="page container">
+        <HeaderBar title="Program" subtitle={<span className="muted">{program.name}</span>} />
+        <BackButton />
+
+        <div className="card">
+          <div className="card__body stack">
+            <div className="field">
+              <label className="label" htmlFor="program-name">
+                Name
+              </label>
+              <input
+                id="program-name"
+                className="input"
+                value={program.name}
+                onChange={(event) => updateProgram(program.id, { name: event.target.value })}
+              />
+            </div>
+            <div className="field">
+              <label className="label" htmlFor="program-note">
+                Note
+              </label>
+              <textarea
+                id="program-note"
+                className="textarea"
+                value={program.note ?? ""}
+                onChange={(event) => updateProgram(program.id, { note: event.target.value })}
+              />
+            </div>
+          </div>
+        </div>
+
+        <section className="page__section">
+          <div className="cluster cluster--between">
+            <h2 className="card__title">Exercises</h2>
+            <button
+              type="button"
+              className="btn btn--ghost"
+              onClick={() => openSearchExercise({ programId: program.id })}
+            >
+              + Add
+            </button>
+          </div>
+
+          <div className="stack virtual-list">
+            {orderedExercises.map((exercise) => (
+              <div
+                key={exercise.id}
+                className="card"
+                draggable
+                onDragStart={() => setDragId(exercise.id)}
+                onDragEnd={() => setDragId(null)}
+                onDragOver={(event) => event.preventDefault()}
+                onDrop={() => {
+                  if (!dragId || dragId === exercise.id) return;
+                  reorderProgramExercise(program.id, dragId, exercise.id);
+                  setDragId(null);
+                }}
+              >
+                <div className="card__body stack">
+                  <div className="cluster cluster--between">
+                    <div>
+                      <h3 className="card__title">{exercise.name}</h3>
+                      <p className="card__meta">{exercise.type}</p>
+                    </div>
+                    <span className="badge">Drag</span>
+                  </div>
+                  <div className="cluster">
+                    <button
+                      type="button"
+                      className="btn"
+                      aria-label={`Move ${exercise.name} up`}
+                      onClick={() => moveProgramExercise(program.id, exercise.id, "up")}
+                    >
+                      Up
+                    </button>
+                    <button
+                      type="button"
+                      className="btn"
+                      aria-label={`Move ${exercise.name} down`}
+                      onClick={() => moveProgramExercise(program.id, exercise.id, "down")}
+                    >
+                      Down
+                    </button>
+                    <button
+                      type="button"
+                      className="btn btn--ghost"
+                      aria-label={`Remove ${exercise.name}`}
+                      onClick={() => removeExerciseFromProgram(program.id, exercise.id)}
+                    >
+                      Remove
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+            {orderedExercises.length === 0 ? <p className="muted">Add exercises to define the order.</p> : null}
+          </div>
+        </section>
+
+        <section className="page__section">
+          <div className="card">
+            <div className="card__body stack">
+              <div>
+                <h2 className="card__title">Danger zone</h2>
+                <p className="card__meta">Deleting a program keeps your workout history intact.</p>
+              </div>
+              <button
+                type="button"
+                className="btn btn--danger"
+                onClick={() => {
+                  const command: Command = {
+                    type: "DELETE_PROGRAM",
+                    payload: { programId: program.id, navigateTo: "/programs" },
+                  };
+                  openConfirm({
+                    title: "Delete program?",
+                    message: "This removes the program from your list. Workouts already logged stay in history.",
+                    confirmLabel: "Delete program",
+                    tone: "danger",
+                    command,
+                  });
+                }}
+              >
+                <TrashIcon size="sm" />
+                <span>Delete program</span>
+              </button>
+            </div>
+          </div>
+        </section>
       </div>
     );
   }
-
-  const orderedExercises = program.exerciseIds
-    .map((id) => exercises.find((exercise) => exercise.id === id))
-    .filter((exercise): exercise is NonNullable<typeof exercise> => Boolean(exercise));
-
-  return (
-    <div className="page container">
-      <HeaderBar title="Program" subtitle={<span className="muted">{program.name}</span>} />
-      <BackButton />
-
-      <div className="card">
-        <div className="card__body stack">
-          <div className="field">
-            <label className="label" htmlFor="program-name">
-              Name
-            </label>
-            <input
-              id="program-name"
-              className="input"
-              value={program.name}
-              onChange={(event) => updateProgram(program.id, { name: event.target.value })}
-            />
-          </div>
-          <div className="field">
-            <label className="label" htmlFor="program-note">
-              Note
-            </label>
-            <textarea
-              id="program-note"
-              className="textarea"
-              value={program.note ?? ""}
-              onChange={(event) => updateProgram(program.id, { note: event.target.value })}
-            />
-          </div>
-        </div>
-      </div>
-
-      <section className="page__section">
-        <div className="cluster cluster--between">
-          <h2 className="card__title">Exercises</h2>
-          <button type="button" className="btn btn--ghost" onClick={() => openSearchExercise({ programId: program.id })}>
-            + Add
-          </button>
-        </div>
-
-        <div className="stack virtual-list">
-          {orderedExercises.map((exercise) => (
-            <div
-              key={exercise.id}
-              className="card"
-              draggable
-              onDragStart={() => setDragId(exercise.id)}
-              onDragEnd={() => setDragId(null)}
-              onDragOver={(event) => event.preventDefault()}
-              onDrop={() => {
-                if (!dragId || dragId === exercise.id) return;
-                reorderProgramExercise(program.id, dragId, exercise.id);
-                setDragId(null);
-              }}
-            >
-              <div className="card__body stack">
-                <div className="cluster cluster--between">
-                  <div>
-                    <h3 className="card__title">{exercise.name}</h3>
-                    <p className="card__meta">{exercise.type}</p>
-                  </div>
-                  <span className="badge">Drag</span>
-                </div>
-                <div className="cluster">
-                  <button
-                    type="button"
-                    className="btn"
-                    aria-label={`Move ${exercise.name} up`}
-                    onClick={() => moveProgramExercise(program.id, exercise.id, "up")}
-                  >
-                    Up
-                  </button>
-                  <button
-                    type="button"
-                    className="btn"
-                    aria-label={`Move ${exercise.name} down`}
-                    onClick={() => moveProgramExercise(program.id, exercise.id, "down")}
-                  >
-                    Down
-                  </button>
-                  <button
-                    type="button"
-                    className="btn btn--ghost"
-                    aria-label={`Remove ${exercise.name}`}
-                    onClick={() => removeExerciseFromProgram(program.id, exercise.id)}
-                  >
-                    Remove
-                  </button>
-                </div>
-              </div>
-            </div>
-          ))}
-          {orderedExercises.length === 0 ? <p className="muted">Add exercises to define the order.</p> : null}
-        </div>
-      </section>
-
-      <section className="page__section">
-        <div className="card">
-          <div className="card__body stack">
-            <div>
-              <h2 className="card__title">Danger zone</h2>
-              <p className="card__meta">Deleting a program keeps your workout history intact.</p>
-            </div>
-            <button
-              type="button"
-              className="btn btn--danger"
-              onClick={() => {
-                const command: Command = {
-                  type: "DELETE_PROGRAM",
-                  payload: { programId: program.id, navigateTo: "/programs" },
-                };
-                openConfirm({
-                  title: "Delete program?",
-                  message: "This removes the program from your list. Workouts already logged stay in history.",
-                  confirmLabel: "Delete program",
-                  tone: "danger",
-                  command,
-                });
-              }}
-            >
-              <TrashIcon size="sm" />
-              <span>Delete program</span>
-            </button>
-
-          </div>
-        </div>
-      </section>
-    </div>
-  );
-}
-```
-
-/Users/pavelkulikou/Projects/my-gym/gym-app/app/programs/page.tsx
-```
-"use client";
-
-import { useRouter } from "next/navigation";
-import HeaderBar from "../shared/components/HeaderBar";
-import ProgramCard from "../features/programs/components/ProgramCard";
-import { useCatalogShallow, useCatalogStoreApi } from "../../store/useCatalogStore";
-import { navigateWithTransition } from "../../app/shared/lib/navigation";
-
-export default function ProgramsPage() {
-  const router = useRouter();
-  const { programs } = useCatalogShallow((state) => ({ programs: state.programs }));
-  const catalogStore = useCatalogStoreApi();
-
-  const handleNewProgram = () => {
-    const id = catalogStore.getState().createProgram();
-    navigateWithTransition(router, `/programs/${id}`);
-  };
 
   return (
     <div className="page container">
@@ -2510,7 +2459,7 @@ export default function ProgramsPage() {
             key={program.id}
             program={program}
             meta={`${program.exerciseIds.length} exercises`}
-            href={`/programs/${program.id}`}
+            href={`/programs?programId=${encodeURIComponent(program.id)}`}
             actionLabel="Edit"
           />
         ))}
@@ -2532,7 +2481,7 @@ import HeaderBar from "../shared/components/HeaderBar";
 import { useAppActions } from "../../store/useAppActions";
 import { useSettingsShallow } from "../../store/useSettingsStore";
 import { useUiShallow } from "../../store/useUiStore";
-import { formatKg } from "../../app/shared/lib/utils";
+import { formatWeight, kgToLb, lbToKg } from "../../app/shared/lib/utils";
 import type { Command } from "../../commands/types";
 
 export default function SettingsPage() {
@@ -2576,6 +2525,12 @@ export default function SettingsPage() {
     }
   };
 
+  const inputUnits = settings.unitsPreference;
+  const barWeightInput =
+    inputUnits === "lb"
+      ? Math.round(kgToLb(settings.defaultBarWeight) * 100) / 100
+      : settings.defaultBarWeight;
+
   return (
     <div className="page container">
       <HeaderBar title="Settings" />
@@ -2583,7 +2538,7 @@ export default function SettingsPage() {
       <div className="card">
         <div className="card__body stack">
           <div className="field">
-            <span className="label">Units preference</span>
+            <span className="label">Input units</span>
             <div className="cluster">
               <button
                 type="button"
@@ -2599,25 +2554,27 @@ export default function SettingsPage() {
               >
                 lb
               </button>
-              <span className="badge">kg always visible</span>
+              <span className="badge">kg & lb always visible</span>
             </div>
           </div>
 
           <div className="field">
             <label className="label" htmlFor="bar-weight">
-              Default bar weight
+              Default bar weight ({inputUnits})
             </label>
             <input
               id="bar-weight"
               className="input"
               inputMode="decimal"
-              value={settings.defaultBarWeight}
+              value={Number.isFinite(barWeightInput) ? barWeightInput : 0}
               onChange={(event) => {
                 const next = Number(event.target.value);
-                updateSettings({ defaultBarWeight: Number.isFinite(next) ? next : 0 });
+                const safe = Number.isFinite(next) ? next : 0;
+                const nextKg = inputUnits === "lb" ? lbToKg(safe) : safe;
+                updateSettings({ defaultBarWeight: nextKg });
               }}
             />
-            <span className="help">Current: {formatKg(settings.defaultBarWeight)} kg</span>
+            <span className="help">Current: {formatWeight(settings.defaultBarWeight)}</span>
           </div>
 
           <div className="field">
@@ -3615,18 +3572,17 @@ export function useMotionMode(): "reduced" | "full" {
 
 /Users/pavelkulikou/Projects/my-gym/gym-app/app/shared/lib/utils.ts
 ```
-export const KG_TO_LB = 2.20462;
+export const KG_TO_LB = 2.2046226218;
+export const LB_TO_KG = 1 / KG_TO_LB;
 
-export const formatKg = (value: number) => {
-  const rounded = Math.round(value * 10) / 10;
-  return rounded % 1 === 0 ? String(rounded.toFixed(0)) : rounded.toFixed(1);
-};
+export const kgToLb = (kg: number) => kg * KG_TO_LB;
+export const lbToKg = (lb: number) => lb * LB_TO_KG;
 
-export const formatLb = (value: number) => {
-  const lb = value * KG_TO_LB;
-  const rounded = Math.round(lb * 10) / 10;
-  return rounded % 1 === 0 ? String(rounded.toFixed(0)) : rounded.toFixed(1);
-};
+export const formatKg = (value: number) => value.toFixed(2);
+
+export const formatLb = (value: number) => kgToLb(value).toFixed(2);
+
+export const formatWeight = (valueKg: number) => `${formatKg(valueKg)} kg / ${formatLb(valueKg)} lb`;
 
 export const formatDate = (timestamp: number, opts?: Intl.DateTimeFormatOptions) => {
   return new Intl.DateTimeFormat("en-US", {
@@ -4263,26 +4219,30 @@ export const startViewTransition = (action: () => void) => {
 
 ```
 
-/Users/pavelkulikou/Projects/my-gym/gym-app/app/workout/[workoutId]/page.tsx
+/Users/pavelkulikou/Projects/my-gym/gym-app/app/workout/page.tsx
 ```
 "use client";
 
-import { useParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
-import ExerciseCard from "../../features/workout/components/ExerciseCard";
-import BackButton from "../../shared/components/BackButton";
-import type { Command } from "../../../commands/types";
-import { makeCatalogMapsSelector } from "../../../store/selectors/catalogSelectors";
-import { makeWorkoutViewSelector } from "../../../store/selectors/sessionSelectors";
-import { useCatalogStore } from "../../../store/useCatalogStore";
-import { useSessionStore, useSessionStoreApi } from "../../../store/useSessionStore";
-import { useSettingsShallow } from "../../../store/useSettingsStore";
-import { useUiShallow, useUiStoreApi } from "../../../store/useUiStore";
+import ExerciseCard from "../features/workout/components/ExerciseCard";
+import BackButton from "../shared/components/BackButton";
+import type { Command } from "../../commands/types";
+import { makeCatalogMapsSelector } from "../../store/selectors/catalogSelectors";
+import { makeWorkoutViewSelector } from "../../store/selectors/sessionSelectors";
+import { useCatalogStore } from "../../store/useCatalogStore";
+import { useSessionStore, useSessionStoreApi } from "../../store/useSessionStore";
+import { useSettingsShallow } from "../../store/useSettingsStore";
+import { useUiShallow, useUiStoreApi } from "../../store/useUiStore";
 
 export default function WorkoutRunnerPage() {
-  const params = useParams<{ workoutId: string }>();
-  const workoutId = params.workoutId;
-  const workoutSelector = useMemo(() => makeWorkoutViewSelector(workoutId), [workoutId]);
+  const searchParams = useSearchParams();
+  const workoutId = searchParams.get("workoutId") ?? undefined;
+
+  const workoutSelector = useMemo(
+    () => (workoutId ? makeWorkoutViewSelector(workoutId) : () => null),
+    [workoutId]
+  );
   const workout = useSessionStore(workoutSelector);
   const catalogSelector = useMemo(() => makeCatalogMapsSelector(), []);
   const { programById, exerciseById } = useCatalogStore(catalogSelector);
@@ -4294,16 +4254,27 @@ export default function WorkoutRunnerPage() {
   const { deleteSet, addSet } = sessionStore.getState();
   const { openEditSet, openConfirm, showSnackbar } = uiStore.getState();
   const [lastAddedSetId, setLastAddedSetId] = useState<string | null>(null);
+
   useEffect(() => {
     if (lastAddedSetId == null) return;
     const t = setTimeout(() => setLastAddedSetId(null), 1800);
     return () => clearTimeout(t);
   }, [lastAddedSetId]);
 
+  if (!workoutId) {
+    return (
+      <div className="page container">
+        <p>Select a workout to begin.</p>
+        <BackButton />
+      </div>
+    );
+  }
+
   if (!workout) {
     return (
       <div className="page container">
         <p>Workout not found.</p>
+        <BackButton />
       </div>
     );
   }
@@ -4311,7 +4282,10 @@ export default function WorkoutRunnerPage() {
   const programName = program?.name ?? "Deleted program";
 
   const handleFinish = () => {
-    const command: Command = { type: "FINISH_WORKOUT", payload: { workoutId, navigateTo: `/workout/${workoutId}/summary` } };
+    const command: Command = {
+      type: "FINISH_WORKOUT",
+      payload: { workoutId, navigateTo: `/workout/summary?workoutId=${encodeURIComponent(workoutId)}` },
+    };
     openConfirm({
       title: "End workout?",
       message: "Finish now to lock this workout into history.",
@@ -4371,28 +4345,41 @@ export default function WorkoutRunnerPage() {
 }
 ```
 
-/Users/pavelkulikou/Projects/my-gym/gym-app/app/workout/[workoutId]/summary/page.tsx
+/Users/pavelkulikou/Projects/my-gym/gym-app/app/workout/summary/page.tsx
 ```
 "use client";
 
-import { useParams, useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useMemo } from "react";
-import { getWorkoutStats, makeWorkoutViewSelector } from "../../../../store/selectors/sessionSelectors";
-import { useCatalogShallow } from "../../../../store/useCatalogStore";
-import { useSessionStore } from "../../../../store/useSessionStore";
-import { navigateWithTransition } from "../../../../app/shared/lib/navigation";
-import { formatKg, formatLb } from "../../../../app/shared/lib/utils";
+import { getWorkoutStats, makeWorkoutViewSelector } from "../../../store/selectors/sessionSelectors";
+import { useCatalogShallow } from "../../../store/useCatalogStore";
+import { useSessionStore } from "../../../store/useSessionStore";
+import { navigateWithTransition } from "../../shared/lib/navigation";
+import { formatWeight } from "../../shared/lib/utils";
 
 export default function WorkoutSummaryPage() {
-  const params = useParams<{ workoutId: string }>();
+  const searchParams = useSearchParams();
+  const workoutId = searchParams.get("workoutId") ?? undefined;
   const router = useRouter();
-  const workoutSelector = useMemo(() => makeWorkoutViewSelector(params.workoutId), [params.workoutId]);
+
+  const workoutSelector = useMemo(
+    () => (workoutId ? makeWorkoutViewSelector(workoutId) : () => null),
+    [workoutId]
+  );
   const workout = useSessionStore(workoutSelector);
   const { programs } = useCatalogShallow((state) => ({ programs: state.programs }));
   const program = useMemo(
     () => (workout ? programs.find((item) => item.id === workout.programId) : undefined),
     [programs, workout]
   );
+
+  if (!workoutId) {
+    return (
+      <div className="page container">
+        <p>Select a workout summary to view.</p>
+      </div>
+    );
+  }
 
   if (!workout) {
     return (
@@ -4409,7 +4396,14 @@ export default function WorkoutSummaryPage() {
     <div className="page container summary-page">
       <header className="stack summary-page__header">
         <div className="summary-page__badge" aria-hidden>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
             <circle cx="12" cy="12" r="10" />
             <path d="M8 12l3 3 5-6" />
           </svg>
@@ -4428,8 +4422,8 @@ export default function WorkoutSummaryPage() {
           <div className="muted">Total sets</div>
         </div>
         <div className="summary-stat">
-          <div className="summary-stat__value">{formatKg(totalVolume)} kg</div>
-          <div className="muted">{formatLb(totalVolume)} lb total volume</div>
+          <div className="summary-stat__value">{formatWeight(totalVolume)}</div>
+          <div className="muted">Total volume</div>
         </div>
       </section>
 
@@ -5526,3145 +5520,6 @@ export const useCommandExecutor = () => {
 };
 ```
 
-/Users/pavelkulikou/Projects/my-gym/gym-app/docs/css.md
-```
-# ✅ CSS EXPERT SYSTEM PROMPT (2026 Modern Baseline + globals.css Design System)
-
-You are a **CSS Expert Engineer** specializing in **modern, production-grade CSS (2023–2026 Baseline era)**.
-
-Your job is to implement UI designs using the **best current CSS practices**, prioritizing:
-
-- maintainability
-- scalability
-- accessibility
-- modern layout systems
-- Baseline-safe features
-- minimal hacks
-- minimal JavaScript dependence
-
-You write CSS like an expert building real-world design systems.
-
----
-
-## 0. Prime Directive: Design System First (globals.css)
-
-Assume the project has a **design-system `globals.css`** that defines:
-
-- **Cascade Layers** (reset → tokens → base → layout → components → enhancements → utilities → overrides)
-- **Design tokens** using CSS custom properties (colors, space, radius, type, motion)
-- **Baseline accessible defaults** (`:focus-visible`, reduced motion, typography baseline)
-
-### Your rule
-
-**Do not fight the globals. Extend them.**
-
-When implementing UI, you must:
-
-1) **Use existing tokens** (`--space-*`, `--fs-*`, `--r-*`, `--brand`, `--bg`, `--surface`, `--text`, `--muted`, etc.)  
-2) **Add component CSS in the correct layer**, not as random overrides  
-3) **Avoid re-defining global reset/base rules** inside components  
-4) Prefer **composing utilities + components** over one-off styles
-
-If you need a new token, add it to **@layer tokens** (not inline on a random class).
-
----
-
-## 1. Core Principles
-
-### Always prefer modern CSS over legacy patterns
-
-Use CSS features that are widely supported in evergreen browsers.
-
-### Default mindset
-
-- **Component-first responsiveness**
-- **Cascade control over specificity wars**
-- **Progressive enhancement instead of brittle hacks**
-- **Clean architecture, not messy overrides**
-
----
-
-## 2. Must-Use Modern CSS Foundations
-
-When implementing any design, always default to:
-
-### Layout
-
-- **CSS Grid** for 2D layout
-- **Flexbox** for 1D alignment and spacing
-- **gap** instead of margin hacks
-- **aspect-ratio** for media sizing
-- Prefer **logical properties** (`margin-inline`, `padding-block`) for international-friendly layout
-
-### Responsiveness
-
-- **Container Queries** (`@container`) over viewport-only breakpoints
-- **Modern viewport units** (`dvh`, `svh`, `lvh`) instead of broken `vh`
-- Viewport media queries (`@media`) are allowed for **page-level** layout shifts, not component sizing
-
-### Selectors
-
-- Use `:has()` when it removes JavaScript logic (guardrails allowed if needed)
-- Use `:is()` / `:where()` to reduce selector repetition and specificity
-- Use `:focus-visible` for accessible focus styling (include a fallback if requested)
-
-### Architecture
-
-- Use **Cascade Layers (`@layer`)** for scalable stylesheet organization
-- Use **CSS Variables** (custom properties) for all design tokens
-- Prefer **low specificity** selectors to keep the system override-friendly
-
-### Typography & Sizing
-
-- Use `clamp()` for fluid typography and spacing
-- Prefer modern color spaces like **OKLCH** when possible
-- Use `color-mix()` for derived theme colors
-
-### Performance
-
-- Use `content-visibility: auto` only as **opt-in** for long lists or heavy sections
-- Use containment (`contain`) where helpful, but avoid breaking sticky/paint behavior unintentionally
-
----
-
-## 3. globals.css Architecture Contract (Non-Negotiable)
-
-### Layer rules (where styles belong)
-
-Use this order:
-
-```css
-@layer reset, tokens, base, layout, components, enhancements, utilities, overrides;
-````
-
-- **reset:** minimal resets, no opinionated design
-- **tokens:** all design tokens (`:root`, theme variants, token fallbacks)
-- **base:** element defaults (`body`, `a`, `p`, focus styles, reduced motion)
-- **layout:** `.container`, `.stack`, `.grid`, `.cluster`, structural helpers
-- **components:** reusable components (`.btn`, `.card`, `.field`, etc.)
-- **enhancements:** progressive enhancement for Tier B features with `@supports`
-- **utilities:** small, composable helpers (`.sr-only`, spacing helpers, truncation)
-- **overrides:** last resort patches (keep near-empty)
-
-### Specificity rules
-
-- Prefer `:where()` for element baselines and wrappers.
-- Avoid ID selectors.
-- Avoid deep nesting (3+ levels) unless it’s intentional and documented.
-- Avoid `!important` except for **accessibility failsafes** (e.g., reduced motion emergency stops).
-
-### Token rules
-
-- Never hardcode colors/spaces/radii in components if a token exists.
-- If you create a new token, it must be:
-
-  - named consistently (e.g. `--space-*`, `--r-*`, `--fs-*`, `--color-*` or `--brand-*`)
-  - defined in `@layer tokens`
-  - documented with a short comment
-
----
-
-## 4. Feature Classification Rules
-
-For every feature you use, follow this priority:
-
-### Tier A: Baseline Safe (Default)
-
-Use freely in production:
-
-- Grid, Flexbox, gap
-- Custom properties
-- clamp()
-- aspect-ratio
-- :has(), :is(), :where()
-- @layer
-- Container queries
-- prefers-reduced-motion / prefers-color-scheme
-- logical properties
-- color-mix()
-
-### Tier B: Progressive Enhancement
-
-Use only with fallbacks and `@supports`:
-
-- Scroll-driven animations
-- View transitions
-- Anchor positioning
-- @scope
-- advanced/bleeding-edge color features beyond common support
-
-Always include:
-
-```css
-@supports (feature: value) {
-  /* modern enhancement */
-}
-@supports not (feature: value) {
-  /* fallback */
-}
-```
-
-### Tier C: Legacy / Avoid
-
-Do not rely on these except for compatibility edge cases:
-
-- floats for layout
-- table-based layout hacks
-- vendor-prefix-only styling
-- excessive `!important`
-- JS layout measuring when CSS can handle it
-
----
-
-## 5. Implementation Rules for UI Tasks
-
-When asked to implement a UI:
-
-### Step 1: Layout First
-
-- Choose Grid for page structure
-- Use Flexbox for alignment inside components
-- Prefer `gap` for spacing between children
-
-### Step 2: Tokenize Everything
-
-Define reusable design variables in tokens:
-
-```css
-@layer tokens {
-  :root {
-    --space-4: 1rem;
-    --r-2: 0.75rem;
-    --brand: oklch(62% 0.18 250);
-  }
-}
-```
-
-### Step 3: Component Responsiveness
-
-Prefer container queries:
-
-```css
-.card { container-type: inline-size; }
-
-@container (min-width: 500px) { ... }
-```
-
-Over viewport-only breakpoints:
-
-```css
-@media (min-width: 768px) { ... }
-```
-
-Unless the layout truly depends on viewport (page-level shifts).
-
-### Step 4: Cascade Control
-
-Organize styles with layers:
-
-```css
-@layer reset, tokens, base, layout, components, enhancements, utilities, overrides;
-```
-
-### Step 5: Accessibility Always
-
-- Focus states must use `:focus-visible` and be clearly visible
-- Avoid removing outlines without replacement
-- Respect reduced motion:
-
-```css
-@media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
-}
-```
-
-- Ensure color contrast is reasonable; don’t encode meaning by color alone
-
----
-
-## 6. Output Requirements
-
-Whenever you generate CSS, it must be:
-
-- clean and readable
-- modern and baseline-aligned
-- component-oriented
-- free of outdated hacks
-- responsive by default (container-first)
-- layered when styles grow beyond trivial size
-
-Prefer this structure:
-
-1. Tokens (`@layer tokens` / `:root`)
-2. Base styles (`@layer base`)
-3. Layout system (`@layer layout`)
-4. Components (`@layer components`)
-5. Enhancements (`@layer enhancements`, guarded with `@supports`)
-6. Utilities (`@layer utilities`)
-7. Overrides (rare)
-
-### When adding new CSS to an existing project
-
-- Output only the **delta** if asked (patch-style)
-- Otherwise output the full updated file, preserving layer order
-
----
-
-## 7. Modern Feature Toolkit (2023–2026)
-
-Use these actively when appropriate:
-
-### 2023 Foundation
-
-- Grid, Flexbox, Variables, clamp(), aspect-ratio, prefers-reduced-motion
-
-### 2024 Modern Breakthrough
-
-- :has(), Container Queries, @layer, native nesting (keep shallow)
-
-### 2025 Baseline Expansion
-
-- scrollbar-gutter, color-mix(), improved viewport units (dvh/svh/lvh)
-
-### 2026 Frontier (Guardrails)
-
-- @scope, Anchor Positioning, Scroll-driven animations, View transitions
-
----
-
-## 8. Final Self-Check Before Answering
-
-Before delivering CSS, verify:
-
-- [ ] Uses tokens instead of magic values
-- [ ] Layout uses Grid/Flexbox, not floats
-- [ ] Spacing uses gap or tokenized spacing (not random margins)
-- [ ] Components are responsive via container queries when possible
-- [ ] No specificity battles; layers and `:where()` used
-- [ ] Accessibility focus + reduced motion included
-- [ ] Tier B features are guarded with `@supports` + fallbacks
-- [ ] `globals.css` layer contract is respected (styles placed in correct layer)
-- [ ] Output matches requested design cleanly
-
----
-
-# ✅ End of CSS Expert System Prompt
-```
-
-/Users/pavelkulikou/Projects/my-gym/gym-app/docs/improve-1.md
-```
-# Combined AI Agent Instructions
-
-## Mobile-first gym progress tracking app with Modern CSS + View Transitions + React 19 + Zustand 5
-
-These instructions merge your existing engineering standards with the new UX/motion playbook. When rules collide, the tie-breaker is: **speed, clarity, accessibility, and predictable architecture**.
-
----
-
-## 0) Non-negotiables
-
-1. **Speed beats spectacle**
-
-   * Logging a set must feel instant. Motion must never delay taps or block input.
-   * Use longer transitions only for infrequent navigations (day → workout → history).
-
-2. **Progressive enhancement**
-
-   * View Transitions are optional. The app must be fully correct without them.
-
-3. **Motion safety**
-
-   * Respect `prefers-reduced-motion` everywhere.
-   * Also provide an in-app “Reduce motion” toggle that forces reduced motion even if OS does not.
-
-4. **Touch-first ergonomics**
-
-   * All interactive elements meet a minimum tap target of ~48px, with comfortable spacing.
-
-5. **Predictable CSS**
-
-   * Tokens + cascade layers + container queries + low specificity. No “CSS cage matches”.
-
-6. **State discipline**
-
-   * Zustand is for shared state that truly needs to be shared.
-   * Server data caching belongs in a real caching strategy (or framework cache), not in ad hoc global store.
-
----
-
-## 1) UX and Motion System
-
-### 1.1 Motion intent rules
-
-* Motion must convey **relationship** (“where it went”), not decoration.
-* Avoid big transitions for:
-
-  * validation errors
-  * failures
-  * ultra-frequent actions (rep edits, +1 set, checkbox spam)
-
-### 1.2 Duration and easing contract (mobile gym defaults)
-
-Use a small, consistent set (tokens). Recommended:
-
-* Press feedback: **90–120ms**
-* Quick state change: **150–200ms**
-* Enter: **~225ms**
-* Exit: **~195ms**
-* Full-screen navigation: **~300ms**
-* Large full-screen: **up to ~375ms**
-* Hard cap: **never exceed ~400ms** unless explicitly justified and skippable
-
-Easing set:
-
-* standard, decel (enter), accel (exit), sharp (rare)
-
-### 1.3 Gym-specific interaction patterns
-
-* **Log set (between sets):**
-
-  * press: quick scale (100–120ms)
-  * row update: subtle fade/slide (150–200ms)
-  * never do page-level view transitions for this
-* **Stats screens:**
-
-  * animate in meaning layers (header → chart → insights) with light stagger
-* **Progress fill (workout complete):**
-
-  * 600–900ms is allowed only for infrequent “completion moments”
-  * must respect reduced motion and allow skip (or keep it purely decorative)
-
-### 1.4 Motion gating (must implement)
-
-Define a single “motion mode” source of truth:
-
-* `motionMode = reduced` if:
-
-  * OS prefers reduced motion, OR
-  * user toggled Reduce Motion ON in app
-* Otherwise `motionMode = full`
-
-CSS must gate via media query and a root attribute/class override:
-
-* OS: `@media (prefers-reduced-motion: reduce)`
-* App override: `[data-motion="reduced"]`
-
-JS must gate before starting View Transitions or WAAPI.
-
----
-
-## 2) CSS Architecture Rules
-
-### 2.1 Token-first styling
-
-All spacing, typography, radius, shadows, colors, and motion constants come from CSS custom properties.
-
-Required token categories:
-
-* spacing scale
-* typography scale (use `clamp()` for fluid sizes)
-* radii, shadows
-* color tokens (themeable)
-* motion durations + easing curves
-* tap target size token (`--tap: 48px`)
-
-### 2.2 Cascade layers (strict order)
-
-Use layers to prevent specificity wars. Recommended layer order:
-
-1. `reset`
-2. `tokens`
-3. `base`
-4. `layout`
-5. `components`
-6. `motion`
-7. `utilities`
-8. `overrides` (rare, must justify)
-
-Rules:
-
-* Prefer `:where()` to keep selector specificity low.
-* Never globally remove focus outlines. Use `:focus-visible`.
-
-### 2.3 Container queries over viewport guessing
-
-* Components adapt via container queries (`container-type` + `@container`)
-* Media queries only for major layout mode changes (shell, nav mode)
-
-### 2.4 Performance-safe CSS
-
-* Default animations/transitions only on `transform` and `opacity`.
-* Avoid `transition: all`.
-* `will-change` is forbidden unless profiling proves it helps.
-
-### 2.5 Focus and accessibility styling
-
-* Use `:focus-visible` with a high-contrast ring.
-* Ensure rings are not clipped by overflow.
-* Icon buttons must have padding so hit area meets tap target.
-
-### 2.6 Long lists performance
-
-* Use `content-visibility: auto` on long history/stats sections where appropriate.
-* Use `contain` cautiously, test layout/positioning and accessibility behavior.
-
----
-
-## 3) View Transitions Standard Operating Rules
-
-### 3.1 When to use
-
-Use View Transitions for:
-
-* route changes that benefit from continuity (day → workout → history)
-* meaningful component-level transitions (tab switch, list → detail hero)
-
-Do not use for:
-
-* set logging
-* validation errors
-* tiny toggles that happen constantly
-
-### 3.2 One orchestrator only
-
-All View Transitions must go through a single helper:
-
-* feature-detect support
-* gate on motion mode
-* run DOM updates inside the transition callback
-* optionally await `.finished` for cleanup
-
-### 3.3 Shared element naming rules
-
-* `view-transition-name` must be unique among simultaneously rendered elements
-* Use deterministic names: `vt-day-YYYY-MM-DD`, `vt-exercise-${id}`, `vt-workout-${id}`
-* Never assign the same name to all cards, headers, etc.
-
-### 3.4 React commit correctness
-
-The transition callback must produce a coherent “after” snapshot. For React:
-
-* wrap the visual state commit in `flushSync` (only for the specific transition boundary)
-* do not call transitions from render
-
----
-
-## 4) React 19 Implementation Rules
-
-1. **No side effects in render.**
-2. Use `useTransition` for non-urgent work:
-
-   * expensive filtering
-   * prefetching
-   * low-priority UI refinements
-3. Keep route shell stable:
-
-   * render immediate skeletons for new screens
-   * hydrate/stream data without blank-screen snaps
-4. StrictMode-safe code:
-
-   * effects must clean up
-   * handlers must be idempotent where relevant
-5. Actions (when you use them):
-
-   * use for mutations and pending UI
-   * pair with optimistic UI only where it improves speed and confidence
-
----
-
-## 5) Zustand 5 Implementation Rules
-
-### 5.1 What belongs in Zustand (gym app)
-
-Good fits:
-
-* UI shell state (bottom nav, active sheet, toast queue)
-* user preferences (theme, units, reduce motion toggle)
-* session-like state (active workout id, timer state)
-* cross-route continuity (selected day, filters)
-
-Avoid:
-
-* local form field state
-* server cache without invalidation strategy
-* large derived objects stored permanently (compute from selectors instead)
-
-### 5.2 Selector discipline (v5)
-
-* Prefer atomic selectors returning primitives.
-* If selecting multiple fields into an object/array, use `useShallow`.
-* Actions must be stable and named as verbs.
-
-### 5.3 Slices pattern
-
-Use a single store composed of slices:
-
-* `uiSlice`
-* `preferencesSlice`
-* `workoutSessionSlice`
-* `historyFiltersSlice` (if needed)
-
-Persist only durable preferences (theme, units, reduce motion), not transient UI state.
-
----
-
-## 6) Integration Rules: React + View Transitions + Zustand
-
-### 6.1 “Transition-safe transaction” pattern
-
-When a user triggers a navigation or meaningful UI swap:
-
-1. Determine `motionMode`
-2. If reduced or unsupported → perform update normally
-3. Else:
-
-   * start view transition
-   * in the update callback:
-
-     * `flushSync(() => { commitVisualChange(); })`
-     * commitVisualChange may include:
-
-       * router navigation
-       * Zustand updates that affect the transitioned UI
-       * local React state changes that affect layout
-
-### 6.2 What not to do
-
-* Never have “any Zustand change triggers transitions”.
-* Never wrap frequent micro-actions in View Transitions.
-* Never await slow network inside the transition boundary. Transition into a skeleton immediately.
-
----
-
-## 7) Project-ready folder structure
-
-```txt
-src/
-  app/
-    main.tsx
-    App.tsx
-    router/                 # routing + navigation helpers
-  styles/
-    layers.css
-    tokens.css
-    base.css
-    layout.css
-    motion.css
-    utilities.css
-  transitions/
-    viewTransition.ts
-    reactViewTransition.tsx
-  store/
-    useAppStore.ts
-    slices/
-      uiSlice.ts
-      preferencesSlice.ts
-      workoutSessionSlice.ts
-  features/
-    calendar/
-    workout/
-    exercise/
-    stats/
-  shared/
-    ui/
-    lib/
-```
-
----
-
-## 8) Combined rules.json contract (autonomous agent)
-
-```json
-{
-  "contractVersion": "2.0",
-  "product": "mobile-first gym progress tracking web app",
-  "corePrinciples": [
-    "speed_beats_spectacle",
-    "progressive_enhancement",
-    "motion_safe_by_default",
-    "touch_first_ergonomics",
-    "predictable_css_architecture",
-    "state_discipline"
-  ],
-  "motion": {
-    "mustNotBlockInput": true,
-    "useCasesAllowed": ["navigation", "meaningful_view_swaps", "list_to_detail_continuity", "tabs_if_helpful"],
-    "useCasesForbidden": ["set_logging", "validation_errors", "high_frequency_toggles"],
-    "durationsMs": {
-      "press": [90, 120],
-      "quickChange": [150, 200],
-      "enter": 225,
-      "exit": 195,
-      "page": 300,
-      "pageLargeMax": 375,
-      "hardCap": 400
-    },
-    "easingTokensRequired": ["ease-standard", "ease-decel", "ease-accel", "ease-sharp"],
-    "reducedMotion": {
-      "mustRespectPrefersReducedMotion": true,
-      "mustProvideInAppToggle": true,
-      "singleSourceOfTruth": "motionMode",
-      "cssGate": ["@media (prefers-reduced-motion: reduce)", "[data-motion='reduced']"],
-      "jsGate": true
-    }
-  },
-  "css": {
-    "mustUseCascadeLayers": true,
-    "layerOrder": ["reset", "tokens", "base", "layout", "components", "motion", "utilities", "overrides"],
-    "tokens": {
-      "mustUseCssVariables": true,
-      "mustInclude": ["spacing", "typography", "radius", "shadows", "colors", "motionDurations", "motionEasings", "tapTarget"],
-      "tapTargetPx": 48,
-      "fluidSizing": "clamp()"
-    },
-    "responsiveness": {
-      "preferContainerQueries": true,
-      "mediaQueriesOnlyForLayoutModes": true
-    },
-    "specificity": {
-      "preferWhereZeroSpecificity": true,
-      "avoidDeepDomCoupling": true
-    },
-    "focus": {
-      "mustUseFocusVisible": true,
-      "mustNotRemoveFocusIndicators": true
-    },
-    "animation": {
-      "avoidTransitionAll": true,
-      "defaultAnimatedProperties": ["transform", "opacity"],
-      "willChange": "forbiddenUnlessProfiled"
-    },
-    "performance": {
-      "longListsPreferContentVisibilityAuto": true,
-      "containUseRequiresTesting": true
-    }
-  },
-  "viewTransitions": {
-    "progressiveEnhancementRequired": true,
-    "neverTriggerInRender": true,
-    "mustGateByMotionMode": true,
-    "mustUseSingleOrchestratorHelper": true,
-    "reactCommit": {
-      "mustUseFlushSyncForTransitionBoundary": true,
-      "mustNotAwaitNetworkInBoundary": true,
-      "mustTransitionIntoSkeletonIfDataNeeded": true
-    },
-    "sharedElements": {
-      "prefix": "vt-",
-      "mustBeUnique": true,
-      "naming": ["vt-day-YYYY-MM-DD", "vt-exercise-${id}", "vt-workout-${id}"]
-    }
-  },
-  "react19": {
-    "noSideEffectsInRender": true,
-    "preferUseTransitionForNonUrgentWork": true,
-    "strictModeSafe": true,
-    "actions": {
-      "allowed": true,
-      "preferredFor": ["mutations", "pending_ui", "optimistic_updates_where_helpful"]
-    }
-  },
-  "zustand5": {
-    "preferSingleStoreWithSlices": true,
-    "slicesRequired": ["uiSlice", "preferencesSlice", "workoutSessionSlice"],
-    "selectors": {
-      "preferAtomic": true,
-      "derivedObjectOrArrayMustUseShallow": true
-    },
-    "persistence": {
-      "persistOnlyDurablePreferences": ["theme", "units", "reduceMotion"],
-      "neverPersistEphemeralUiState": true
-    }
-  },
-  "performanceRules": {
-    "noLayoutThrashingInAnimatedFlows": true,
-    "batchReadsThenWrites": true,
-    "lowEndBudget": {
-      "reduceConcurrentAnimations": true,
-      "preferFadesOverLargeTranslations": true,
-      "avoidHeavyBlurOrShadowAnimations": true
-    }
-  },
-  "definitionOfDone": [
-    "logging_a_set_is_never_blocked_by_animation",
-    "reduced_motion_mode_is_intentional_and_complete",
-    "view_transitions_have_fallback_and_do_not_break_navigation",
-    "no_duplicate_view_transition_names",
-    "tap_targets_meet_48px_minimum",
-    "no_layout_thrashing_in_key_flows"
-  ]
-}
-```
-
----
-
-## 9) Feature-level “Definition of Done” checklist (agent must run mentally on every PR)
-
-* ✅ No animation blocks input, ever.
-* ✅ Reduced motion path is implemented in CSS and JS, plus in-app toggle.
-* ✅ View transitions are wrapped by the orchestrator and have fallback.
-* ✅ Shared element names are unique and deterministic.
-* ✅ Tap targets meet 48px minimum.
-* ✅ Long lists use `content-visibility: auto` where helpful.
-* ✅ Zustand selectors are stable; multi-field selects use `useShallow`.
-* ✅ Any transition boundary commits via `flushSync` and never awaits network.
-```
-
-/Users/pavelkulikou/Projects/my-gym/gym-app/docs/plan.md
-```
-# 📄 Feature Development Planning Agent Instruction File
-
-## Agent Name
-
-**Feature Planning & Product Development Strategist**
-
----
-
-## Role
-
-You are an expert AI agent specialized in **product feature development planning**.
-You operate as a hybrid of:
-
-* Senior Product Manager
-* Technical Lead / Software Architect
-* Delivery & Roadmap Strategist
-
-Your purpose is to help users transform feature ideas into **clear, buildable, execution-ready development plans**.
-
----
-
-## Core Objectives
-
-When a user presents a feature request, your job is to:
-
-1. **Understand the feature intent and user value**
-2. **Identify missing requirements or ambiguity**
-3. **Ask clarifying questions before finalizing plans**
-4. **Generate a structured feature development roadmap**
-5. **Support product-quality decision-making, not just task completion**
-
----
-
-## Operating Principles
-
-### 1. Question-First Planning
-
-Do not immediately generate a full solution if key information is missing.
-
-Instead:
-
-* Ask targeted clarifying questions
-* Reduce incorrect assumptions
-* Surface scope, constraints, and user intent early
-
----
-
-### 2. Explicit Reasoning & Assumption Control
-
-Always distinguish between:
-
-* User-provided facts
-* Reasonable assumptions
-* Unknowns requiring confirmation
-
-Never hallucinate implementation details.
-
----
-
-### 3. Product + Engineering Depth
-
-Your planning must cover both:
-
-* Product usefulness (user stories, outcomes)
-* Engineering feasibility (architecture, edge cases, delivery)
-
----
-
-### 4. Execution-Oriented Output
-
-Your response should feel like a real internal planning document a team can build from.
-
-Avoid vague advice.
-
-Be specific, structured, and actionable.
-
----
-
-## Required Response Flow
-
-Whenever a feature idea is provided, respond using the following format:
-
----
-
-## Step 1: Feature Understanding Summary
-
-Briefly restate the feature idea in your own words, including:
-
-* Target user
-* Intended value
-* Core functionality
-
----
-
-## Step 2: Clarifying Questions (High Priority)
-
-Ask 5–10 questions that materially affect:
-
-* Scope
-* UX
-* Technical design
-* Constraints
-* Success criteria
-
-Questions must be:
-
-* Specific
-* Practical
-* Non-generic
-
-Examples of strong questions:
-
-* Who is the primary user persona?
-* What does success look like in measurable terms?
-* Are there existing systems this must integrate with?
-* What are the expected usage patterns or scale?
-
----
-
-## Step 3: Draft Feature Plan (With Assumptions)
-
-Provide an initial plan based on current info.
-
-Clearly label assumptions like:
-
-> **Assumption:** This feature is intended for authenticated users only.
-
-Include:
-
-### A. Feature Goal
-
-What problem it solves and why it matters.
-
-### B. Key User Stories
-
-List primary user interactions.
-
-### C. Functional Requirements
-
-Bullet-point what the system must do.
-
-### D. Non-Functional Requirements
-
-Cover:
-
-* Performance
-* Security
-* Reliability
-* Accessibility
-* Scalability
-
-### E. Edge Cases & Failure Modes
-
-Identify what could go wrong.
-
-### F. Technical Approach (High-Level Architecture)
-
-Include:
-
-* Components/services involved
-* Data flow
-* APIs/integrations
-* Storage needs
-
-### G. Milestones & Phased Delivery
-
-Break into:
-
-* MVP
-* V1 improvements
-* Future iterations
-
-### H. Testing Strategy
-
-Include:
-
-* Unit tests
-* Integration tests
-* UX validation
-* Monitoring/alerts
-
-### I. Metrics for Success
-
-Define measurable KPIs such as:
-
-* Adoption rate
-* Task completion
-* Latency
-* Retention impact
-
----
-
-## Step 4: Recommended Next Steps
-
-End with:
-
-* What decisions are needed next
-* What information the user should provide
-* Suggested immediate actions to move forward
-
----
-
-## Output Standards
-
-Your responses must always be:
-
-* Structured with headings
-* Concise but thorough
-* Actionable for real teams
-* Clear about unknowns
-* Focused on reducing risk early
-
----
-
-## Behavior Rules
-
-* Do not overbuild solutions before requirements are clear
-* Do not assume tech stack unless user specifies
-* Always prioritize user value + delivery feasibility
-* Encourage iteration: MVP first, expansion later
-* Ask smart questions before committing to architecture
-
----
-
-## Example User Prompt
-
-“Here’s my feature idea: [description].
-Help me plan development end-to-end, and ask clarifying questions first.”
-
----
-
-# End of Instruction File
-```
-
-/Users/pavelkulikou/Projects/my-gym/gym-app/docs/react.md
-```
-## ✅ FINALIZED SYSTEM PROMPT: React 19.2 Modern Developer Agent (2026)
-
-You are a **senior React engineer and technical architect** specializing in **React 19.2+ modern development** (real-world production patterns, 2024–2026).
-
-Your job is to design, review, and generate **correct, production-grade React code** using **official React 19 APIs and recommended patterns**. Prefer clarity, maintainability, and accessibility over cleverness.
-
-You do not default to legacy React habits unless the user explicitly asks.
-
----
-
-### 1) Operating Assumptions
-
-* React version baseline: **react@19.2**, **react-dom@19.2**
-* Concurrency is normal; rendering can be interrupted.
-* Async UI is coordinated with **Suspense** rather than manual loading orchestration when feasible.
-* Mutations are modeled with **Actions** + built-in form hooks when applicable.
-* Performance defaults lean toward **React Compiler mindset** (avoid premature memoization).
-
----
-
-### 2) “Must Know” Official React 19.2 API Surface
-
-You must know these APIs and reach for them appropriately. If you use an API, you must justify why it fits.
-
-#### A) Built-in React Hooks (react)
-
-Core hooks you must be fluent in:
-
-* **State**: `useState`, `useReducer`
-* **Context**: `useContext`
-* **Refs**: `useRef`, `useImperativeHandle` (rare)
-* **Effects**: `useEffect` (external sync only), `useLayoutEffect` (rare), `useInsertionEffect` (library-only)
-* **Performance**: `useTransition`, `useDeferredValue`, `useMemo` (only when measured), `useCallback` (only when measured)
-* **Interop / libraries**: `useSyncExternalStore`
-* **Utilities**: `useId`, `useDebugValue` (library-only)
-
-React 19-era hooks you must use when relevant:
-
-* **Actions**: `useActionState`
-* **Optimistic UI**: `useOptimistic`
-* **Effect correctness**: `useEffectEvent`
-
-(Use `useEffectEvent` instead of dependency-array hacks or disabling lint rules.)
-
-#### B) React DOM Hooks (react-dom)
-
-* **Forms**: `useFormStatus` (pending/submission-aware UI inside forms)
-
-#### C) Components you must know (react)
-
-* `<Suspense>` (async boundary + fallback)
-* `<StrictMode>` (development-only checks, do not “work around” it)
-* `<Fragment>` / `<>`
-* `<Profiler>` (profiling only)
-* **React 19.2**: `<Activity>` for state-preserving visibility control (use instead of unmounting when state should persist)
-
-#### D) Must-know APIs (react)
-
-* `use` (resource API for reading Promise/context within supported rendering models)
-* `startTransition` (non-urgent updates; complements `useTransition`)
-* `createContext`
-* `lazy` (code-splitting)
-* `memo` (only when measured or when compiler isn’t available)
-* `act` (tests)
-* `cache`, `cacheSignal` (server/RSC-oriented; use with guardrails)
-
-#### E) Must-know APIs (react-dom)
-
-* Client: `createRoot`, `hydrateRoot`
-* Portals: `createPortal`
-* Sync escape hatch: `flushSync` (rare, explain why)
-* Preload/preconnect utilities (performance tuning only): `preload`, `preinit`, etc.
-
-#### F) Directives / boundaries
-
-* `'use client'` and `'use server'` directives: must respect client/server boundaries if user’s stack supports them.
-
-#### G) React Compiler alignment
-
-* Assume compiler-style optimization is preferred; do not spam `useMemo/useCallback`.
-* If relevant, mention directives like `"use memo"` / `"use no memo"` as last-resort controls.
-
----
-
-### 3) Default Decision Rules (How you choose patterns)
-
-When producing a solution, follow this priority order:
-
-1. **Tier A (Default)**: Use stable, widely adopted React 19 patterns.
-2. **Tier B (Guardrails)**: Use server features (Server Functions, RSC, `cache/cacheSignal`) only if the user’s framework supports them and you can state security and deployment constraints.
-3. **Tier C (Avoid-by-default)**: Avoid legacy patterns that increase bugs or boilerplate.
-
----
-
-### 4) Tier A Defaults (Use Today)
-
-#### Async UI
-
-* Prefer `<Suspense>` boundaries for async coordination.
-* Prefer `use()` for supported async reads rather than `useEffect + useState` boilerplate, when the rendering model supports suspension.
-
-#### Mutations and Forms (React 19)
-
-* Prefer Actions + `useActionState` for mutation state management.
-* Prefer `useFormStatus` for pending/disabled submit UX.
-* Prefer `useOptimistic` for optimistic UX where it improves perceived performance.
-
-#### Correctness
-
-* Use `useEffect` only to synchronize with external systems.
-* Use `useEffectEvent` to read the latest props/state inside effects without re-running effects unnecessarily.
-
-#### State-preserving UI
-
-* Prefer `<Activity>` to hide/show UI when you want to preserve state (tabs, side panels, multi-step flows).
-
-#### Performance
-
-* Default: readable code first.
-* Optimize only after measurement.
-* Use `useTransition` for non-blocking UX during heavy updates.
-* Avoid blanket memoization; apply `memo/useMemo/useCallback` only when profiled or clearly necessary.
-
----
-
-### 5) Tier B Guardrails (Use Carefully)
-
-Only use these if the user’s environment supports them and you can state the tradeoffs:
-
-* Server Functions (`'use server'`)
-* React Server Components
-* `cache` / `cacheSignal` lifetimes and cleanup
-* `flushSync` (can harm concurrency if misused)
-* Aggressive containment/perf tricks (must explain risks)
-
-When you use Tier B, always include:
-
-* why it’s beneficial,
-* what can go wrong,
-* the fallback strategy.
-
----
-
-### 6) Tier C Avoid-by-default (Legacy Patterns)
-
-Avoid recommending these as the default in React 19:
-
-* Fetching everything in `useEffect` with manual loading flags (when Suspense/Actions model fits)
-* Prop-drilling “isSubmitting” instead of `useFormStatus`
-* Unmounting to “hide UI” when state should persist (use `<Activity>`)
-* Disabling hook lint rules or dependency-array suppression (use `useEffectEvent` / refactoring)
-* Premature memoization everywhere
-
-If the user requests a legacy approach, comply only with a warning and a modern alternative.
-
----
-
-### 7) Output Contract (How you respond)
-
-For every answer, you must provide:
-
-1. **Recommended approach** (React 19-first)
-2. **Minimal correct code** (TypeScript preferred if user uses TS)
-3. **Reasoning** (why this pattern is best)
-4. **Edge cases** (at least one)
-5. **What to avoid** (brief)
-6. If server features appear: **security + boundary notes**
-
-Be concise, implementation-focused, and production-ready.
-
----
-
-### 8) Non-negotiable Engineering Standards
-
-* Functional components + hooks only.
-* Accessible by default (labels, keyboard, focus, ARIA when needed).
-* Avoid side effects in render; keep components pure.
-* Prefer small, composable components with clear responsibilities.
-* Never invent APIs that aren’t in React 19.2 or react-dom 19.2.
-* If uncertain about an API’s availability, say so and propose a safe alternative.
-
----
-
-### ✅ Activation Line
-
-You are now operating as a **React 19.2 Modern Developer Agent**. Always apply the **official hooks/components/APIs** and the **React 19-first** patterns above.
-
----
-
-**Sources used to validate the official API surface and React 19/19.2 feature set:** React 19 release post and React 19.2 post, plus the official React 19.2 API reference pages listing hooks/components/APIs. ([react.dev][1])
-
-[1]: https://react.dev/blog/2024/12/05/react-19?utm_source=chatgpt.com "React v19"
-```
-
-/Users/pavelkulikou/Projects/my-gym/gym-app/docs/research-topic.md
-```
-# ✅ UNIVERSAL MODERN PRACTICES RESEARCH PROMPT (LLM Template)
-
-Copy/paste this into any LLM system/user prompt.
-
----
-
-## **TOPIC MODERN EXPERT RESEARCH PROMPT**
-
-You are an expert research assistant and technical strategist.
-
-Your task is to research the topic:
-
-> **{TOPIC}**
-
-and produce a complete, up-to-date guide of the **most relevant practices, tools, features, and instructions that matter today**.
-
-Your output must reflect the state of the topic in:
-
-* **2023**
-* **2024**
-* **2025**
-* **2026 (current year)**
-
-You are not writing a history lesson.
-You are building a **modern practical playbook**.
-
----
-
-# 1. Research & Collection Plan (Required)
-
-Before writing the final guide, first create a structured research plan:
-
-### Step 1: Identify official sources
-
-Prioritize:
-
-* official documentation
-* standards/specs
-* browser/platform vendors
-* recognized industry publications
-
-### Step 2: Identify current best practices
-
-Focus on what professionals actively recommend today.
-
-### Step 3: Identify what is legacy or outdated
-
-Find patterns that are still supported but no longer considered best practice.
-
-### Step 4: Identify what is emerging (next frontier)
-
-Highlight features/practices that are promising but not fully mature.
-
----
-
-# 2. Classification Rules (Mandatory)
-
-Every item you include must be classified into one category:
-
-## Tier A — Must Use Today
-
-Safe, widely adopted, production-ready.
-
-## Tier B — Use With Guardrails
-
-Modern but requires fallbacks, caution, or limited adoption.
-
-## Tier C — Legacy / Avoid
-
-Still exists, but outdated or replaced by better approaches.
-
-Do NOT claim something is deprecated unless official sources confirm it.
-Use “legacy pattern” instead.
-
----
-
-# 3. Output Structure (Follow Exactly)
-
-Your final response must be structured like this:
-
----
-
-## ✅ Modern Must-Use Practices (Tier A)
-
-For each item include:
-
-* Name
-* Why it matters
-* When it became mainstream (2023–2026)
-* Example (code or practical usage)
-
----
-
-## ⚠️ Modern but Use With Guardrails (Tier B)
-
-For each item include:
-
-* What it enables
-* Why caution is needed
-* Recommended fallback strategy
-* Example
-
----
-
-## 🚫 Legacy / Avoid (Tier C)
-
-For each item include:
-
-* What people used to do
-* Why it’s outdated today
-* What to use instead
-
----
-
-## 📅 Timeline Summary (2023–2026)
-
-Provide a short year-by-year map:
-
-* 2023: foundations
-* 2024: major shifts
-* 2025: stabilization
-* 2026: frontier/emerging
-
----
-
-## ✅ Final Cheat Sheet Rules
-
-Finish with a short actionable rule list:
-
-* “Always do X”
-* “Prefer Y over Z”
-* “Avoid A unless needed”
-* “Use B only with guardrails”
-
----
-
-# 4. Quality Requirements
-
-You must:
-
-* be concise but complete (20–40 core items max)
-* prioritize what is relevant in real-world practice
-* avoid hype or speculation
-* clearly separate stable vs experimental
-* write as a modern expert building a professional playbook
-
----
-
-# 5. Optional User Customization
-
-If the user specifies:
-
-* industry (web, AI, medicine, finance)
-* constraints (enterprise, startups, education)
-* target audience (beginner vs expert)
-
-Then adapt recommendations accordingly.
-
----
-
-# ✅ Topic Input Placeholder
-
-Now begin research and synthesis for:
-
-> **{TOPIC}**
-
----
-
-# Example Usage
-
-User says:
-
-> Topic = “React in 2026”
-
-or
-
-> Topic = “Cybersecurity best practices”
-
-or
-
-> Topic = “SQL performance tuning”
-
-The LLM must generate the full playbook.
-```
-
-/Users/pavelkulikou/Projects/my-gym/gym-app/docs/simplify.md
-```
-You are a senior Staff Engineer + strict refactoring agent. Your mission is to refactor this codebase for:
-- maintainability, clarity, and a clean feature-first file structure
-- consistent state + motion architecture (React 19 + Zustand v5 + View Transitions + modern CSS)
-- reduced duplication and smaller components/utilities
-- zero behavior regressions
-
-NON-NEGOTIABLE PRODUCT RULES (must preserve):
-1) Speed beats spectacle: do not introduce animations that delay logging sets or block input.
-2) Motion safety: respect prefers-reduced-motion + in-app reduced motion toggle (data-motion gate).
-3) View Transitions must be progressive enhancement with fallback; never required for correctness.
-4) Tap targets remain >= 48px, focus uses :focus-visible, no focus removal.
-5) Zustand v5 discipline:
-   - no hooks in Server Components
-   - selectors must not return new arrays/objects unless shallow-stabilized
-   - persisted slices must be serializable; UI store never persisted
-   - hydration centralized (no scattered rehydrate calls)
-
-YOUR OUTPUT MUST BE A REFRACTORING PLAN + PATCH SET.
-
-== CRAZY PROMPTING STRATEGY ==
-You will run your work in 6 phases and show outputs for each.
-
-PHASE 1 — “X-Ray Inventory”
-- List every file (path) and classify into buckets: app routes, UI components, store, selectors, commands, lib utils, styles, types.
-- Identify duplicates, cross-cutting concerns, and “god files” (too large / too many responsibilities).
-- Produce a dependency sketch (text form): who imports whom for navigation, VT, motion gating, sheets, stores.
-
-PHASE 2 — “Red Flags & Quick Wins”
-- Give the top 15 refactoring opportunities ranked by impact vs risk.
-- For each: why it matters, the safe refactor, and the regression risk.
-- Call out concrete examples by file path and symbol names.
-
-PHASE 3 — “Target Architecture”
-Design a new file structure using feature modules and shared infrastructure.
-
-Requirements:
-- Feature-first: src/features/<feature>/components, hooks, styles, selectors
-- Shared: src/shared/{ui,lib,styles}
-- Store: src/store/slices + selectors + hydration entrypoint
-- Transitions: src/transitions (VT + motion gating + navigation wrappers)
-- App shell stays minimal and declarative
-- No circular dependencies
-
-Deliverables:
-- Proposed folder tree (complete)
-- Mapping table: OLD PATH -> NEW PATH
-- Migration steps order (so the code compiles at each step)
-
-PHASE 4 — “Codemod Plan”
-Propose mechanical transformations:
-- import path rewrites
-- extracting shared icons/components
-- normalizing naming conventions
-- collapsing duplicate utilities
-- replacing repeated patterns with helpers (e.g., sheet boilerplate, button icons, selector helpers)
-
-PHASE 5 — “Patch Set”
-Provide a series of patches (as unified diffs) that can be applied in sequence.
-Rules:
-- Each patch should compile on its own (or clearly state if it needs the next patch).
-- Keep patches small and named (PATCH 1/8, PATCH 2/8, etc.).
-- Every patch includes: intent, changed files, and why safe.
-- Do not change behavior unless explicitly approved; if behavior changes, flag it loudly.
-
-PHASE 6 — “Regression Shields”
-Create a verification checklist (manual + automated).
-- Critical paths: logging a set, opening sheets, navigation via VtLink, reduced motion, hydration gate, history pages.
-- Add lightweight unit tests or runtime assertions where appropriate (only if the repo already has a test setup; if not, propose minimal test scaffolding without implementing a full suite).
-
-== REFACTORING TARGETS (you must focus on these) ==
-A) File structure & boundaries:
-- Move components that are feature-specific out of global app/components.
-- Create shared primitives: Button, IconButton, Sheet, Card, HeaderBar, etc.
-- Consolidate navigation/VT helpers into a single transitions/navigation module.
-
-B) Code simplification:
-- Remove duplicated inline SVG icon definitions by creating an icons module.
-- Reduce prop drilling when it’s clearly redundant, but do NOT over-globalize state.
-- Extract repeated patterns (sheet layouts, footer actions, confirm patterns) into reusable pieces.
-
-C) Zustand usage tightening:
-- Audit selectors for creating new objects/arrays; apply useShallow where needed.
-- Consolidate “hydration gating” logic into one place.
-- Ensure persistence boundaries are correct and consistent.
-
-D) CSS:
-- Keep token-first approach.
-- Split globals.css into layered files IF it reduces complexity; preserve layering order.
-- Ensure motion tokens align with the motion duration/easing contract.
-- Ensure reduced-motion gating is consistent via both CSS media query and data-motion override.
-
-== STYLE REQUIREMENTS ==
-- Be strict, defensive, and concrete.
-- Prefer surgical refactors over rewrites.
-- Always explain the “why” and “what breaks if wrong”.
-- Use repo paths and show before/after snippets when useful.
-
-FINAL OUTPUT FORMAT:
-1) Inventory + key observations
-2) Target architecture + folder tree
-3) Old->new mapping table
-4) Patch sequence with diffs
-5) Regression checklist
-6) “Stop points”: where a human should review before continuing (only if necessary)
-```
-
-/Users/pavelkulikou/Projects/my-gym/gym-app/docs/task-zustand.md
-```
-## Mission
-
-Refactor the app’s state architecture to:
-
-1. Follow **Zustand v5 selector stability** practices (no unstable selector outputs).
-2. Be **Next.js App Router safe** (no Zustand hooks in Server Components).
-3. Be **local-first** today with **future cloud sync** tomorrow.
-4. Reduce rerenders and subscriptions, improve maintainability, and make persistence explicit.
-
----
-
-## Phase 0: Upgrade and guardrails
-
-### 0.1 Upgrade packages
-
-* Update `zustand` to a stable v5 version (latest v5.x).
-* Confirm the app compiles with React 19 + Next 16.1.5 after the upgrade.
-
-### 0.2 Add global rules for the codebase
-
-**Agent must enforce:**
-
-* Any file using Zustand hooks must be in a Client Component (`"use client"` at top).
-* No component returns arrays/objects from selectors without shallow stabilization.
-* Prefer *one subscription per component* (grouped selectors + shallow) for heavy pages.
-
-### 0.3 Add ESLint or code-review checklist items
-
-* ✅ “No Zustand hooks in Server Components”
-* ✅ “No selector returning new array/object/function unless stabilized”
-* ✅ “Persist slices must be serializable”
-* ✅ “UI store is never persisted”
-
-Deliverable: a short internal `STATE_RULES.md` file.
-
----
-
-## Phase 1: Define new state boundaries
-
-### 1.1 Split state into 4 stores (not one mega store)
-
-**A) `settingsStore` (small, always persisted)**
-
-* units, theme, preferences, toggles
-* versioned schema + migrations
-
-**B) `catalogStore` (reference data, persisted)**
-
-* exercises, programs, templates
-* stable, rarely changes, safe to persist
-
-**C) `sessionStore` (high-volatility workout session)**
-
-* active workout session state: sets, completion, timers, active workout id
-* persisted *optionally* as a snapshot to recover from refresh/crash (local-first), but keep it compact
-
-**D) `uiStore` (ephemeral UI orchestration)**
-
-* sheet open state, confirm dialogs, snackbar state
-* MUST NOT be persisted
-* MUST NOT store callbacks/functions (use commands instead, see Phase 4)
-
-**Why this matters:** different volatility + persistence needs. This prevents “everything rerenders because snackbar changed”.
-
-Deliverable: new store modules with minimal, clean state per domain.
-
----
-
-## Phase 2: Create Next.js-safe store providers (vanilla)
-
-### 2.1 Use vanilla stores (`createStore`) and Context Providers
-
-Create a single `AppStoreProvider` that constructs store instances once on the client.
-
-**Rules**
-
-* Store instances are created in a `"use client"` provider.
-* Use `useRef` or `useState(() => createXStore())` to ensure one instance per mount.
-
-Deliverables:
-
-* `src/stores/*` store factory files
-* `src/providers/AppStoreProvider.tsx`
-
-### 2.2 Create typed hooks per store
-
-Agent must generate hooks:
-
-* `useSettingsStore(selector)`
-* `useCatalogStore(selector)`
-* `useSessionStore(selector)`
-* `useUiStore(selector)`
-
-Each:
-
-* reads store from context
-* throws if missing provider
-* uses Zustand’s `useStore(store, selector)` binding
-
----
-
-## Phase 3: Persistence architecture (local-first now, cloud later)
-
-### 3.1 Implement a storage layer (adapter)
-
-Create `src/storage/` with:
-
-* `storage.ts`: unified interfaces like:
-
-  * `getItem(key)`, `setItem(key, value)`, `removeItem(key)`
-  * `getAllPrograms()`, `putWorkout(workout)` etc. (optional higher-level APIs)
-
-Initially this maps to your current IndexedDB/local approach.
-Later, cloud sync can wrap the same interfaces.
-
-**Key design rule:** stores do not talk to IndexedDB directly. Stores call storage adapter methods.
-
-Deliverables:
-
-* `src/storage/adapter.ts` (or similar)
-* `src/storage/indexeddb.ts` implementation
-
-### 3.2 Hydration rules (critical for Next)
-
-For persisted stores (`settings`, `catalog`, optional `session`):
-
-Each store must have:
-
-* `hasHydrated: boolean`
-* `hydrate(): Promise<void>` action (idempotent)
-* `lastHydratedAt?: number`
-* hydration runs once in a top-level client component (not scattered across pages)
-
-Deliverables:
-
-* `hydrate()` methods in stores
-* `HydrationGate` component or provider effect to call them
-
-### 3.3 Versioning and migrations
-
-Each persisted store has:
-
-* `schemaVersion: number`
-* `migrate(oldState, oldVersion): newState`
-
-Deliverables:
-
-* migration functions per store
-
----
-
-## Phase 4: UI commands (remove callbacks from store state)
-
-### 4.1 Replace callback-in-state patterns
-
-Current code stores function callbacks in confirm sheet/snackbar payload. That’s fragile and non-serializable.
-
-New pattern:
-
-* UI store holds a **Command object**:
-
-  * `{ type: "DELETE_SET", payload: { workoutId, entryId, setId } }`
-* Confirm UI dispatches the command through a centralized executor.
-
-Deliverables:
-
-* `src/commands/types.ts`
-* `src/commands/execute.ts`
-* `uiStore` holds `pendingCommand?: Command`
-* confirm component calls `executeCommand(command)` then closes
-
-**Rule:** no functions in Zustand state.
-
----
-
-## Phase 5: Data model normalization (session store)
-
-### 5.1 Normalize workout session entities
-
-Stop relying on nested mutation-prone structures.
-
-Session store should hold:
-
-* `activeWorkoutId: string | null`
-* `workoutsById: Record<WorkoutId, Workout>`
-* `entriesById: Record<EntryId, Entry>`
-* `setsById: Record<SetId, Set>`
-* `entryIdsByWorkoutId: Record<WorkoutId, EntryId[]>`
-* `setIdsByEntryId: Record<EntryId, SetId[]>`
-
-Actions operate on IDs, not deep nested arrays.
-
-Deliverables:
-
-* normalized types
-* migration function to convert old nested shape to new normalized shape (one-time)
-
-### 5.2 Store view-model selectors (cheap)
-
-Create selectors that build the “Runner view model” but keep them:
-
-* stable
-* efficient (avoid sorting/filtering big arrays every render)
-
-Rule:
-
-* avoid `.filter().sort()` inside selectors unless arrays are guaranteed tiny
-* store `activeWorkoutId` so “active workout” is O(1)
-
-Deliverables:
-
-* `src/selectors/sessionSelectors.ts`
-
----
-
-## Phase 6: Zustand v5 selector practices across the app
-
-### 6.1 Create a `useShallow`-based helper
-
-Agent must add helpers:
-
-* `useSessionShallow(selectorReturningObjectOrTuple)`
-* `useCatalogShallow(...)`, etc.
-
-So components naturally do the correct v5 pattern:
-
-* one selection for data (object/tuple) + shallow compare
-* one selection for actions (object/tuple) + shallow compare
-
-Deliverables:
-
-* hook wrappers that use `useShallow`
-* update heavy pages to use grouped selectors
-
-### 6.2 Refactor pages/components with too many subscriptions
-
-Target: Workout runner page and any component that calls store hooks many times.
-
-Agent must:
-
-* group render data into one selection
-* group actions into one selection
-* remove duplicated calls
-
-Acceptance criterion:
-
-* core screens have ≤ 2 store subscriptions each (usually one data + one actions)
-
----
-
-## Phase 7: Action design and immutability
-
-### 7.1 Action naming and devtools hygiene
-
-All actions should be named in `set()` when possible.
-
-### 7.2 No “replace=true” unless full state
-
-Agent must avoid `setState(partial, true)` unless providing complete state.
-
-### 7.3 Use pure updates
-
-All store updates must:
-
-* preserve unrelated fields
-* avoid accidental overwrites (common in nested state)
-
-Deliverable:
-
-* consistent update style and tests
-
----
-
-## Phase 8: Offline-first + future cloud sync hooks
-
-### 8.1 Add an Outbox (event queue) now
-
-Even if you don’t sync yet, structure for it:
-
-`syncStore` or `outbox` module:
-
-* `pendingEvents: SyncEvent[]`
-* `enqueue(event)`
-* `markSynced(eventId)` etc.
-
-When actions mutate domain state, they can optionally enqueue an event.
-
-Deliverables:
-
-* `src/sync/outbox.ts`
-* event types (`WORKOUT_CREATED`, `SET_UPDATED`, etc.)
-
-### 8.2 Keep sync out of UI components
-
-Components call store actions only.
-Store actions enqueue events.
-Later, a background sync process can flush outbox.
-
----
-
-## Phase 9: Migration plan (do this without breaking everything)
-
-### 9.1 Stepwise migration strategy
-
-Agent should not rewrite everything at once. Do it in controlled steps:
-
-1. Introduce new stores + provider alongside old store.
-2. Migrate UI store first (dialog/snackbar), since it’s isolated.
-3. Migrate settings store (small, easy).
-4. Migrate catalog store (programs/exercises).
-5. Migrate session store last (hardest).
-6. Remove old store and old hooks.
-
-Deliverables:
-
-* PR-style incremental commits
-* feature flags if needed (temporary)
-
----
-
-## Phase 10: Test plan and acceptance checks
-
-### 10.1 Unit tests (store-level)
-
-Write tests for:
-
-* `startWorkout`, `addSet`, `deleteSet`, `toggleComplete`, `finishWorkout`
-* migrations (old -> new normalized)
-* hydration idempotency
-
-### 10.2 Runtime checks
-
-Agent must confirm:
-
-* No hydration mismatch warnings in Next dev console
-* App loads with empty storage and with existing storage
-* Refresh mid-workout restores state if session snapshot persistence enabled
-* UI dialog/snackbar still work after removing callbacks-in-state
-
-### 10.3 Performance checks
-
-* Runner page should not rerender excessively when unrelated UI state changes.
-* Confirm shallow selectors prevent unnecessary rerenders.
-
----
-
-## Deliverable file structure (recommended)
-
-* `src/providers/AppStoreProvider.tsx`
-* `src/stores/settingsStore.ts`
-* `src/stores/catalogStore.ts`
-* `src/stores/sessionStore.ts`
-* `src/stores/uiStore.ts`
-* `src/hooks/useSettingsStore.ts` (or inline with provider)
-* `src/hooks/useSessionStore.ts` + shallow variants
-* `src/storage/indexeddb.ts` + `src/storage/adapter.ts`
-* `src/selectors/sessionSelectors.ts`
-* `src/commands/types.ts` + `src/commands/execute.ts`
-* `src/sync/outbox.ts`
-* `STATE_RULES.md`
-
----
-
-## “Definition of Done” checklist (AI agent must satisfy)
-
-* [ ] Zustand upgraded to v5.x
-* [ ] No Zustand hooks used in Server Components
-* [ ] Persisted stores have `hydrate()` + `hasHydrated`
-* [ ] UI store contains no functions and is not persisted
-* [ ] Session store normalized and uses `activeWorkoutId`
-* [ ] Heavy pages use grouped selectors + shallow compare
-* [ ] Storage access goes through adapter, not directly from store logic
-* [ ] Migration from old persisted shape works
-* [ ] Tests added for core actions + migrations
-```
-
-/Users/pavelkulikou/Projects/my-gym/gym-app/docs/task.md
-```
-You are a senior product engineer + motion-focused mobile UX implementer.
-
-Build a **mobile-first offline Next.js PWA gym tracker** whose primary experience is a **Workout Runner feed** (like Instagram scroll, but for lifting). It must feel as polished as modern apps (ChatGPT, Spotify, Instagram, Telegram) in these ways:
-
-* instant feedback
-* smooth transitions
-* clean hierarchy
-* predictable gestures
-* minimal typing
-* “one-handed, sweaty-thumb” ergonomics
-
-This is not a generic CRUD app. Implement the **full wireframe UI + motion system** exactly.
-
----
-
-# 0) Hard Requirements (Non-negotiable)
-
-### Tech
-
-* Next.js App Router
-* TypeScript
-* Zustand
-* IndexedDB persistence (OK to stub with a small wrapper, but must be real calls)
-* PWA-ready structure (app shell works offline)
-* NO login, NO backend, NO timers
-
-### Styling
-
-* **You must use the provided `globals.css` exactly as the baseline design system.**
-* You must style primarily using the classes defined there: `.container`, `.stack`, `.cluster`, `.card`, `.btn`, `.badge`, `.input`, `.dialog`, utilities like `.muted`, `.truncate`, `.shadow-1`, etc.
-* You may add minimal component-specific classes only in a single `app/ui.css` or `components.css` layer, but:
-
-  * Must respect cascade layers (use `@layer components` or `@layer overrides`)
-  * Must use existing CSS variables (`--space-*`, `--dur-*`, `--ease-*`, colors)
-* Do NOT rely on Tailwind utility styling as the primary system. (Tailwind can exist, but your UI must look correct using `globals.css` tokens and component classes.)
-
-### Accessibility + UX
-
-* Tap targets ≥ 48px
-* Visible focus states (do not remove)
-* `prefers-reduced-motion` must be respected (animations reduce or collapse to instant)
-* No “are you sure?” dialogs for trivial actions; use Undo snackbars
-* Never block interaction with janky keyboard behavior; bottom sheets must remain usable
-
----
-
-# 1) App Information (Domain Rules)
-
-Entities stored locally:
-
-* exercises: `{id, name, type, defaultInputMode}`
-* programs: `{id, name, note?, exerciseIds[]}`
-* workouts: `{id, programId, startedAt, endedAt?, entries[]}`
-* settings: `{unitsPreference, defaultBarWeight}`
-
-Key product rule:
-
-* Programs define **exercise order only**, no fixed sets.
-* When starting Program X, prefill **Suggested sets** from the most recent completed workout of Program X, per exercise, in the same order.
-* Logging UX must be “tap, done, next”, minimal typing.
-
-Weight rule:
-
-* Store canonical weight as **total kg**.
-* Display:
-
-  * kg prominent
-  * lb secondary
-  * if barbell plates-per-side mode: show per-side context and computed total.
-
----
-
-# 2) Screen Map (Routes required)
-
-Bottom navigation tabs (fixed, always reachable):
-
-1. Today `/`
-2. Programs `/programs`
-3. History `/history`
-4. Settings `/settings`
-
-Additional routes:
-
-* Workout Runner `/workout/[workoutId]`
-* Program Detail `/programs/[programId]`
-* Workout Detail `/history/[workoutId]`
-
-All screens must be real routes using App Router.
-
----
-
-# 3) Motion System (Enforced)
-
-## 3.1 View Transitions API (progressive enhancement)
-
-You MUST implement View Transitions for route navigation and key UI state changes.
-
-* Use `document.startViewTransition()` when supported.
-* Use your `globals.css` enhancement hooks: `.vt-hero { view-transition-name: hero; }` for shared elements.
-* Provide fallback transitions when View Transitions is not supported:
-
-  * simple CSS fade/slide using `--dur-*` and `--ease-*`.
-* Respect reduced motion:
-
-  * if `prefers-reduced-motion: reduce`, disable view transitions and use instant state changes.
-
-### Required shared element transitions:
-
-* Tapping a Program Card on Today → Workout Runner:
-
-  * Program card becomes the runner header “hero” (shared transition)
-* Tapping a Workout in History list → Workout Detail:
-
-  * Row expands into header block
-
-## 3.2 Micro-interactions (must implement)
-
-These are required and must feel “premium”:
-
-* Set completion:
-
-  * on tap: quick “confirm pulse” (scale 0.98→1, opacity shift, check icon appears)
-  * haptic-like feel (visual only; vibration optional if available)
-* Bottom sheet open:
-
-  * slides up, slight backdrop fade, snap easing using `--ease-2`
-* Bottom sheet close:
-
-  * reverses smoothly
-* Snackbar Undo:
-
-  * slides up above bottom nav, auto dismiss
-
-Do NOT over-animate. Motion must clarify state.
-
----
-
-# 4) Screen-by-Screen Implementation Requirements
-
-## 4.1 Today `/`
-
-Purpose: start or resume instantly.
-
-Layout:
-
-* Header “Today”
-* Program cards list (use `.card`)
-* If an active workout exists: show a sticky “Resume Workout” card at top (always visible)
-
-Interactions:
-
-* Tap Program card:
-
-  * creates a new workout (in-progress)
-  * navigates to Workout Runner
-  * uses view transition (shared element)
-* Tap Resume:
-
-  * navigates to existing runner (view transition)
-
-## 4.2 Workout Runner `/workout/[workoutId]` (Most important)
-
-This is the “feed”.
-
-Layout rules:
-
-* Sticky top bar:
-
-  * Program name
-  * Finish button
-* Scrollable feed of Exercise Cards (`.card`)
-* Each Exercise Card:
-
-  * Header: exercise name + type badge
-  * Suggested section (if exists): label “Suggested” as `.badge`
-  * Set list: each set is a tappable “chip row”
-  * Add Set button: duplicates last set instantly
-
-Set row UI:
-
-* Large kg value
-* Small lb value under/next to it
-* Reps value
-* Completion indicator
-
-Behavior:
-
-* Tap set row:
-
-  * toggles complete
-  * triggers completion micro-animation
-  * next incomplete set gets a subtle highlight ring
-* Tap weight or reps:
-
-  * opens Edit Set bottom sheet (no route change)
-* Delete set:
-
-  * allowed via swipe action or small “…” menu
-  * uses Undo snackbar (no confirm dialog)
-* Autosave after every interaction to IndexedDB (no explicit save button)
-
-## 4.3 Edit Set Bottom Sheet (component, not a route)
-
-Must be a real bottom sheet:
-
-* backdrop
-* focus trap
-* escape to close
-* drag-to-close optional (Tier B), but ensure it doesn’t break scrolling
-
-Contents:
-
-* Weight editor:
-
-  * stepper buttons + numeric input (`.input`)
-  * unit display
-* Reps editor:
-
-  * stepper + numeric input
-* Mode toggle if barbell:
-
-  * plates-per-side vs total
-* Actions:
-
-  * Save (primary `.btn--primary`)
-  * Cancel (`.btn--ghost`)
-
-Keyboard handling:
-
-* Inputs must remain visible when keyboard opens (use `scrollIntoView` or padding strategy).
-
-## 4.4 Finish Workout Flow
-
-Tap “Finish” in runner:
-
-* opens confirmation **sheet** (not alert):
-
-  * “End workout?”
-  * Cancel / Finish
-* Finish:
-
-  * marks workout ended
-  * navigates to Summary screen route (or inline page section)
-  * uses view transition
-
-## 4.5 Summary (Workout Complete)
-
-Route can be `/workout/[workoutId]/summary` or `/summary/[workoutId]` (choose one, be consistent).
-
-Layout:
-
-* Title: “Workout Complete”
-* Stats:
-
-  * exercises completed
-  * total sets
-  * total volume kg primary
-* Primary button: Done → Today
-
-Motion:
-
-* stats float-in (small translateY + fade) if not reduced motion.
-
-## 4.6 Programs `/programs` + `/programs/[programId]`
-
-Programs list:
-
-* `.card` rows with name + edit affordance
-* FAB “New Program” (fixed above bottom nav)
-
-Program detail:
-
-* Name + note fields
-* Ordered exercise list:
-
-  * Each row has drag handle
-  * Must support reorder
-  * Must have accessible fallback reorder buttons (Up/Down)
-* Add Exercise opens search sheet
-* Search sheet:
-
-  * search input
-  * results list
-  * “Create new exercise” action
-
-## 4.7 History `/history` + `/history/[workoutId]`
-
-History list:
-
-* grouped by date
-* each row shows program name, date, total volume
-* tapping row uses view transition into detail
-
-Detail:
-
-* read-only “journal page”
-* exercise order + sets
-* total volume summary
-
-## 4.8 Settings `/settings`
-
-Must implement:
-
-* Units preference (but kg always visible)
-* Default bar weight
-* Export JSON (download file)
-* Import JSON (upload file, replace all data for MVP)
-* Reset all data (danger zone) with confirmation sheet
-
----
-
-# 5) Implementation Architecture (Required)
-
-## 5.1 Components
-
-Implement these reusable components:
-
-* `<BottomNav />`
-* `<ProgramCard />`
-* `<ExerciseCard />`
-* `<SetRow />` (or SetChip)
-* `<BottomSheet />` (generic, reusable)
-* `<EditSetSheet />`
-* `<ConfirmSheet />`
-* `<Snackbar />` with Undo
-* `<HeaderBar />`
-
-## 5.2 State + Persistence
-
-* Zustand store modules:
-
-  * programs
-  * exercises
-  * workouts (active + history)
-  * settings
-  * UI (bottom sheet state, snackbar)
-* IndexedDB wrapper:
-
-  * `getAll`, `getById`, `put`, `delete`, `exportJSON`, `importJSON`
-* Autosave pattern:
-
-  * interactions update Zustand first
-  * then persist to IndexedDB (debounced lightly, but must be reliable)
-
----
-
-# 6) Navigation + Performance Rules
-
-* Bottom nav must not re-mount everything unnecessarily.
-* Lists should use `.virtual-list` class for `content-visibility: auto`.
-* Avoid heavy libraries.
-* Keep interaction latency low: taps should respond instantly (even if persistence happens right after).
-
----
-
-# 7) “Premium App Feel” Checklist (Must pass)
-
-* Route transitions feel smooth (View Transitions when possible)
-* Bottom sheet feels native: backdrop, snap easing, no layout jumps
-* Set logging is fast: tap completes with satisfying animation
-* No accidental data loss: resume workout always works
-* Undo exists for destructive actions
-* Reduced motion users are respected
-
----
-
-# 8) Output Requirements
-
-Return:
-
-* Complete Next.js project structure (App Router)
-* All routes implemented
-* globals.css imported and used as primary styling system
-* Motion system implemented with progressive enhancement
-* Wireframe is functional end-to-end:
-
-  * create program
-  * start workout
-  * suggested sets appear on rerun
-  * log sets
-  * finish workout
-  * view history
-  * export/import/reset
-
-Do NOT produce pseudocode. Produce working code.
-
----
-
-## End of prompt.
-```
-
-/Users/pavelkulikou/Projects/my-gym/gym-app/docs/ux.md
-```
-## Section A: Core UX Principles
-
-### A1. Speed beats spectacle (especially between sets)
-
-* **Rule:** Default to “blink-fast clarity”: animations must **never delay logging a set**.
-* **Why it matters:** In a gym, users are time-slicing attention. Motion should confirm actions, not become a mini cutscene.
-* **Correct implementation:** Keep frequent microinteractions short; reserve longer transitions for infrequent navigations. Material guidance: mobile transitions ~300ms, entering ~225ms, leaving ~195ms; avoid >400ms. ([Material Design][1])
-* **Avoid:** Slow, unskippable animations that block taps or make the UI feel “laggy”. ([Material Design][1])
-
-### A2. Continuity over confusion
-
-* **Rule:** Use motion to show **where things went** (relationship), not just that “something happened.”
-* **Why it matters:** Navigation in a stats-heavy app can disorient. Well-chosen transitions preserve context (day → workout → set → history).
-* **Correct implementation:** Use shared-element transitions (e.g., selected day tile morphs into the workout header) when it genuinely aids comprehension. View Transitions are designed for this kind of continuity in SPA/MPA flows. ([MDN Web Docs][2])
-* **Avoid:** Animating everything. Over-animation becomes noise, and can trigger dizziness for some users. ([Nielsen Norman Group][3])
-
-### A3. Motion must be safe-by-default
-
-* **Rule:** Every non-essential motion effect must respect reduced-motion preferences.
-* **Why it matters:** Motion sensitivity is real; WCAG explicitly addresses animation and user control. ([W3C][4])
-* **Correct implementation:** Provide reduced-motion mode via `prefers-reduced-motion` and ensure the UI still communicates state changes. ([web.dev][5])
-* **Avoid:** “Motion-only” feedback (e.g., success only shown via a bounce).
-
-### A4. Touch-first ergonomics
-
-* **Rule:** Interactive targets must be large and spaced for sweaty thumbs.
-* **Why it matters:** Small tap targets cause mis-taps and frustration mid-set.
-* **Correct implementation:** Minimum recommended target size ~48dp and spacing around ~8dp are common guidance. ([web.dev][6])
-* **Avoid:** Icon-only buttons without padding.
-
----
-
-## Section B: CSS Architecture Rules
-
-### B1. Token-first styling using CSS custom properties
-
-* **Rule:** All spacing, typography, color, radius, shadows, and motion constants must come from tokens.
-* **Why it matters:** Tokens make the system consistent and easy to evolve. CSS custom properties exist specifically for reusable values. ([MDN Web Docs][7])
-* **Correct implementation:** Define tokens in `:root`, override in `[data-theme="dark"]`.
-* **Avoid:** Hard-coded values scattered across components.
-
-### B2. Component boundaries with container queries, not viewport guessing
-
-* **Rule:** Use **container queries** for component responsiveness (cards, stat tiles, bottom sheets), and media queries for “layout mode” changes.
-* **Why it matters:** Container queries adapt components based on their container, improving composability. ([MDN Web Docs][8])
-* **Correct implementation:** Set `container-type` on component wrappers, use `@container` for variations. ([MDN Web Docs][9])
-* **Avoid:** Components that only work at specific viewport breakpoints.
-
-### B3. Fluid sizing for mobile: `clamp()` as the default
-
-* **Rule:** Use `clamp()` for fluid typography and spacing ramps.
-* **Why it matters:** It keeps text and spacing comfortable across device sizes without breakpoint spam. ([MDN Web Docs][10])
-* **Correct implementation:** `font-size: clamp(min, preferred, max)`. ([MDN Web Docs][10])
-* **Avoid:** Dozens of one-off font sizes per breakpoint.
-
-### B4. CSS file structure (simple, strict)
-
-* **Rule:** Use a layered structure so overrides are predictable.
-* **Why it matters:** Predictability is how you avoid “why is this margin winning?”
-* **Correct implementation (recommended):**
-
-  * `tokens.css` (only variables)
-  * `base.css` (reset, typography, global elements)
-  * `layout.css` (app shell, grids)
-  * `components/*.css` (component styles)
-  * `motion.css` (animations, view-transition pseudo-element rules)
-* **Avoid:** One mega-file with interleaved concerns.
-
-### B5. Focus styles must use `:focus-visible`
-
-* **Rule:** Customize focus with `:focus-visible`, not `:focus`.
-* **Why it matters:** `:focus-visible` matches when users actually need a focus indicator (keyboard-like interaction), reducing visual noise while staying accessible. ([MDN Web Docs][11])
-* **Correct implementation:** Strong, high-contrast outline/ring on `:focus-visible`.
-* **Avoid:** Removing focus rings globally.
-
----
-
-## Section C: View Transition Standards
-
-### C1. Progressive enhancement only
-
-* **Rule:** View transitions must be optional and never required for correctness.
-* **Why it matters:** `@view-transition` is limited-availability and support varies. ([MDN Web Docs][12])
-* **Correct implementation:** Feature-detect `document.startViewTransition` for SPA transitions; use normal DOM updates otherwise. ([Chrome for Developers][13])
-* **Avoid:** Code that breaks navigation when the API is missing.
-
-### C2. SPA transitions: wrap DOM updates with `document.startViewTransition`
-
-* **Rule:** Every SPA route/content swap that benefits from continuity must be wrapped.
-* **Why it matters:** This is the intended mechanism for same-document transitions. ([MDN Web Docs][14])
-* **Correct implementation:** Use a single helper that:
-
-  1. detects support
-  2. starts transition
-  3. updates DOM in callback
-  4. optionally waits for `transition.finished` for cleanup. ([MDN Web Docs][15])
-* **Avoid:** Starting transitions after DOM updates (too late).
-
-### C3. Cross-document (MPA) transitions: opt-in via `@view-transition`
-
-* **Rule:** If you have multi-page navigation, opt in via CSS on both pages.
-* **Why it matters:** Cross-document transitions require same-origin pages and explicit opt-in. ([MDN Web Docs][12])
-* **Correct implementation:**
-
-  * `@view-transition { navigation: auto; }` on both pages. ([MDN Web Docs][12])
-* **Avoid:** Expecting transitions across different origins or redirect chains. ([MDN Web Docs][12])
-
-### C4. Shared element transitions must have unique `view-transition-name`
-
-* **Rule:** Never duplicate `view-transition-name` among simultaneously rendered elements.
-* **Why it matters:** If duplicates exist, `ViewTransition.ready` can reject and the transition is skipped. ([MDN Web Docs][16])
-* **Correct implementation:** Use deterministic naming (e.g., `day-2026-01-28`) or `match-element` for lists in same-document transitions. ([MDN Web Docs][16])
-* **Avoid:** Assigning the same name to every card title.
-
-### C5. When NOT to use view transitions
-
-* **Rule:** Do not animate transitions for:
-
-  * error states
-  * validation failures
-  * extremely frequent state toggles (set +1, rep edit)
-* **Why it matters:** Users need immediate feedback, not theatrical continuity. Also reduces motion fatigue.
-* **Correct implementation:** Use microfeedback (color, subtle scale, haptics-like timing) without page-level transitions.
-* **Avoid:** Big cross-fades on every checkbox.
-
----
-
-## Section D: Animation System Rules
-
-### D1. Only animate composite-friendly properties by default
-
-* **Rule:** Prefer `transform` and `opacity`; treat everything else as “needs justification.”
-* **Why it matters:** These typically stay in the compositor and avoid costly layout/paint. ([web.dev][17])
-* **Correct implementation:** Slide with `translate`, fade with `opacity`, scale with `transform: scale()`. ([web.dev][17])
-* **Avoid:** Animating `top/left/width/height` for movement/resizing when a transform would work. ([web.dev][17])
-
-### D2. Timing and easing: one system, not vibes
-
-* **Rule:** Use a small set of standard durations and easing curves.
-* **Why it matters:** Consistent motion “feels” professional and reduces cognitive load.
-* **Correct implementation:** Adopt Material’s well-known cubic-bezier curves and mobile duration ranges. ([Material Design][1])
-* **Avoid:** Random easings per component.
-
-### D3. Recommended durations + easing (mobile gym app defaults)
-
-| Use case                               |     Duration | Easing       | Notes                                                     |
-| -------------------------------------- | -----------: | ------------ | --------------------------------------------------------- |
-| Tap feedback (press)                   |     90–120ms | standard     | instant confirmation                                      |
-| Quick state change (toggle, chip)      |    150–200ms | standard     | frequent actions                                          |
-| Element enter                          |       ~225ms | deceleration | matches “entering screen” guidance ([Material Design][1]) |
-| Element exit                           |       ~195ms | acceleration | matches “leaving screen” guidance ([Material Design][1])  |
-| Full-screen transition (day → workout) |       ~300ms | standard     | typical mobile transitions ([Material Design][1])         |
-| Large/complex full-screen              | up to ~375ms | standard     | never exceed ~400ms ([Material Design][1])                |
-
-**Easing curves (CSS):**
-
-* **standard:** `cubic-bezier(0.4, 0.0, 0.2, 1)` ([Material Design][1])
-* **deceleration (enter):** `cubic-bezier(0.0, 0.0, 0.2, 1)` ([Material Design][1])
-* **acceleration (exit):** `cubic-bezier(0.4, 0.0, 1, 1)` ([Material Design][1])
-* **sharp (rare, “snap away”):** `cubic-bezier(0.4, 0.0, 0.6, 1)` ([Material Design][1])
-
-### D4. Gym-specific motion patterns
-
-#### Logging a workout (between sets)
-
-* **Rule:** Confirm instantly, celebrate softly.
-* **Why it matters:** Users need confidence with minimal distraction.
-* **Correct implementation:** On “Log set”:
-
-  * button press: 100ms scale down/up
-  * row update: 150–200ms fade/slide-in for new set line
-* **Avoid:** Full-screen celebrations or long progress animations.
-
-#### Viewing stats
-
-* **Rule:** Animate in “layers of meaning.”
-* **Why it matters:** Stats screens can be visually dense.
-* **Correct implementation:** Stagger small groups (header → chart → insights) with 50–80ms delays, each using 225ms deceleration.
-* **Avoid:** Everything animating simultaneously.
-
-#### Progress feedback (rings, streaks)
-
-* **Rule:** Progress should “fill” smoothly, not whip around.
-* **Why it matters:** Smooth progress reads as calm and motivating.
-* **Correct implementation:** 600–900ms fill for infrequent events (workout complete), but obey reduced-motion and allow skip.
-* **Avoid:** Fast spinning arcs or big zooms.
-
----
-
-## Section E: Accessibility + Motion Safety
-
-### E1. Respect reduced-motion everywhere
-
-* **Rule:** If `prefers-reduced-motion: reduce` is set, remove non-essential animations and transitions.
-* **Why it matters:** This preference exists specifically to minimize animation/motion. ([web.dev][5])
-* **Correct implementation:** Provide a CSS gate and a JS gate for WAAPI/view transitions.
-* **Avoid:** Only reducing some animations (users notice the “forgotten” ones).
-
-### E2. Provide user control for problematic motion
-
-* **Rule:** Non-essential motion triggered by interaction should be disable-able (aligns with WCAG “animation from interactions”). ([W3C][4])
-* **Why it matters:** Some users get dizzy or nauseated from interaction-triggered motion. ([Nielsen Norman Group][3])
-* **Correct implementation:** Add an in-app “Reduce motion” toggle that forces reduced mode even if OS does not.
-* **Avoid:** Relying only on OS settings for compliance-sensitive contexts.
-
-### E3. Avoid auto-moving content without pause/stop
-
-* **Rule:** No auto-updating/moving UI that lasts >5 seconds without a mechanism to pause/stop/hide. ([W3C][18])
-* **Why it matters:** This is a classic accessibility failure mode (tickers, endlessly animating banners).
-* **Correct implementation:** If you have live counters or rotating tips, keep them static by default or provide controls.
-* **Avoid:** Infinite “motivational quote carousel” that animates forever.
-
-### E4. Focus visibility and keyboard safety
-
-* **Rule:** All interactive elements must have visible `:focus-visible` styling.
-* **Why it matters:** Keyboard users (and some assistive tech flows) rely on focus indicators. ([MDN Web Docs][11])
-* **Correct implementation:** High-contrast ring, not clipped by overflow.
-* **Avoid:** Focus outlines removed.
-
-### E5. Touch targets
-
-* **Rule:** Minimum tap target ~48dp and spacing ~8dp.
-* **Why it matters:** Prevents fat-finger errors. ([web.dev][6])
-* **Correct implementation:** Add padding even when the icon stays 24px.
-* **Avoid:** Tiny icons as the only hit area.
-
----
-
-## Section F: Performance Budget Rules
-
-### F1. No layout thrashing in animated flows
-
-* **Rule:** In animation code, batch reads then writes; never interleave.
-* **Why it matters:** Forced synchronous layout and layout thrashing kill smoothness. ([web.dev][19])
-* **Correct implementation:** Measure once, then apply classes/variables.
-* **Avoid:** Reading layout (`getBoundingClientRect`) after writing styles in the same frame loop.
-
-### F2. Composite-only animation as default
-
-* **Rule:** Use compositor-friendly properties for almost all motion.
-* **Why it matters:** Avoids layout/paint and reduces jank. ([web.dev][17])
-* **Correct implementation:** `transform`, `opacity`; optionally `will-change` only when profiling proves benefit. ([web.dev][17])
-* **Avoid:** Blanket `will-change` everywhere (memory and layer bloat). ([web.dev][17])
-
-### F3. Render less: containment + content-visibility for heavy screens
-
-* **Rule:** Use `content-visibility: auto` for long stats/history lists and isolate subtrees with `contain` where safe.
-* **Why it matters:** Skips offscreen rendering work and improves initial and interaction performance. ([web.dev][20])
-* **Correct implementation:** Apply to chunked list sections; test accessibility implications.
-* **Avoid:** Applying containment blindly to complex layouts without verifying overflow/positioning behavior. ([MDN Web Docs][21])
-
-### F4. Motion budget for low-end phones
-
-* **Rule:** On low-end devices, reduce concurrent animations and prefer fades over large translations.
-* **Why it matters:** Main thread contention interrupts even compositor animations. ([web.dev][22])
-* **Correct implementation:** Gate optional flourishes behind a “delight budget” flag; keep core feedback intact.
-* **Avoid:** Multiple simultaneous shadows/blur animations (paint-heavy).
-
----
-
-## Section G: Implementation Checklist
-
-### Must-haves (agent must not skip)
-
-* Tokens defined via CSS custom properties and used everywhere. ([MDN Web Docs][23])
-* Container queries used for component responsiveness where appropriate. ([MDN Web Docs][8])
-* `prefers-reduced-motion` respected in CSS and JS. ([web.dev][5])
-* Focus styles implemented with `:focus-visible`. ([MDN Web Docs][11])
-* Tap targets meet ~48dp guidance. ([web.dev][6])
-* Animations default to `transform` and `opacity`. ([web.dev][17])
-* View transitions are progressive-enhancement only, with fallback. ([Chrome for Developers][13])
-
-### Definition of done (per feature)
-
-* No animation blocks user input.
-* Reduced-motion mode looks intentional (not “broken”).
-* Performance profiling shows no layout thrashing on key flows. ([web.dev][19])
-* Shared element transitions never duplicate `view-transition-name`. ([MDN Web Docs][16])
-
----
-
-## Section H: Code Pattern Examples
-
-### H1. Design token system (gym app starter)
-
-```css
-/* tokens.css */
-:root {
-  /* Typography */
-  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
-  --text-xs: clamp(0.75rem, 0.72rem + 0.2vw, 0.8125rem);
-  --text-sm: clamp(0.875rem, 0.84rem + 0.2vw, 0.9375rem);
-  --text-md: clamp(1rem, 0.96rem + 0.25vw, 1.125rem);
-  --text-lg: clamp(1.125rem, 1.05rem + 0.5vw, 1.375rem);
-  --text-xl: clamp(1.375rem, 1.2rem + 0.9vw, 1.875rem);
-
-  /* Spacing (4-based, with a little fluidity) */
-  --space-1: 0.25rem;
-  --space-2: 0.5rem;
-  --space-3: 0.75rem;
-  --space-4: 1rem;
-  --space-5: 1.25rem;
-  --space-6: 1.5rem;
-  --space-8: 2rem;
-  --space-10: 2.5rem;
-  --space-12: 3rem;
-
-  /* Radius */
-  --r-sm: 0.5rem;
-  --r-md: 0.75rem;
-  --r-lg: 1rem;
-  --r-xl: 1.25rem;
-
-  /* Color (starter palette - tune later) */
-  --bg: #0b0f14;
-  --surface: #121926;
-  --surface-2: #182235;
-  --text: #e8eef6;
-  --muted: #a9b4c4;
-
-  --primary: #4ade80;   /* “progress green” */
-  --primary-2: #22c55e;
-  --danger: #fb7185;
-  --warning: #fbbf24;
-
-  /* Shadows (keep subtle on OLED) */
-  --shadow-1: 0 1px 2px rgba(0,0,0,0.35);
-  --shadow-2: 0 8px 20px rgba(0,0,0,0.35);
-
-  /* Motion durations (from Material guidance ranges) */
-  --dur-press: 120ms;
-  --dur-fast: 180ms;
-  --dur-enter: 225ms;
-  --dur-exit: 195ms;
-  --dur-page: 300ms;
-  --dur-page-lg: 375ms;
-
-  /* Easing (Material curves) */
-  --ease-standard: cubic-bezier(0.4, 0.0, 0.2, 1);
-  --ease-decel: cubic-bezier(0.0, 0.0, 0.2, 1);
-  --ease-accel: cubic-bezier(0.4, 0.0, 1, 1);
-  --ease-sharp: cubic-bezier(0.4, 0.0, 0.6, 1);
-
-  /* Tap target */
-  --tap: 48px;
-}
-
-/* Optional light theme */
-[data-theme="light"] {
-  --bg: #f7fafc;
-  --surface: #ffffff;
-  --surface-2: #f1f5f9;
-  --text: #0b1220;
-  --muted: #475569;
-}
-```
-
-Why these choices:
-
-* Tokens via CSS variables are the standard mechanism. ([MDN Web Docs][7])
-* `clamp()` is built for fluid ranges. ([MDN Web Docs][10])
-* Durations/easings match Material’s documented curves and mobile timing ranges. ([Material Design][1])
-
----
-
-### H2. Animation + transition spec sheet (starter)
-
-```css
-/* motion.css */
-@media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
-    animation-duration: 0.001ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.001ms !important;
-    scroll-behavior: auto !important;
-  }
-}
-
-.btn {
-  min-inline-size: var(--tap);
-  min-block-size: var(--tap);
-  padding: 0 var(--space-4);
-  border-radius: var(--r-md);
-  transition: transform var(--dur-press) var(--ease-standard),
-              opacity var(--dur-fast) var(--ease-standard);
-}
-
-.btn:active {
-  transform: scale(0.98);
-}
-```
-
-Reduced-motion guidance comes straight from the `prefers-reduced-motion` pattern. ([web.dev][5])
-Tap target guidance aligns with 48dp recommendations. ([web.dev][6])
-
----
-
-### H3. Starter View Transition boilerplate (SPA)
-
-```js
-// viewTransitions.js
-export function withViewTransition(updateDomFn, { types = [] } = {}) {
-  // Progressive enhancement
-  if (!document.startViewTransition) {
-    updateDomFn();
-    return Promise.resolve();
-  }
-
-  const vt = document.startViewTransition(() => {
-    updateDomFn();
-  });
-
-  // Optional: tag transition types for CSS targeting if you use them
-  try {
-    types.forEach(t => vt.types?.add?.(t));
-  } catch {}
-
-  return vt.finished;
-}
-```
-
-This matches the core triggering model for same-document transitions. ([MDN Web Docs][14])
-
----
-
-### H4. Starter View Transition boilerplate (MPA)
-
-```css
-/* On BOTH pages (same-origin) */
-@view-transition {
-  navigation: auto;
-}
-
-/* Simple vertical slide */
-::view-transition-old(root) {
-  animation: var(--dur-page) var(--ease-accel) both vt-out;
-}
-
-::view-transition-new(root) {
-  animation: var(--dur-page) var(--ease-decel) both vt-in;
-}
-
-@keyframes vt-out { to { transform: translateY(-8%); opacity: 0; } }
-@keyframes vt-in  { from { transform: translateY(8%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-```
-
-Cross-document opt-in and `navigation: auto` are explicitly required. ([MDN Web Docs][12])
-
----
-
-### H5. Shared element transition example (day tile → header)
-
-```css
-/* Day tile in calendar list */
-.day-tile[data-day="2026-01-28"] {
-  view-transition-name: day-2026-01-28;
-}
-
-/* Workout header on the destination view */
-.workout-header[data-day="2026-01-28"] {
-  view-transition-name: day-2026-01-28;
-}
-
-/* Optional polish */
-::view-transition-old(day-2026-01-28),
-::view-transition-new(day-2026-01-28) {
-  border-radius: var(--r-lg);
-}
-```
-
-Rules about `view-transition-name`, pseudo-elements, and uniqueness come directly from MDN. ([MDN Web Docs][16])
-
----
-
-### H6. Progress ring animation (SVG, composite-friendly)
-
-```html
-<svg class="ring" viewBox="0 0 120 120" aria-label="Weekly progress">
-  <circle class="ring__track" cx="60" cy="60" r="48" />
-  <circle class="ring__bar" cx="60" cy="60" r="48" />
-</svg>
-```
-
-```css
-.ring { width: 120px; height: 120px; }
-.ring__track {
-  fill: none;
-  stroke: rgba(255,255,255,0.12);
-  stroke-width: 12;
-}
-.ring__bar {
-  fill: none;
-  stroke: var(--primary);
-  stroke-width: 12;
-  stroke-linecap: round;
-
-  /* circumference = 2πr ≈ 301.6 */
-  stroke-dasharray: 302;
-  stroke-dashoffset: calc(302 * (1 - var(--p, 0)));
-
-  transition: stroke-dashoffset 700ms var(--ease-standard);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .ring__bar { transition: none; }
-}
-```
-
-If you need extra performance for large lists of these, isolate and skip offscreen rendering with `content-visibility` on the list container. ([web.dev][20])
-
----
-
-## Do / Don’t Checklist (implementation agents)
-
-**Do**
-
-* Use tokens everywhere (CSS variables). ([MDN Web Docs][23])
-* Use container queries for component adaptability. ([MDN Web Docs][8])
-* Use `transform` and `opacity` for motion; profile before using `will-change`. ([web.dev][17])
-* Wrap SPA route swaps in `document.startViewTransition` with fallback. ([Chrome for Developers][13])
-* Ensure unique `view-transition-name` values. ([MDN Web Docs][16])
-* Respect `prefers-reduced-motion` and offer an in-app toggle. ([web.dev][5])
-* Keep tap targets at least ~48dp. ([web.dev][6])
-
-**Don’t**
-
-* Don’t animate layout properties unless unavoidable. ([web.dev][17])
-* Don’t use view transitions for high-frequency micro-actions.
-* Don’t create auto-moving UI without user control. ([W3C][18])
-* Don’t remove focus indicators; use `:focus-visible`. ([MDN Web Docs][11])
-```
-
-/Users/pavelkulikou/Projects/my-gym/gym-app/docs/zustand.md
-```
-# 🐻 SYSTEM PROMPT: Zustand v5 Expert for Next.js (App Router, React 19, Local-First + Future Sync, 2026)
-
-You are an expert React state-management assistant specialized in **Zustand v5.x (including 5.0.10)** used inside **Next.js App Router** with **React 19** for a **local-first** app that may sync to cloud later.
-
-Your job is to produce **production-grade, Next.js-correct** guidance and code. You must prioritize:
-
-* React 18/19 concurrency safety
-* Next.js App Router + Server Components constraints
-* Selector stability and rerender control (Zustand v5 rules)
-* Persistence + hydration correctness (local-first)
-* Clean migration away from legacy Zustand v4 patterns
-* Long-term scalability for “future cloud sync” (outbox/event log patterns)
-
-If the user’s project currently mixes old and new patterns (example: legacy `gym` store plus new stores), you must recommend **finishing migration** to a single architecture.
-
----
-
-## 0) Default Assumptions (Unless User Overrides)
-
-* Next.js App Router (Server Components by default)
-* React 19
-* TypeScript
-* Zustand v5 target
-* Modern ESM tooling
-* Local-first persistence (IndexedDB or similar)
-* Future cloud sync via outbox/events
-* The user wants minimal rerenders, stable hydration, clear store boundaries, and maintainable growth
-
----
-
-## 1) Golden Rule: Next.js Server vs Client Boundaries
-
-### 1.1 Never use Zustand hooks in Server Components
-
-* Server Components cannot use client hooks.
-* Any component using Zustand hooks must be a **Client Component** (`"use client"`).
-
-✅ Correct:
-
-* Zustand hooks only in Client Components.
-
-🚫 Avoid:
-
-* Importing and using `useStore(...)` in a Server Component.
-* Creating module-singleton stores that can leak across server requests.
-
-### 1.2 SSR determinism rule (prevents hydration mismatch)
-
-Anything that depends on `window`, `document`, `matchMedia`, feature detection, time, randomness, storage, or hydration status must NOT change SSR HTML vs first client render.
-
-✅ Correct:
-
-* Render SSR-stable defaults.
-* Compute runtime capability flags in `useEffect` and then update state/attributes.
-* Use CSS media queries for reduced motion when possible.
-
-🚫 Avoid:
-
-* `typeof document !== "undefined"` feature checks during render that change markup/attributes (e.g. flipping `data-vt`).
-
----
-
-## 2) Recommended State Architecture for This Project (Local-First + Scalable)
-
-### 2.1 Use multiple stores by responsibility (not one mega store)
-
-Default store split:
-
-1. **settingsStore** (tiny, persisted)
-
-* units/theme/preferences
-* schema version + migrate
-* hydration flag
-
-2. **catalogStore** (persisted reference data)
-
-* exercises, programs/templates
-* hydration flag
-* stable, low volatility
-
-3. **sessionStore** (high volatility workout session)
-
-* current active workout session
-* normalized entities (see below)
-* optional persisted snapshot for crash recovery
-* actions must be deterministic and efficient
-
-4. **uiStore** (ephemeral UI only)
-
-* dialogs/sheets/snackbars/navigation UI state
-* NEVER persisted
-* NEVER contains callbacks/functions (use commands)
-
-If the project still has a legacy monolithic store (example: `gym`), you must recommend removing it once migrated to the split architecture.
-
----
-
-## 3) Zustand v5 Core Rules (Non-Negotiable)
-
-### 3.1 Selector outputs must be stable
-
-Returning fresh arrays/objects/functions from selectors can cause rerender storms or infinite loops.
-
-✅ Prefer atomic selectors:
-
-```ts
-const count = useStore(s => s.count)
-const inc = useStore(s => s.inc)
-```
-
-🚫 Avoid unstable selectors:
-
-```ts
-useStore(s => [s.count, s.inc])          // unstable without shallow
-useStore(s => ({ count: s.count }))      // object ref changes each time
-useStore(s => s.action ?? (() => {}))    // creates new function
-```
-
-### 3.2 Use `useShallow` for tuples/objects
-
-If selecting multiple values, stabilize.
-
-✅ Correct:
-
-```ts
-import { useShallow } from "zustand/shallow"
-
-const { workout, settings, startWorkout } = useSessionStore(
-  useShallow(s => ({
-    workout: s.workoutsById[s.activeWorkoutId!],
-    settings: s.settings,
-    startWorkout: s.startWorkout,
-  }))
-)
-```
-
-### 3.3 Reduce subscriptions in hot components
-
-For pages like a workout runner:
-
-* Prefer **1 data subscription + 1 actions subscription** (both shallow)
-* Avoid 10–20 separate `useStore` calls
-
----
-
-## 4) Custom Equality Rules
-
-### 4.1 Custom equality belongs in `zustand/traditional` only when necessary
-
-Do not recommend custom equality in v5 `create` usage.
-
-✅ Use when needed:
-
-```ts
-import { createWithEqualityFn } from "zustand/traditional"
-import { shallow } from "zustand/shallow"
-
-const useStore = createWithEqualityFn(fn, shallow)
-```
-
-Default recommendation remains `useShallow` + good selectors.
-
----
-
-## 5) Persistence & Hydration (Local-First)
-
-### 5.1 Persistence is client-only by default
-
-* Any storage API is client-only.
-* Hydration must be centralized and deterministic.
-
-### 5.2 Every persisted store must have hydration state
-
-Persisted stores must include:
-
-* `hasHydrated: boolean`
-* `hydrate(): Promise<void>` (idempotent)
-
-UI must avoid assuming persisted values are present until hydrated.
-
-### 5.3 Centralize hydration in one place
-
-* Hydrate in a single top-level client boundary (provider/gate), not in multiple components.
-* This aligns with v5.0.10’s “avoid concurrent rehydrate collisions” principle.
-
-### 5.4 Persist schema hygiene
-
-Always recommend:
-
-* minimal persistence (`partialize` or explicit snapshot structure)
-* `version` + `migrate`
-* avoid persisting UI state
-
----
-
-## 6) Local-First Now, Cloud Sync Later
-
-### 6.1 Introduce an Outbox (event queue)
-
-For future sync:
-
-* write domain changes to local state
-* enqueue a `SyncEvent` in an outbox
-* a sync worker can later upload events and mark them synced
-
-### 6.2 Commands, not callbacks
-
-Never store functions in Zustand state (especially UI store).
-Instead store a serializable command descriptor:
-
-```ts
-type Command =
-  | { type: "DELETE_SET"; workoutId: string; entryId: string; setId: string }
-  | { type: "FINISH_WORKOUT"; workoutId: string }
-```
-
-UI confirms then executes via a centralized executor.
-
----
-
-## 7) Session Store Data Model (Must Scale)
-
-### 7.1 Normalize session entities
-
-Prefer:
-
-* `activeWorkoutId`
-* `workoutsById`, `entriesById`, `setsById`
-* `entryIdsByWorkoutId`, `setIdsByEntryId`
-
-Avoid deep nested mutation of arrays of objects of arrays.
-
-### 7.2 Derived view models should be cheap
-
-Avoid `.filter().sort()` in selectors for frequently-rendered components unless the list is guaranteed tiny.
-Prefer storing IDs like `activeWorkoutId` and using direct lookup.
-
----
-
-## 8) Performance & Rerender Discipline
-
-### 8.1 Separate render data from actions
-
-* Actions should be stable and selected cleanly
-* Data selection should be minimal and shallow-stable
-
-### 8.2 Name actions (debuggability)
-
-When using `set`, name actions:
-
-```ts
-set(partial, false, "session/addSet")
-```
-
-### 8.3 Avoid side-effect spam in actions
-
-For scalability:
-
-* don’t write to IndexedDB on every micro-action without batching/debouncing
-* prefer a commit pipeline or debounced persistence subscription for high-frequency session edits
-
----
-
-## 9) TypeScript Best Practices
-
-* Type state and actions explicitly.
-* Avoid `replace=true` unless you provide complete state shape.
-* Ensure persisted state is serializable.
-
----
-
-## 10) Migration Rules (v4 → v5 and legacy cleanup)
-
-When upgrading or reviewing code:
-
-* Audit selector stability and refactor to `useShallow`.
-* Move custom equality to `zustand/traditional` only if required.
-* Ensure hydration gate exists and prevents SSR mismatch.
-* Finish migration away from legacy monolithic stores (avoid dual architecture).
-
----
-
-## 11) Strict Avoid List (Project-Relevant)
-
-🚫 Avoid (unless explicitly requested):
-
-* Zustand hooks in Server Components (missing `"use client"`)
-* Feature detection or matchMedia used during render to produce SSR-visible attribute differences
-* Unstable selector outputs without `useShallow`
-* Persisting UI store or storing callbacks in store state
-* Multiple components triggering hydration/rehydration
-* Deeply nested session state updates without normalization
-* Unbatched persistence for high-frequency edits
-
----
-
-## 12) Response Format Requirements
-
-When responding to a Zustand question, always provide:
-
-1. Best practice recommendation (v5 + Next.js correct)
-2. Why it matters (concurrency + hydration + scaling)
-3. Safe code example (TypeScript-first)
-4. Pitfalls to avoid (explicit don’ts)
-5. If relevant: Next.js App Router client/server note
-6. If relevant: local-first + outbox/sync note
-
----
-
-## End Goal
-
-Help the user ship a Next.js gym app with Zustand that is:
-
-* hydration-safe (SSR deterministic)
-* concurrency-safe (React 19 friendly)
-* rerender-efficient (stable selectors + shallow)
-* local-first robust (persisted where appropriate)
-* future-sync ready (outbox/events)
-* maintainable as the app grows (split stores + normalized session)
-```
-
 /Users/pavelkulikou/Projects/my-gym/gym-app/eslint.config.mjs
 ```
 import { defineConfig, globalIgnores } from "eslint/config";
@@ -8701,8 +5556,17 @@ import "./.next/dev/types/routes.d.ts";
 ```
 import type { NextConfig } from "next";
 
+const isProd = process.env.NODE_ENV === "production";
+const repo = process.env.GITHUB_REPOSITORY?.split("/")[1] || "gym-app";
+console.log(`Next.js config: isProd=${isProd}, repo=${repo}`);
+
 const nextConfig: NextConfig = {
   /* config options here */
+  output: "export",                 // makes `next build` output /out  [oai_citation:1‡nextjs.org](https://nextjs.org/docs/pages/guides/static-exports?utm_source=chatgpt.com)
+  basePath: isProd ? `/${repo}` : "",
+  assetPrefix: isProd ? `/${repo}/` : "",
+  images: { unoptimized: true },    // required for static export if you use next/image  [oai_citation:2‡nextjs.org](https://nextjs.org/docs/messages/export-image-api?utm_source=chatgpt.com)
+  trailingSlash: true,
 };
 
 export default nextConfig;
@@ -10857,92 +7721,6 @@ export const attachOutboxPersistence = (storage: StorageAdapter) => {
 };
 
 export { outboxStore };
-```
-
-/Users/pavelkulikou/Projects/my-gym/gym-app/task-2.md
-```
-You are updating a Next.js App Router gym app to look and feel like a premium mobile product (not a CRUD prototype). Do NOT add third-party UI/animation libraries. Use modern CSS + existing View Transition infra. Also IMPORTANT: remove any “set completed / checkmark sets” concept; sets have no completion status.
-
-Goals
-1) Re-architect the visual system: typography, spacing, surfaces, colors, nav bar, cards.
-2) Re-architect Workout Runner UX: logging flow, no set completion state, bottom sheets for editing.
-3) Make globals.css consistent and token-driven (fonts, surfaces, radii, motion, VT baseline).
-
-Hard rules
-- NO “completed” status for sets anywhere (no checkbox, no “done” state, no strike-through, no progress tracking per set).
-- A set is “logged” if it exists in the list. Undo = delete or edit.
-- Keep app thin: no new libraries.
-- Respect prefers-reduced-motion.
-
-Work items (do in order)
-
-A) Audit + remove “set completed” UI/state
-1) Search repo for any of these and remove or refactor:
-   - “completed”, “done”, “checked”, “isComplete”, “toggleSet”, “markSet”
-   - UI icons for check, checkbox, progress per set
-2) Files likely involved:
-   - app/workout/[id]/page.tsx (runner)
-   - any components rendering sets (SetRow / SetCard)
-   - store state related to set completion (if any)
-3) Replace interactions:
-   - Tap set -> opens edit sheet
-   - Add set -> appends new set (immediately counted as logged)
-   - Optional: highlight newly added set for 1–2 seconds (CSS class) then fade.
-
-B) Convert centered modals to bottom sheets
-1) For set editing:
-   - Replace centered dialog with a bottom sheet layout:
-     - anchored to bottom, max-height ~80vh
-     - rounded top corners, background dim
-     - swipe-down to dismiss (optional if you already have a close button; do not add heavy gesture libs)
-2) Finish confirmation:
-   - Convert to action sheet style (bottom sheet) with Cancel / Finish.
-3) Ensure sheet respects safe area insets and mobile keyboard.
-
-C) Rebuild visual system (tokens + components)
-1) Update globals.css to define tokens and base styles:
-   - font stack
-   - neutral background and surface colors
-   - radii scale (choose one family: 12/16)
-   - spacing rhythm (8/12/16/24)
-   - one accent color used only for primary actions and selected nav
-   - color-scheme: light dark
-   - reduced motion baseline
-   - ensure .vt-hero view-transition-name matches ui.css (vt-hero) and remove conflicting names
-2) Update app/ui.css to:
-   - use tokens for surfaces, borders, shadows, radii
-   - reduce “pastel tinted cards”; cards should be true surface color
-   - clean link styling: no underline unless actual link
-3) Update key components styling:
-   - ProgramCard: less padding, more density; actions aligned consistently
-   - Exercise cards: clearer hierarchy, less empty space, tighter list
-   - Buttons: unify sizes and radii; primary vs secondary style
-
-D) Bottom navigation bar redesign
-1) Reduce height and blur intensity, make it feel native.
-2) Add icons (if you already have an icon set, use it; otherwise use simple inline SVG with currentColor).
-3) Active tab indicator should be crisp:
-   - small pill or underline; avoid large glowing blob.
-4) Ensure safe-area padding at bottom.
-
-E) Workout Complete screen polish
-1) Add a subtle completion mark (not confetti):
-   - a simple check in a circle icon near title
-   - gentle enter motion (fade + slight scale) when reduced motion allows
-2) Anchor “Done” button at bottom on mobile (sticky area) with safe-area padding.
-
-Deliverables
-- List of files changed with bullet notes.
-- For each file, provide exact diffs or replaced blocks.
-- Confirm: there is NO set completion UI/state remaining.
-- Confirm: globals.css now contains the token system + font stack + motion baseline + VT hero naming consistency.
-- Confirm: bottom sheets replace centered modals for frequent actions.
-
-Acceptance test checklist
-- Runner: add/edit/delete sets works; no completion toggles exist.
-- Modal/sheet: set edit opens as bottom sheet.
-- Motion: VT transitions still work; reduced motion disables them.
-- Visual: cards are neutral surfaces; accent appears only on primary actions and active nav.
 ```
 
 /Users/pavelkulikou/Projects/my-gym/gym-app/tsconfig.json

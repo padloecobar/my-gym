@@ -63,20 +63,22 @@ export default function SettingsPage() {
           <div className="field">
             <span className="label">Input units</span>
             <div className="cluster">
-              <button
-                type="button"
-                className={`btn${settings.unitsPreference === "kg" ? " btn--primary" : ""}`}
-                onClick={() => updateSettings({ unitsPreference: "kg" })}
-              >
-                kg
-              </button>
-              <button
-                type="button"
-                className={`btn${settings.unitsPreference === "lb" ? " btn--primary" : ""}`}
-                onClick={() => updateSettings({ unitsPreference: "lb" })}
-              >
-                lb
-              </button>
+              <div className="segmented">
+                <button
+                  type="button"
+                  className={`button${settings.unitsPreference === "kg" ? " button--primary" : ""}`}
+                  onClick={() => updateSettings({ unitsPreference: "kg" })}
+                >
+                  kg
+                </button>
+                <button
+                  type="button"
+                  className={`button${settings.unitsPreference === "lb" ? " button--primary" : ""}`}
+                  onClick={() => updateSettings({ unitsPreference: "lb" })}
+                >
+                  lb
+                </button>
+              </div>
               <span className="badge">kg & lb always visible</span>
             </div>
           </div>
@@ -102,24 +104,24 @@ export default function SettingsPage() {
 
           <div className="field">
             <span className="label">Animations</span>
-            <div className="cluster">
+            <div className="segmented">
               <button
                 type="button"
-                className={`btn${motionStyle === "lift" ? " btn--primary" : ""}`}
+                className={`button${motionStyle === "lift" ? " button--primary" : ""}`}
                 onClick={() => setMotionStyle("lift")}
               >
                 💪 Lift
               </button>
               <button
                 type="button"
-                className={`btn${motionStyle === "slide" ? " btn--primary" : ""}`}
+                className={`button${motionStyle === "slide" ? " button--primary" : ""}`}
                 onClick={() => setMotionStyle("slide")}
               >
                 ⚡ Slide
               </button>
               <button
                 type="button"
-                className={`btn${motionStyle === "spring" ? " btn--primary" : ""}`}
+                className={`button${motionStyle === "spring" ? " button--primary" : ""}`}
                 onClick={() => setMotionStyle("spring")}
               >
                 🔥 Spring
@@ -130,14 +132,16 @@ export default function SettingsPage() {
 
           <div className="field">
             <label className="label" htmlFor="reduce-motion">
-              <input
-                id="reduce-motion"
-                type="checkbox"
-                checked={settings.reduceMotion ?? false}
-                onChange={(e) => updateSettings({ reduceMotion: e.target.checked })}
-                style={{ marginRight: "0.5rem" }}
-              />
-              Reduce motion
+              <span className="checkbox-field">
+                <input
+                  id="reduce-motion"
+                  type="checkbox"
+                  className="checkbox"
+                  checked={settings.reduceMotion ?? false}
+                  onChange={(e) => updateSettings({ reduceMotion: e.target.checked })}
+                />
+                <span>Reduce motion</span>
+              </span>
             </label>
             <span className="help">Disable all animations and view transitions</span>
           </div>
@@ -147,10 +151,10 @@ export default function SettingsPage() {
       <section className="page__section">
         <h2 className="card__title">Data</h2>
         <div className="stack">
-          <button type="button" className="btn" onClick={handleExport}>
+          <button type="button" className="button button--secondary" onClick={handleExport}>
             Export JSON
           </button>
-          <label className="btn btn--ghost">
+          <label className="button button--ghost">
             Import JSON
             <input type="file" accept="application/json" onChange={handleImport} hidden />
           </label>
@@ -161,7 +165,7 @@ export default function SettingsPage() {
         <h2 className="card__title">Danger zone</h2>
         <button
           type="button"
-          className="btn btn--danger"
+          className="button button--danger"
           onClick={() => {
             const command: Command = { type: "RESET_ALL" };
             openConfirm({

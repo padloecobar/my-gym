@@ -22,12 +22,12 @@ export default function ConfirmSheet() {
       onClose={closeSheet}
       footer={
         <div className="sheet__actions">
-          <button type="button" className="btn btn--ghost" onClick={closeSheet}>
+          <button type="button" className="button button--ghost" onClick={closeSheet}>
             Cancel
           </button>
           <button
             type="button"
-            className={`btn ${tone === "danger" ? "btn--danger" : "btn--primary"}`}
+            className={`button ${tone === "danger" ? "button--danger" : "button--primary"}`}
             onClick={() => {
               executeCommand(command);
               closeSheet();

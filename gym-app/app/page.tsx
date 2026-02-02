@@ -65,7 +65,7 @@ export default function TodayPage() {
 
       <section className="page__section">
         <h2 className="card__title">Programs</h2>
-        <div className="stack virtual-list">
+        <div className="stack virtual-list list-surface">
           {programs.map((program) => (
             <ProgramCard
               key={program.id}
@@ -82,7 +82,7 @@ export default function TodayPage() {
                 <p>No programs yet. Build one to get moving.</p>
                 <button
                   type="button"
-                  className="btn btn--primary"
+                  className="button button--primary"
                   onClick={() => navigateWithTransition(router, "/programs")}
                 >
                   Create a program

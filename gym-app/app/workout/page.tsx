@@ -83,13 +83,13 @@ export default function WorkoutRunnerPage() {
             <div className="muted">Workout Runner</div>
             <div className="runner-header__title">{programName}</div>
           </div>
-          <button type="button" className="btn btn--primary" onClick={handleFinish}>
+          <button type="button" className="button button--primary" onClick={handleFinish}>
             Finish
           </button>
         </div>
       </div>
 
-      <section className="page__section virtual-list">
+      <section className="page__section virtual-list list-surface">
         {workout.entries.map((entry) => {
           const exercise = exerciseById.get(entry.exerciseId);
           if (!exercise) return null;

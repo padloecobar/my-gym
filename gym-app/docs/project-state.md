@@ -6,11 +6,13 @@ This document summarizes the app's current architecture, routes, and core featur
 - Product: mobile-first, offline-capable workout tracker focused on a fast Workout Runner experience.
 - Stack: Next.js App Router + TypeScript + React 19 + Zustand v5.
 - Deployment: static export (`output: "export"`) for GitHub Pages.
-- UI system: token-driven `globals.css` + component styles in `app/ui.css`.
+- UI system: Aurora Glass Gym UI with neon-coral accents, pill controls, and glass surfaces (tokens in `globals.css`, components in `app/ui.css`).
+- Design contract: `docs/design-system-contract.md` (tokens + component recipes).
 - Motion: View Transitions (progressive enhancement) + reduced-motion safe fallbacks.
 
 ## Build / Deploy
 - Build command: `bun run build`.
+- Design consistency gate: `bun run lint:design`.
 - Static export: `next.config.ts` sets `output: "export"`, `basePath`, `assetPrefix`, `trailingSlash`.
 - PWA: manifest via `app/manifest.ts`, service worker in `public/sw.js`, offline route `/offline`.
 
@@ -87,5 +89,7 @@ Weights are stored as total kg and displayed as kg + lb.
 ## Constraints & Conventions
 - Avoid new dynamic routes; use query params for detail views.
 - Respect the design system in `globals.css` (tokens + layers).
+- Use `.button` as the canonical button API; `.btn` is deprecated alias only.
+- No raw hex colors outside token/metadata files; keep colors token-driven.
 - Use `useShallow` or stable selectors in Zustand to avoid rerender storms.
 - Reduced motion must disable animation-heavy effects.

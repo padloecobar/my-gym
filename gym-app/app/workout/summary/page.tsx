@@ -65,15 +65,15 @@ export default function WorkoutSummaryPage() {
 
       <section className="summary-stats">
         <div className="summary-stat">
-          <div className="summary-stat__value">{exerciseCount}</div>
+          <div className="summary-stat__value tabular-nums">{exerciseCount}</div>
           <div className="muted">Exercises</div>
         </div>
         <div className="summary-stat">
-          <div className="summary-stat__value">{totalSets}</div>
+          <div className="summary-stat__value tabular-nums">{totalSets}</div>
           <div className="muted">Total sets</div>
         </div>
         <div className="summary-stat">
-          <div className="summary-stat__value">{formatWeight(totalVolume)}</div>
+          <div className="summary-stat__value tabular-nums">{formatWeight(totalVolume)}</div>
           <div className="muted">Total volume</div>
         </div>
       </section>
@@ -81,7 +81,7 @@ export default function WorkoutSummaryPage() {
       <div className="summary-page__sticky">
         <button
           type="button"
-          className="btn btn--primary summary-page__done"
+          className="button button--primary summary-page__done"
           onClick={() => navigateWithTransition(router, "/")}
         >
           Done

@@ -34,10 +34,10 @@ export default function EditSetSheet() {
       onClose={closeSheet}
       footer={
         <div className="sheet__actions">
-          <button type="button" className="btn btn--ghost" onClick={closeSheet}>
+          <button type="button" className="button button--ghost" onClick={closeSheet}>
             Cancel
           </button>
-          <button type="submit" className="btn btn--primary" form="edit-set-form">
+          <button type="submit" className="button button--primary" form="edit-set-form">
             Save
           </button>
         </div>
@@ -123,7 +123,7 @@ function EditSetForm({ setEntry, exercise, settings, onSave }: EditSetFormProps)
         </label>
 
         <div className="stepper">
-          <button type="button" className="btn" onClick={() => handleWeightChange(weightDisplayValue - step)}>
+          <button type="button" className="button" onClick={() => handleWeightChange(weightDisplayValue - step)}>
             -
           </button>
 
@@ -138,7 +138,7 @@ function EditSetForm({ setEntry, exercise, settings, onSave }: EditSetFormProps)
             }}
           />
 
-          <button type="button" className="btn" onClick={() => handleWeightChange(weightDisplayValue + step)}>
+          <button type="button" className="button" onClick={() => handleWeightChange(weightDisplayValue + step)}>
             +
           </button>
         </div>
@@ -157,7 +157,7 @@ function EditSetForm({ setEntry, exercise, settings, onSave }: EditSetFormProps)
           Reps
         </label>
         <div className="stepper">
-          <button type="button" className="btn" onClick={() => setReps(clamp(reps - 1, 0, 200))}>
+          <button type="button" className="button" onClick={() => setReps(clamp(reps - 1, 0, 200))}>
             -
           </button>
           <input
@@ -170,7 +170,7 @@ function EditSetForm({ setEntry, exercise, settings, onSave }: EditSetFormProps)
               setReps(clamp(Number.isFinite(next) ? next : 0, 0, 200));
             }}
           />
-          <button type="button" className="btn" onClick={() => setReps(clamp(reps + 1, 0, 200))}>
+          <button type="button" className="button" onClick={() => setReps(clamp(reps + 1, 0, 200))}>
             +
           </button>
         </div>
@@ -179,17 +179,17 @@ function EditSetForm({ setEntry, exercise, settings, onSave }: EditSetFormProps)
       {exercise.type === "Barbell" ? (
         <div className="field">
           <span className="label">Mode</span>
-          <div className="cluster">
+          <div className="segmented">
             <button
               type="button"
-              className={`btn${mode === "total" ? " btn--primary" : ""}`}
+              className={`button${mode === "total" ? " button--primary" : ""}`}
               onClick={() => setMode("total")}
             >
               Total
             </button>
             <button
               type="button"
-              className={`btn${mode === "plates" ? " btn--primary" : ""}`}
+              className={`button${mode === "plates" ? " button--primary" : ""}`}
               onClick={() => setMode("plates")}
             >
               Plates / side

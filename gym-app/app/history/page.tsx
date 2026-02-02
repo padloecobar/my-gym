@@ -8,6 +8,7 @@ import VtLink from "../shared/components/VtLink";
 import { useCatalogShallow } from "../../store/useCatalogStore";
 import { useSessionShallow, useSessionStore } from "../../store/useSessionStore";
 import { useUiShallow } from "../../store/useUiStore";
+import { useSettingsShallow } from "../../store/useSettingsStore";
 import type { SetEntry, Workout, WorkoutEntry } from "../../types/gym";
 import { formatDate, formatKg, formatLb, formatTime, formatWeight } from "../../app/shared/lib/utils";
 import { getWorkoutStats, makeWorkoutViewSelector } from "../../store/selectors/sessionSelectors";
@@ -34,6 +35,7 @@ export default function HistoryPage() {
       setIdsByEntryId: state.setIdsByEntryId,
       setsById: state.setsById,
     }));
+  const { settings } = useSettingsShallow((state) => ({ settings: state.settings }));
 
   const workoutSelector = useMemo(() => (workoutId ? makeWorkoutViewSelector(workoutId) : () => null), [
     workoutId,
@@ -128,13 +130,25 @@ export default function HistoryPage() {
                         <div className="stack">
                           {entry.sets.map((set) => (
                             <div key={set.id} className="set-row set-row--static">
-                              <div>
-                                <div className="set-row__kg">{formatKg(set.weightKg)} kg</div>
-                                <div className="set-row__lb muted">{formatLb(set.weightKg)} lb</div>
-                              </div>
-                              <div className="set-row__reps">
-                                <span className="set-row__reps-value">{set.reps}</span>
-                                <span className="set-row__reps-label muted">reps</span>
+                              <div className="set-row__stats">
+                                <div className="set-row__stat set-row__stat--weight">
+                                  <span className="set-row__label">Total</span>
+                                  <span className="set-row__values">
+                                    <span className="set-row__pill tabular-nums">{formatKg(set.weightKg)} kg</span>
+                                    <span className="set-row__pill muted tabular-nums">{formatLb(set.weightKg)} lb</span>
+                                  </span>
+                                  {exercise.type === "Barbell" ? (
+                                    <span className="set-row__sub muted tabular-nums">
+                                      Per side {formatKg(Math.max(0, (set.weightKg - settings.defaultBarWeight) / 2))} kg
+                                      {" · "}
+                                      {formatLb(Math.max(0, (set.weightKg - settings.defaultBarWeight) / 2))} lb
+                                    </span>
+                                  ) : null}
+                                </div>
+                                <div className="set-row__stat set-row__stat--reps">
+                                  <span className="set-row__label">Reps</span>
+                                  <span className="set-row__reps-value tabular-nums">{set.reps}</span>
+                                </div>
                               </div>
                             </div>
                           ))}
@@ -148,7 +162,7 @@ export default function HistoryPage() {
           )}
         </>
       ) : (
-        <div className="stack virtual-list">
+        <div className="stack virtual-list list-surface">
           {Object.entries(grouped).map(([dateKey, items]) => (
             <section key={dateKey} className="page__section">
               <h2 className="card__title">{formatDate(new Date(dateKey).getTime())}</h2>

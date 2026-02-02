@@ -41,10 +41,11 @@ export default function ExerciseCard({
               onEdit={() => onEditSet(set.id)}
               onDelete={() => onDeleteSet(set.id)}
               highlight={highlightedSetId === set.id}
+              showPerSide={exercise.type === "Barbell"}
             />
           ))}
         </div>
-        <button type="button" className="btn btn--ghost exercise-card__add" onClick={onAddSet}>
+        <button type="button" className="button button--ghost exercise-card__add" onClick={onAddSet}>
           + Add set
         </button>
       </div>

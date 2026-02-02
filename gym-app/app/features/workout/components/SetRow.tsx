@@ -11,14 +11,19 @@ export default function SetRow({
   onEdit,
   onDelete,
   highlight,
+  showPerSide = false,
 }: {
   set: SetEntry;
   barWeight: number;
   onEdit: () => void;
   onDelete: () => void;
   highlight?: boolean;
+  showPerSide?: boolean;
 }) {
-  const perSide = useMemo(() => Math.max(0, (set.weightKg - barWeight) / 2), [set.weightKg, barWeight]);
+  const perSide = useMemo(() => {
+    if (!showPerSide) return 0;
+    return Math.max(0, (set.weightKg - barWeight) / 2);
+  }, [barWeight, set.weightKg, showPerSide]);
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
     if (event.key === "Enter" || event.key === " ") {
@@ -36,35 +41,39 @@ export default function SetRow({
       onClick={onEdit}
       onKeyDown={handleKeyDown}
     >
-      <div className="set-row__weight">
+      <div className="set-row__stats">
         <button
           type="button"
-          className="set-row__edit"
+          className="set-row__edit set-row__stat set-row__stat--weight"
           aria-label="Edit weight and reps"
           onClick={(event) => {
             event.stopPropagation();
             onEdit();
           }}
         >
-          <span className="set-row__kg">{formatKg(set.weightKg)} kg</span>
-          <span className="set-row__lb muted">{formatLb(set.weightKg)} lb</span>
-          {set.mode === "plates" ? (
-            <span className="set-row__plates muted">{formatWeight(perSide)} / side</span>
+          <span className="set-row__label">Total</span>
+          <span className="set-row__values">
+            <span className="set-row__pill tabular-nums">{formatKg(set.weightKg)} kg</span>
+            <span className="set-row__pill muted tabular-nums">{formatLb(set.weightKg)} lb</span>
+          </span>
+          {showPerSide ? (
+            <span className="set-row__sub muted tabular-nums">
+              Per side {formatKg(perSide)} kg · {formatLb(perSide)} lb
+            </span>
           ) : null}
         </button>
-      </div>
-      <div className="set-row__reps">
+
         <button
           type="button"
-          className="set-row__edit"
+          className="set-row__edit set-row__stat set-row__stat--reps"
           aria-label="Edit weight and reps"
           onClick={(event) => {
             event.stopPropagation();
             onEdit();
           }}
         >
-          <span className="set-row__reps-value">{set.reps}</span>
-          <span className="set-row__reps-label muted">reps</span>
+          <span className="set-row__label">Reps</span>
+          <span className="set-row__reps-value tabular-nums">{set.reps}</span>
         </button>
       </div>
       <div className="set-row__meta">

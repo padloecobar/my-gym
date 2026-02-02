@@ -117,17 +117,17 @@ function SearchExerciseForm({
         {type === "Barbell" ? (
           <div className="field">
             <span className="label">Default mode</span>
-            <div className="cluster">
+            <div className="segmented">
               <button
                 type="button"
-                className={`btn${mode === "plates" ? " btn--primary" : ""}`}
+                className={`button${mode === "plates" ? " button--primary" : ""}`}
                 onClick={() => setMode("plates")}
               >
                 Plates / side
               </button>
               <button
                 type="button"
-                className={`btn${mode === "total" ? " btn--primary" : ""}`}
+                className={`button${mode === "total" ? " button--primary" : ""}`}
                 onClick={() => setMode("total")}
               >
                 Total
@@ -151,10 +151,10 @@ function SearchExerciseForm({
       </div>
 
       <div className="sheet__actions">
-        <button type="button" className="btn btn--ghost" onClick={onClose}>
+        <button type="button" className="button button--ghost" onClick={onClose}>
           Cancel
         </button>
-        <button type="submit" className="btn btn--primary" form="search-exercise-form">
+        <button type="submit" className="button button--primary" form="search-exercise-form">
           Create
         </button>
       </div>

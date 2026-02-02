@@ -1,46 +1,41 @@
 /**
- * Motion styles: View Transitions, animations, and reduced motion overrides
- * Uses modern CSS View Transitions API with progressive enhancement
+ * motion.css (Aurora Glass)
  */
 
-/* Page transition fallback animation (when VT not supported) */
 @keyframes page-in {
-  from { opacity: 0; transform: translateY(6px); }
-  to { opacity: 1; transform: translateY(0); }
+  from { opacity: 0; transform: translateY(8px) scale(0.99); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
-/* Set highlight animation (when set is updated) */
 @keyframes set-highlight-fade {
-  0% { background: var(--set-highlight-bg, hsl(var(--accent-hsl) / 0.15)); }
+  0% { background: var(--set-highlight-bg, color-mix(in srgb, var(--brand-2) 18%, transparent)); }
   100% { background: transparent; }
 }
 
-/* Snackbar entrance animation */
 @keyframes snackbar-in {
-  from { 
-    opacity: 0; 
-    transform: translateY(100%) scale(0.96); 
+  from {
+    opacity: 0;
+    transform: translateY(110%) scale(0.96);
+    filter: blur(2px);
   }
-  to { 
-    opacity: 1; 
-    transform: translateY(0) scale(1); 
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: blur(0);
   }
 }
 
-/* Summary badge entrance animation */
 @keyframes summary-badge-in {
-  0% { opacity: 0; transform: scale(0.85); }
-  50% { opacity: 1; }
+  0% { opacity: 0; transform: scale(0.86); }
+  55% { opacity: 1; }
   100% { opacity: 1; transform: scale(1); }
 }
 
-/* Summary stats floating animation */
 @keyframes stats-float {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-2px); }
 }
 
-/* Reduced motion overrides - disable all animations */
 @media (prefers-reduced-motion: reduce) {
   [data-motion-mode="reduced"] .route-view[data-anim="enter"],
   [data-motion-mode="reduced"] .snackbar,
@@ -53,119 +48,8 @@
   }
 }
 
-/* View Transition styles for motion themes (scoped via html[data-vt][data-motion-style]) */
 @supports (view-transition-name: test) {
-  /* Ensure proper stacking order during transitions */
-  ::view-transition-group(main-content) {
-    z-index: 1;
-  }
-  
-  ::view-transition-group(vt-hero) {
-    z-index: 2;
-  }
-  
-  ::view-transition-group(bottom-nav) {
-    z-index: 100;
-  }
-  
-  @media (prefers-reduced-motion: no-preference) {
-    /* LIFT - Powerful upward motion with scale (gym strength aesthetic) */
-    html[data-vt="true"][data-motion-style="lift"]::view-transition-old(main-content),
-    html[data-vt="true"][data-motion-style="lift"]::view-transition-new(main-content) {
-      animation-duration: 300ms;
-      animation-timing-function: cubic-bezier(0.4, 0.0, 0.2, 1);
-      animation-fill-mode: both;
-    }
-
-    html[data-vt="true"][data-motion-style="lift"]::view-transition-old(main-content) {
-      animation-name: vt-lift-old;
-    }
-    html[data-vt="true"][data-motion-style="lift"]::view-transition-new(main-content) {
-      animation-name: vt-lift-new;
-    }
-
-    @keyframes vt-lift-old {
-      from { opacity: 1; transform: translateY(0) scale(1); }
-      to { opacity: 0; transform: translateY(-20px) scale(0.96); }
-    }
-    @keyframes vt-lift-new {
-      from { opacity: 0; transform: translateY(30px) scale(0.94); }
-      to { opacity: 1; transform: translateY(0) scale(1); }
-    }
-
-    /* SLIDE - Smooth horizontal glide with depth (directional navigation) */
-    html[data-vt="true"][data-motion-style="slide"][data-nav="forward"]::view-transition-old(main-content) {
-      animation-name: vt-slide-old-forward;
-      animation-duration: 280ms;
-      animation-timing-function: cubic-bezier(0.4, 0.0, 0.2, 1);
-    }
-    html[data-vt="true"][data-motion-style="slide"][data-nav="forward"]::view-transition-new(main-content) {
-      animation-name: vt-slide-new-forward;
-      animation-duration: 280ms;
-      animation-timing-function: cubic-bezier(0.0, 0.0, 0.2, 1);
-    }
-
-    html[data-vt="true"][data-motion-style="slide"][data-nav="back"]::view-transition-old(main-content) {
-      animation-name: vt-slide-old-back;
-      animation-duration: 280ms;
-      animation-timing-function: cubic-bezier(0.4, 0.0, 1, 1);
-    }
-    html[data-vt="true"][data-motion-style="slide"][data-nav="back"]::view-transition-new(main-content) {
-      animation-name: vt-slide-new-back;
-      animation-duration: 280ms;
-      animation-timing-function: cubic-bezier(0.0, 0.0, 0.2, 1);
-    }
-
-    @keyframes vt-slide-old-forward { 
-      from { opacity: 1; transform: translateX(0) scale(1); } 
-      to { opacity: 0; transform: translateX(-25%) scale(0.9); } 
-    }
-    @keyframes vt-slide-new-forward { 
-      from { opacity: 0; transform: translateX(100%) scale(1.05); } 
-      to { opacity: 1; transform: translateX(0) scale(1); } 
-    }
-    @keyframes vt-slide-old-back { 
-      from { opacity: 1; transform: translateX(0) scale(1); } 
-      to { opacity: 0; transform: translateX(100%) scale(1.05); } 
-    }
-    @keyframes vt-slide-new-back { 
-      from { opacity: 0; transform: translateX(-25%) scale(0.9); } 
-      to { opacity: 1; transform: translateX(0) scale(1); } 
-    }
-
-    /* SPRING - Energetic bounce with overshoot (motivational gym energy) */
-    html[data-vt="true"][data-motion-style="spring"]::view-transition-old(main-content) {
-      animation-name: vt-spring-old;
-      animation-duration: 250ms;
-      animation-timing-function: cubic-bezier(0.4, 0.0, 1, 1);
-    }
-    html[data-vt="true"][data-motion-style="spring"]::view-transition-new(main-content) {
-      animation-name: vt-spring-new;
-      animation-duration: 350ms;
-      animation-timing-function: cubic-bezier(0.2, 1.2, 0.3, 1);
-    }
-
-    @keyframes vt-spring-old { 
-      from { opacity: 1; transform: scale(1) rotate(0deg); } 
-      to { opacity: 0; transform: scale(0.85) rotate(-2deg); } 
-    }
-    @keyframes vt-spring-new { 
-      0% { opacity: 0; transform: scale(0.88) translateY(8px); } 
-      50% { opacity: 1; } 
-      100% { opacity: 1; transform: scale(1) translateY(0); } 
-    }
-
-    /* Hero variants: respect selected motion style */
-    html[data-vt="true"][data-motion-style="lift"]::view-transition-old(vt-hero) { animation: vt-lift-old 300ms both; }
-    html[data-vt="true"][data-motion-style="lift"]::view-transition-new(vt-hero) { animation: vt-lift-new 300ms both; }
-
-    html[data-vt="true"][data-motion-style="slide"][data-nav="forward"]::view-transition-old(vt-hero) { animation: vt-slide-old-forward 280ms both; }
-    html[data-vt="true"][data-motion-style="slide"][data-nav="forward"]::view-transition-new(vt-hero) { animation: vt-slide-new-forward 280ms both; }
-
-    html[data-vt="true"][data-motion-style="slide"][data-nav="back"]::view-transition-old(vt-hero) { animation: vt-slide-old-back 280ms both; }
-    html[data-vt="true"][data-motion-style="slide"][data-nav="back"]::view-transition-new(vt-hero) { animation: vt-slide-new-back 280ms both; }
-
-    html[data-vt="true"][data-motion-style="spring"]::view-transition-old(vt-hero) { animation: vt-spring-old 250ms both; }
-    html[data-vt="true"][data-motion-style="spring"]::view-transition-new(vt-hero) { animation: vt-spring-new 350ms both; }
-  }
+  ::view-transition-group(main-content) { z-index: 1; }
+  ::view-transition-group(vt-hero) { z-index: 2; }
+  ::view-transition-group(bottom-nav) { z-index: 100; }
 }
