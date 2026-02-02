@@ -30,13 +30,13 @@ export default function TodayPage() {
     const workoutId = sessionStore.getState().startWorkout(programId);
     if (!workoutId) return;
     uiStore.getState().setVtHero({ type: "program", id: programId });
-    navigateWithTransition(router, `/workout/${workoutId}`);
+    navigateWithTransition(router, `/workout?workoutId=${encodeURIComponent(workoutId)}`);
   };
 
   const handleResume = () => {
     if (!activeWorkout) return;
     uiStore.getState().setVtHero({ type: "program", id: activeWorkout.programId });
-    navigateWithTransition(router, `/workout/${activeWorkout.id}`);
+    navigateWithTransition(router, `/workout?workoutId=${encodeURIComponent(activeWorkout.id)}`);
   };
 
   return (

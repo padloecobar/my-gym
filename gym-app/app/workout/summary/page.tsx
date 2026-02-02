@@ -1,23 +1,36 @@
 "use client";
 
-import { useParams, useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useMemo } from "react";
-import { getWorkoutStats, makeWorkoutViewSelector } from "../../../../store/selectors/sessionSelectors";
-import { useCatalogShallow } from "../../../../store/useCatalogStore";
-import { useSessionStore } from "../../../../store/useSessionStore";
-import { navigateWithTransition } from "../../../../app/shared/lib/navigation";
-import { formatWeight } from "../../../../app/shared/lib/utils";
+import { getWorkoutStats, makeWorkoutViewSelector } from "../../../store/selectors/sessionSelectors";
+import { useCatalogShallow } from "../../../store/useCatalogStore";
+import { useSessionStore } from "../../../store/useSessionStore";
+import { navigateWithTransition } from "../../shared/lib/navigation";
+import { formatWeight } from "../../shared/lib/utils";
 
 export default function WorkoutSummaryPage() {
-  const params = useParams<{ workoutId: string }>();
+  const searchParams = useSearchParams();
+  const workoutId = searchParams.get("workoutId") ?? undefined;
   const router = useRouter();
-  const workoutSelector = useMemo(() => makeWorkoutViewSelector(params.workoutId), [params.workoutId]);
+
+  const workoutSelector = useMemo(
+    () => (workoutId ? makeWorkoutViewSelector(workoutId) : () => null),
+    [workoutId]
+  );
   const workout = useSessionStore(workoutSelector);
   const { programs } = useCatalogShallow((state) => ({ programs: state.programs }));
   const program = useMemo(
     () => (workout ? programs.find((item) => item.id === workout.programId) : undefined),
     [programs, workout]
   );
+
+  if (!workoutId) {
+    return (
+      <div className="page container">
+        <p>Select a workout summary to view.</p>
+      </div>
+    );
+  }
 
   if (!workout) {
     return (
@@ -34,7 +47,14 @@ export default function WorkoutSummaryPage() {
     <div className="page container summary-page">
       <header className="stack summary-page__header">
         <div className="summary-page__badge" aria-hidden>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
             <circle cx="12" cy="12" r="10" />
             <path d="M8 12l3 3 5-6" />
           </svg>

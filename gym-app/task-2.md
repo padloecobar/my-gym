@@ -18,7 +18,7 @@ A) Audit + remove “set completed” UI/state
    - “completed”, “done”, “checked”, “isComplete”, “toggleSet”, “markSet”
    - UI icons for check, checkbox, progress per set
 2) Files likely involved:
-   - app/workout/[id]/page.tsx (runner)
+   - app/workout/page.tsx (runner)
    - any components rendering sets (SetRow / SetCard)
    - store state related to set completion (if any)
 3) Replace interactions:

@@ -1,21 +1,25 @@
 "use client";
 
-import { useParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
-import ExerciseCard from "../../features/workout/components/ExerciseCard";
-import BackButton from "../../shared/components/BackButton";
-import type { Command } from "../../../commands/types";
-import { makeCatalogMapsSelector } from "../../../store/selectors/catalogSelectors";
-import { makeWorkoutViewSelector } from "../../../store/selectors/sessionSelectors";
-import { useCatalogStore } from "../../../store/useCatalogStore";
-import { useSessionStore, useSessionStoreApi } from "../../../store/useSessionStore";
-import { useSettingsShallow } from "../../../store/useSettingsStore";
-import { useUiShallow, useUiStoreApi } from "../../../store/useUiStore";
+import ExerciseCard from "../features/workout/components/ExerciseCard";
+import BackButton from "../shared/components/BackButton";
+import type { Command } from "../../commands/types";
+import { makeCatalogMapsSelector } from "../../store/selectors/catalogSelectors";
+import { makeWorkoutViewSelector } from "../../store/selectors/sessionSelectors";
+import { useCatalogStore } from "../../store/useCatalogStore";
+import { useSessionStore, useSessionStoreApi } from "../../store/useSessionStore";
+import { useSettingsShallow } from "../../store/useSettingsStore";
+import { useUiShallow, useUiStoreApi } from "../../store/useUiStore";
 
 export default function WorkoutRunnerPage() {
-  const params = useParams<{ workoutId: string }>();
-  const workoutId = params.workoutId;
-  const workoutSelector = useMemo(() => makeWorkoutViewSelector(workoutId), [workoutId]);
+  const searchParams = useSearchParams();
+  const workoutId = searchParams.get("workoutId") ?? undefined;
+
+  const workoutSelector = useMemo(
+    () => (workoutId ? makeWorkoutViewSelector(workoutId) : () => null),
+    [workoutId]
+  );
   const workout = useSessionStore(workoutSelector);
   const catalogSelector = useMemo(() => makeCatalogMapsSelector(), []);
   const { programById, exerciseById } = useCatalogStore(catalogSelector);
@@ -27,16 +31,27 @@ export default function WorkoutRunnerPage() {
   const { deleteSet, addSet } = sessionStore.getState();
   const { openEditSet, openConfirm, showSnackbar } = uiStore.getState();
   const [lastAddedSetId, setLastAddedSetId] = useState<string | null>(null);
+
   useEffect(() => {
     if (lastAddedSetId == null) return;
     const t = setTimeout(() => setLastAddedSetId(null), 1800);
     return () => clearTimeout(t);
   }, [lastAddedSetId]);
 
+  if (!workoutId) {
+    return (
+      <div className="page container">
+        <p>Select a workout to begin.</p>
+        <BackButton />
+      </div>
+    );
+  }
+
   if (!workout) {
     return (
       <div className="page container">
         <p>Workout not found.</p>
+        <BackButton />
       </div>
     );
   }
@@ -44,7 +59,10 @@ export default function WorkoutRunnerPage() {
   const programName = program?.name ?? "Deleted program";
 
   const handleFinish = () => {
-    const command: Command = { type: "FINISH_WORKOUT", payload: { workoutId, navigateTo: `/workout/${workoutId}/summary` } };
+    const command: Command = {
+      type: "FINISH_WORKOUT",
+      payload: { workoutId, navigateTo: `/workout/summary?workoutId=${encodeURIComponent(workoutId)}` },
+    };
     openConfirm({
       title: "End workout?",
       message: "Finish now to lock this workout into history.",

@@ -7,6 +7,7 @@ Before coding, read:
 - `gym-app/docs/css.md`
 - `gym-app/docs/react.md`
 - `gym-app/docs/zustand.md`
+- `gym-app/docs/project-state.md` (project state + architecture)
 
 To verify run
 `bun run build`
