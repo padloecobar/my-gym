@@ -47,24 +47,27 @@ export default function TodayPage() {
         <div className="resume-card">
           <button
             type="button"
-            className={`card program-card ${
+            className={`ui-card card program-card ${
               vtHero?.type === "program" && activeProgram && vtHero.id === activeProgram.id ? "vt-hero" : ""
             }`}
+            data-surface="1"
             onClick={handleResume}
           >
-            <div className="card__body">
+            <div className="ui-card__body card__body">
               <div className="program-card__header">
-                <h3 className="card__title">Resume {activeProgramName}</h3>
-                <span className="badge badge--brand">Active</span>
+                <h3 className="ui-card__title card__title">Resume {activeProgramName}</h3>
+                <span className="ui-badge badge badge--brand" data-variant="primary">
+                  Active
+                </span>
               </div>
-              <p className="card__meta">Started {formatTime(activeWorkout.startedAt)}</p>
+              <p className="ui-card__meta card__meta">Started {formatTime(activeWorkout.startedAt)}</p>
             </div>
           </button>
         </div>
       ) : null}
 
       <section className="page__section">
-        <h2 className="section-title">Programs</h2>
+        <h2 className="ui-section-title section-title">Programs</h2>
         <div className="stack virtual-list list-surface">
           {programs.map((program) => (
             <ProgramCard
@@ -77,12 +80,13 @@ export default function TodayPage() {
             />
           ))}
           {programs.length === 0 ? (
-            <div className="card">
-              <div className="card__body">
+            <div className="ui-card card" data-surface="1">
+              <div className="ui-card__body card__body">
                 <p>No programs yet. Build one to get moving.</p>
                 <button
                   type="button"
-                  className="button button--primary"
+                  className="ui-button button button--primary"
+                  data-variant="primary"
                   onClick={() => navigateWithTransition(router, "/programs")}
                 >
                   Create a program

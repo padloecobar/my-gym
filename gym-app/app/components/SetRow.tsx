@@ -36,7 +36,10 @@ export default function SetRow({
     <div
       role="button"
       tabIndex={0}
-      className={`set-row${highlight ? " set-row--highlight" : ""}`}
+      className={`ui-row set-row${highlight ? " set-row--highlight" : ""}`}
+      data-variant="neutral"
+      data-density="comfortable"
+      data-state={highlight ? "active" : "default"}
       aria-label={`${formatWeight(set.weightKg)} x ${set.reps} reps. Tap to edit.`}
       onClick={onEdit}
       onKeyDown={handleKeyDown}
@@ -53,13 +56,13 @@ export default function SetRow({
         >
           <span className="set-row__label">Total</span>
           <span className="set-row__values">
-            <span className="pill pill--strong">
-              <span className="pill__value tabular-nums">{formatKg(set.weightKg)}</span>
-              <span className="pill__label">kg</span>
+            <span className="ui-pill pill pill--strong" data-tone="strong">
+              <span className="ui-pill__value pill__value tabular-nums">{formatKg(set.weightKg)}</span>
+              <span className="ui-pill__label pill__label">kg</span>
             </span>
-            <span className="pill">
-              <span className="pill__value tabular-nums">{formatLb(set.weightKg)}</span>
-              <span className="pill__label">lb</span>
+            <span className="ui-pill pill">
+              <span className="ui-pill__value pill__value tabular-nums">{formatLb(set.weightKg)}</span>
+              <span className="ui-pill__label pill__label">lb</span>
             </span>
           </span>
           {showPerSide ? (
@@ -78,14 +81,16 @@ export default function SetRow({
               onEdit();
             }}
           >
-            <span className="pill pill--strong">
-              <span className="pill__value tabular-nums">{set.reps}</span>
-              <span className="pill__label">reps</span>
+            <span className="ui-pill pill pill--strong" data-tone="strong">
+              <span className="ui-pill__value pill__value tabular-nums">{set.reps}</span>
+              <span className="ui-pill__label pill__label">reps</span>
             </span>
           </button>
           <button
             type="button"
-            className="button button--ghost icon-button set-row__action"
+            className="ui-button ui-icon-button button button--ghost icon-button set-row__action"
+            data-variant="ghost"
+            data-size="sm"
             aria-label="Delete set"
             title="Delete set"
             onClick={(event) => {

@@ -65,15 +65,16 @@ export default function BottomSheet({
 
   return (
     <div
-      className="sheet"
+      className="ui-sheet sheet"
       data-open={open ? "true" : "false"}
       data-reduce-motion={reduceMotion}
       aria-hidden={open ? "false" : "true"}
       inert={!open}
     >
-      <button type="button" className="sheet__backdrop" aria-label="Close" onClick={onClose} />
+      <button type="button" className="ui-sheet__backdrop sheet__backdrop" aria-label="Close" onClick={onClose} />
       <div
-        className="sheet__panel"
+        className="ui-sheet__panel sheet__panel"
+        data-surface="3"
         role="dialog"
         aria-modal="true"
         aria-labelledby="sheet-title"
@@ -85,16 +86,22 @@ export default function BottomSheet({
           }
         }}
       >
-        <div className="sheet__header">
-          <h2 id="sheet-title" className="sheet__title">
+        <div className="ui-sheet__header sheet__header">
+          <h2 id="sheet-title" className="ui-sheet__title sheet__title">
             {title}
           </h2>
-          <button type="button" className="button button--ghost button--sm" onClick={onClose}>
+          <button
+            type="button"
+            className="ui-button button button--ghost button--sm"
+            data-variant="ghost"
+            data-size="sm"
+            onClick={onClose}
+          >
             Close
           </button>
         </div>
-        <div className="sheet__content">{children}</div>
-        {footer ? <div className="sheet__footer">{footer}</div> : null}
+        <div className="ui-sheet__content sheet__content">{children}</div>
+        {footer ? <div className="ui-sheet__footer sheet__footer">{footer}</div> : null}
       </div>
     </div>
   );

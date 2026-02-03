@@ -7,7 +7,7 @@ This document summarizes the app's current architecture, routes, and core featur
 - Stack: Next.js App Router + TypeScript + React 19 + Zustand v5.
 - Deployment: static export (`output: "export"`) for GitHub Pages.
 - UI system: Mango Voltage Liquid Glass with hot/cool accent sparks, tray depth tokens, and typography utilities (`page-title`, `section-title`) (tokens in `globals.css`, components in `app/ui.css`).
-- Design contract: `docs/design-system-contract.md` (tokens + component recipes).
+- Design contract: `docs/design-system/DESIGN_SYSTEM_CONTRACT.md` (tokens + component recipes + extension rules).
 - Motion: View Transitions (progressive enhancement) + reduced-motion safe fallbacks.
 
 ## Build / Deploy

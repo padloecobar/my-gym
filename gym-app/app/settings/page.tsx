@@ -58,38 +58,46 @@ export default function SettingsPage() {
     <div className="page container">
       <HeaderBar title="Settings" />
 
-      <div className="card">
-        <div className="card__body stack">
-          <div className="field">
-            <span className="label">Input units</span>
+      <div className="ui-card card" data-surface="1">
+        <div className="ui-card__body card__body stack">
+          <div className="ui-field field">
+            <span className="ui-label label">Input units</span>
             <div className="cluster">
               <div className="segmented">
                 <button
                   type="button"
-                  className={`button${settings.unitsPreference === "kg" ? " button--primary" : ""}`}
+                  className={`ui-button button${settings.unitsPreference === "kg" ? " button--primary" : ""}`}
+                  data-variant={settings.unitsPreference === "kg" ? "primary" : "ghost"}
+                  data-state={settings.unitsPreference === "kg" ? "selected" : "default"}
+                  data-size="sm"
                   onClick={() => updateSettings({ unitsPreference: "kg" })}
                 >
                   kg
                 </button>
                 <button
                   type="button"
-                  className={`button${settings.unitsPreference === "lb" ? " button--primary" : ""}`}
+                  className={`ui-button button${settings.unitsPreference === "lb" ? " button--primary" : ""}`}
+                  data-variant={settings.unitsPreference === "lb" ? "primary" : "ghost"}
+                  data-state={settings.unitsPreference === "lb" ? "selected" : "default"}
+                  data-size="sm"
                   onClick={() => updateSettings({ unitsPreference: "lb" })}
                 >
                   lb
                 </button>
               </div>
-              <span className="badge">kg & lb always visible</span>
+              <span className="ui-badge badge" data-variant="neutral">
+                kg & lb always visible
+              </span>
             </div>
           </div>
 
-          <div className="field">
-            <label className="label" htmlFor="bar-weight">
+          <div className="ui-field field">
+            <label className="ui-label label" htmlFor="bar-weight">
               Default bar weight ({inputUnits})
             </label>
             <input
               id="bar-weight"
-              className="input"
+              className="ui-input input"
               inputMode="decimal"
               value={Number.isFinite(barWeightInput) ? barWeightInput : 0}
               onChange={(event) => {
@@ -99,39 +107,48 @@ export default function SettingsPage() {
                 updateSettings({ defaultBarWeight: nextKg });
               }}
             />
-            <span className="help">Current: {formatWeight(settings.defaultBarWeight)}</span>
+            <span className="ui-help help">Current: {formatWeight(settings.defaultBarWeight)}</span>
           </div>
 
-          <div className="field">
-            <span className="label">Animations</span>
+          <div className="ui-field field">
+            <span className="ui-label label">Animations</span>
             <div className="segmented">
               <button
                 type="button"
-                className={`button${motionStyle === "lift" ? " button--primary" : ""}`}
+                className={`ui-button button${motionStyle === "lift" ? " button--primary" : ""}`}
+                data-variant={motionStyle === "lift" ? "primary" : "ghost"}
+                data-state={motionStyle === "lift" ? "selected" : "default"}
+                data-size="sm"
                 onClick={() => setMotionStyle("lift")}
               >
                 💪 Lift
               </button>
               <button
                 type="button"
-                className={`button${motionStyle === "slide" ? " button--primary" : ""}`}
+                className={`ui-button button${motionStyle === "slide" ? " button--primary" : ""}`}
+                data-variant={motionStyle === "slide" ? "primary" : "ghost"}
+                data-state={motionStyle === "slide" ? "selected" : "default"}
+                data-size="sm"
                 onClick={() => setMotionStyle("slide")}
               >
                 ⚡ Slide
               </button>
               <button
                 type="button"
-                className={`button${motionStyle === "spring" ? " button--primary" : ""}`}
+                className={`ui-button button${motionStyle === "spring" ? " button--primary" : ""}`}
+                data-variant={motionStyle === "spring" ? "primary" : "ghost"}
+                data-state={motionStyle === "spring" ? "selected" : "default"}
+                data-size="sm"
                 onClick={() => setMotionStyle("spring")}
               >
                 🔥 Spring
               </button>
             </div>
-            <span className="help">Choose transition style for route changes</span>
+            <span className="ui-help help">Choose transition style for route changes</span>
           </div>
 
-          <div className="field">
-            <label className="label" htmlFor="reduce-motion">
+          <div className="ui-field field">
+            <label className="ui-label label" htmlFor="reduce-motion">
               <span className="checkbox-field">
                 <input
                   id="reduce-motion"
@@ -143,18 +160,18 @@ export default function SettingsPage() {
                 <span>Reduce motion</span>
               </span>
             </label>
-            <span className="help">Disable all animations and view transitions</span>
+            <span className="ui-help help">Disable all animations and view transitions</span>
           </div>
         </div>
       </div>
 
       <section className="page__section">
-        <h2 className="section-title">Data</h2>
+        <h2 className="ui-section-title section-title">Data</h2>
         <div className="stack">
-          <button type="button" className="button button--secondary" onClick={handleExport}>
+          <button type="button" className="ui-button button button--secondary" data-variant="secondary" onClick={handleExport}>
             Export JSON
           </button>
-          <label className="button button--ghost">
+          <label className="ui-button button button--ghost" data-variant="ghost">
             Import JSON
             <input type="file" accept="application/json" onChange={handleImport} hidden />
           </label>
@@ -162,10 +179,11 @@ export default function SettingsPage() {
       </section>
 
       <section className="page__section">
-        <h2 className="section-title">Danger zone</h2>
+        <h2 className="ui-section-title section-title">Danger zone</h2>
         <button
           type="button"
-          className="button button--danger"
+          className="ui-button button button--danger"
+          data-variant="danger"
           onClick={() => {
             const command: Command = { type: "RESET_ALL" };
             openConfirm({

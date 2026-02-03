@@ -21,13 +21,14 @@ export default function ConfirmSheet() {
       title={title}
       onClose={closeSheet}
       footer={
-        <div className="sheet__actions">
-          <button type="button" className="button button--ghost" onClick={closeSheet}>
+        <div className="ui-sheet__actions sheet__actions">
+          <button type="button" className="ui-button button button--ghost" data-variant="ghost" onClick={closeSheet}>
             Cancel
           </button>
           <button
             type="button"
-            className={`button ${tone === "danger" ? "button--danger" : "button--primary"}`}
+            className={`ui-button button ${tone === "danger" ? "button--danger" : "button--primary"}`}
+            data-variant={tone === "danger" ? "danger" : "primary"}
             onClick={() => {
               executeCommand(command);
               closeSheet();

@@ -74,16 +74,22 @@ export default function WorkoutRunnerPage() {
   return (
     <div className="page container">
       <div
-        className={`runner-header ${
+        className={`ui-header runner-header ${
           vtHero?.type === "program" && program && vtHero.id === program.id ? "vt-hero" : ""
         }`}
+        data-surface="3"
       >
-        <div className="runner-header__row">
+        <div className="ui-header__row runner-header__row">
           <div>
             <div className="muted">Workout Runner</div>
-            <div className="runner-header__title section-title">{programName}</div>
+            <div className="ui-header__title runner-header__title section-title">{programName}</div>
           </div>
-          <button type="button" className="button button--primary" onClick={handleFinish}>
+          <button
+            type="button"
+            className="ui-button button button--primary"
+            data-variant="primary"
+            onClick={handleFinish}
+          >
             Finish
           </button>
         </div>

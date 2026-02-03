@@ -59,20 +59,20 @@ export default function WorkoutSummaryPage() {
             <path d="M8 12l3 3 5-6" />
           </svg>
         </div>
-        <h1 className="page-title">Workout Complete</h1>
+        <h1 className="ui-page-title page-title">Workout Complete</h1>
         <p className="muted">{programName}</p>
       </header>
 
       <section className="summary-stats">
-        <div className="summary-stat">
+        <div className="ui-card summary-stat" data-surface="2">
           <div className="summary-stat__value tabular-nums">{exerciseCount}</div>
           <div className="muted">Exercises</div>
         </div>
-        <div className="summary-stat">
+        <div className="ui-card summary-stat" data-surface="2">
           <div className="summary-stat__value tabular-nums">{totalSets}</div>
           <div className="muted">Total sets</div>
         </div>
-        <div className="summary-stat">
+        <div className="ui-card summary-stat" data-surface="2">
           <div className="summary-stat__value tabular-nums">{formatWeight(totalVolume)}</div>
           <div className="muted">Total volume</div>
         </div>
@@ -81,7 +81,8 @@ export default function WorkoutSummaryPage() {
       <div className="summary-page__sticky">
         <button
           type="button"
-          className="button button--primary summary-page__done"
+          className="ui-button button button--primary summary-page__done"
+          data-variant="primary"
           onClick={() => navigateWithTransition(router, "/")}
         >
           Done

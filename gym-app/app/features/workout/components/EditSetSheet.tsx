@@ -33,11 +33,16 @@ export default function EditSetSheet() {
       title={`${exercise.name} set`}
       onClose={closeSheet}
       footer={
-        <div className="sheet__actions">
-          <button type="button" className="button button--ghost" onClick={closeSheet}>
+        <div className="ui-sheet__actions sheet__actions">
+          <button type="button" className="ui-button button button--ghost" data-variant="ghost" onClick={closeSheet}>
             Cancel
           </button>
-          <button type="submit" className="button button--primary" form="edit-set-form">
+          <button
+            type="submit"
+            className="ui-button button button--primary"
+            data-variant="primary"
+            form="edit-set-form"
+          >
             Save
           </button>
         </div>
@@ -117,19 +122,25 @@ function EditSetForm({ setEntry, exercise, settings, onSave }: EditSetFormProps)
 
   return (
     <form id="edit-set-form" className="stack" onSubmit={handleSave}>
-      <div className="field">
-        <label className="label" htmlFor="weight-input">
+      <div className="ui-field field">
+        <label className="ui-label label" htmlFor="weight-input">
           {mode === "plates" ? `Weight per side (${inputUnits})` : `Total weight (${inputUnits})`}
         </label>
 
         <div className="stepper">
-          <button type="button" className="button" onClick={() => handleWeightChange(weightDisplayValue - step)}>
+          <button
+            type="button"
+            className="ui-button button"
+            data-variant="secondary"
+            data-size="sm"
+            onClick={() => handleWeightChange(weightDisplayValue - step)}
+          >
             -
           </button>
 
           <input
             id="weight-input"
-            className="input"
+            className="ui-input input"
             inputMode="decimal"
             value={weightDisplayValue}
             onChange={(event) => {
@@ -138,31 +149,43 @@ function EditSetForm({ setEntry, exercise, settings, onSave }: EditSetFormProps)
             }}
           />
 
-          <button type="button" className="button" onClick={() => handleWeightChange(weightDisplayValue + step)}>
+          <button
+            type="button"
+            className="ui-button button"
+            data-variant="secondary"
+            data-size="sm"
+            onClick={() => handleWeightChange(weightDisplayValue + step)}
+          >
             +
           </button>
         </div>
 
-        <div className="help">{formatWeight(weight)}</div>
+        <div className="ui-help help">{formatWeight(weight)}</div>
 
         {mode === "plates" ? (
-          <div className="help">
+          <div className="ui-help help">
             Bar weight {formatWeight(settings.defaultBarWeight)}
           </div>
         ) : null}
       </div>
 
-      <div className="field">
-        <label className="label" htmlFor="reps-input">
+      <div className="ui-field field">
+        <label className="ui-label label" htmlFor="reps-input">
           Reps
         </label>
         <div className="stepper">
-          <button type="button" className="button" onClick={() => setReps(clamp(reps - 1, 0, 200))}>
+          <button
+            type="button"
+            className="ui-button button"
+            data-variant="secondary"
+            data-size="sm"
+            onClick={() => setReps(clamp(reps - 1, 0, 200))}
+          >
             -
           </button>
           <input
             id="reps-input"
-            className="input"
+            className="ui-input input"
             inputMode="numeric"
             value={reps}
             onChange={(event) => {
@@ -170,26 +193,38 @@ function EditSetForm({ setEntry, exercise, settings, onSave }: EditSetFormProps)
               setReps(clamp(Number.isFinite(next) ? next : 0, 0, 200));
             }}
           />
-          <button type="button" className="button" onClick={() => setReps(clamp(reps + 1, 0, 200))}>
+          <button
+            type="button"
+            className="ui-button button"
+            data-variant="secondary"
+            data-size="sm"
+            onClick={() => setReps(clamp(reps + 1, 0, 200))}
+          >
             +
           </button>
         </div>
       </div>
 
       {exercise.type === "Barbell" ? (
-        <div className="field">
-          <span className="label">Mode</span>
+        <div className="ui-field field">
+          <span className="ui-label label">Mode</span>
           <div className="segmented">
             <button
               type="button"
-              className={`button${mode === "total" ? " button--primary" : ""}`}
+              className={`ui-button button${mode === "total" ? " button--primary" : ""}`}
+              data-variant={mode === "total" ? "primary" : "ghost"}
+              data-state={mode === "total" ? "selected" : "default"}
+              data-size="sm"
               onClick={() => setMode("total")}
             >
               Total
             </button>
             <button
               type="button"
-              className={`button${mode === "plates" ? " button--primary" : ""}`}
+              className={`ui-button button${mode === "plates" ? " button--primary" : ""}`}
+              data-variant={mode === "plates" ? "primary" : "ghost"}
+              data-state={mode === "plates" ? "selected" : "default"}
+              data-size="sm"
               onClick={() => setMode("plates")}
             >
               Plates / side

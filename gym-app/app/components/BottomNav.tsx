@@ -9,28 +9,29 @@ import { ClockIcon } from "../shared/components/icons/ClockIcon";
 import { GearIcon } from "../shared/components/icons/GearIcon";
 
 const items: { href: string; label: string; icon: ReactNode }[] = [
-  { href: "/", label: "Today", icon: <CalendarIcon className="bottom-nav__icon" /> },
-  { href: "/programs", label: "Programs", icon: <BookIcon className="bottom-nav__icon" /> },
-  { href: "/history", label: "History", icon: <ClockIcon className="bottom-nav__icon" /> },
-  { href: "/settings", label: "Settings", icon: <GearIcon className="bottom-nav__icon" /> },
+  { href: "/", label: "Today", icon: <CalendarIcon className="ui-nav__icon bottom-nav__icon" /> },
+  { href: "/programs", label: "Programs", icon: <BookIcon className="ui-nav__icon bottom-nav__icon" /> },
+  { href: "/history", label: "History", icon: <ClockIcon className="ui-nav__icon bottom-nav__icon" /> },
+  { href: "/settings", label: "Settings", icon: <GearIcon className="ui-nav__icon bottom-nav__icon" /> },
 ];
 
 export default function BottomNav() {
   const pathname = usePathname();
 
   return (
-    <nav className="bottom-nav" aria-label="Primary">
+    <nav className="ui-nav bottom-nav" aria-label="Primary" data-surface="3">
       {items.map((item) => {
         const isActive = pathname === item.href || (item.href !== "/" && pathname.startsWith(item.href));
         return (
           <VtLink
             key={item.href}
             href={item.href}
-            className="bottom-nav__item"
+            className="ui-nav__item bottom-nav__item"
             ariaCurrent={isActive ? "page" : "false"}
+            data-state={isActive ? "active" : "default"}
           >
             {item.icon}
-            <span className="bottom-nav__label">{item.label}</span>
+            <span className="ui-nav__label bottom-nav__label">{item.label}</span>
           </VtLink>
         );
       })}

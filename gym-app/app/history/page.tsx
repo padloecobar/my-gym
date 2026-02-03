@@ -103,15 +103,20 @@ export default function HistoryPage() {
             <p>Workout not found.</p>
           ) : (
             <>
-              <div className={`card ${vtHero?.type === "history" && vtHero.id === workout.id ? "vt-hero" : ""}`}>
-                <div className="card__body">
-                  <h2 className="card__title">{detailProgramName}</h2>
-                  <p className="card__meta">
+              <div
+                className={`ui-card card ${vtHero?.type === "history" && vtHero.id === workout.id ? "vt-hero" : ""}`}
+                data-surface="1"
+              >
+                <div className="ui-card__body card__body">
+                  <h2 className="ui-card__title card__title">{detailProgramName}</h2>
+                  <p className="ui-card__meta card__meta">
                     {formatDate(workout.endedAt ?? workout.startedAt)} -{" "}
                     {formatTime(workout.endedAt ?? workout.startedAt)}
                   </p>
                   <div className="cluster">
-                    <span className="badge">{formatWeight(detailVolume)}</span>
+                    <span className="ui-badge badge" data-variant="neutral">
+                      {formatWeight(detailVolume)}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -121,26 +126,37 @@ export default function HistoryPage() {
                   const exercise = exercises.find((item) => item.id === entry.exerciseId);
                   if (!exercise) return null;
                   return (
-                    <div key={entry.exerciseId} className="card">
-                      <div className="card__body">
+                    <div key={entry.exerciseId} className="ui-card card" data-surface="1">
+                      <div className="ui-card__body card__body">
                         <div className="cluster cluster--between">
-                          <h3 className="card__title">{exercise.name}</h3>
-                          <span className="badge">{exercise.type}</span>
+                          <h3 className="ui-card__title card__title">{exercise.name}</h3>
+                          <span className="ui-badge badge" data-variant="neutral">
+                            {exercise.type}
+                          </span>
                         </div>
                         <div className="stack">
                           {entry.sets.map((set) => (
-                            <div key={set.id} className="set-row set-row--static">
+                            <div
+                              key={set.id}
+                              className="ui-row set-row set-row--static"
+                              data-variant="neutral"
+                              data-density="comfortable"
+                            >
                               <div className="set-row__stats">
                                 <div className="set-row__stat set-row__stat--weight">
                                   <span className="set-row__label">Total</span>
                                   <span className="set-row__values">
-                                    <span className="pill pill--strong">
-                                      <span className="pill__value tabular-nums">{formatKg(set.weightKg)}</span>
-                                      <span className="pill__label">kg</span>
+                                    <span className="ui-pill pill pill--strong" data-tone="strong">
+                                      <span className="ui-pill__value pill__value tabular-nums">
+                                        {formatKg(set.weightKg)}
+                                      </span>
+                                      <span className="ui-pill__label pill__label">kg</span>
                                     </span>
-                                    <span className="pill">
-                                      <span className="pill__value tabular-nums">{formatLb(set.weightKg)}</span>
-                                      <span className="pill__label">lb</span>
+                                    <span className="ui-pill pill">
+                                      <span className="ui-pill__value pill__value tabular-nums">
+                                        {formatLb(set.weightKg)}
+                                      </span>
+                                      <span className="ui-pill__label pill__label">lb</span>
                                     </span>
                                   </span>
                                   {exercise.type === "Barbell" ? (
@@ -153,9 +169,9 @@ export default function HistoryPage() {
                                 </div>
                                 <div className="set-row__actions">
                                   <div className="set-row__stat set-row__stat--reps">
-                                    <span className="pill pill--strong">
-                                      <span className="pill__value tabular-nums">{set.reps}</span>
-                                      <span className="pill__label">reps</span>
+                                    <span className="ui-pill pill pill--strong" data-tone="strong">
+                                      <span className="ui-pill__value pill__value tabular-nums">{set.reps}</span>
+                                      <span className="ui-pill__label pill__label">reps</span>
                                     </span>
                                   </div>
                                 </div>
@@ -175,7 +191,7 @@ export default function HistoryPage() {
         <div className="stack virtual-list list-surface">
           {Object.entries(grouped).map(([dateKey, items]) => (
             <section key={dateKey} className="page__section">
-              <h2 className="section-title">{formatDate(new Date(dateKey).getTime())}</h2>
+              <h2 className="ui-section-title section-title">{formatDate(new Date(dateKey).getTime())}</h2>
               <div className="stack">
                 {items.map((workout) => {
                   const program = programById.get(workout.programId);
@@ -184,17 +200,20 @@ export default function HistoryPage() {
                     <VtLink
                       key={workout.id}
                       href={`/history?workoutId=${encodeURIComponent(workout.id)}`}
-                      className={`card program-card ${
+                      className={`ui-card card program-card ${
                         vtHero?.type === "history" && vtHero.id === workout.id ? "vt-hero" : ""
                       }`}
+                      data-surface="1"
                       onClick={() => setVtHero({ type: "history", id: workout.id })}
                     >
-                      <div className="card__body">
+                      <div className="ui-card__body card__body">
                         <div className="program-card__header">
-                          <h3 className="card__title">{program?.name ?? "Workout"}</h3>
-                          <span className="badge">{formatWeight(volume)}</span>
+                          <h3 className="ui-card__title card__title">{program?.name ?? "Workout"}</h3>
+                          <span className="ui-badge badge" data-variant="neutral">
+                            {formatWeight(volume)}
+                          </span>
                         </div>
-                        <p className="card__meta">{formatDate(workout.endedAt ?? workout.startedAt)}</p>
+                        <p className="ui-card__meta card__meta">{formatDate(workout.endedAt ?? workout.startedAt)}</p>
                       </div>
                     </VtLink>
                   );

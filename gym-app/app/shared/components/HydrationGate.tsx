@@ -18,8 +18,8 @@ export default function HydrationGate({ children }: HydrationGateProps) {
   if (!isHydrated) {
     return (
       <div className="page container">
-        <div className="card">
-          <div className="card__body">
+        <div className="ui-card card" data-surface="1">
+          <div className="ui-card__body card__body">
             <p className="muted">Loading your gym data...</p>
           </div>
         </div>

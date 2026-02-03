@@ -79,26 +79,26 @@ function SearchExerciseForm({
           onCreate(name, type, mode);
         }}
       >
-        <div className="field">
-          <label className="label" htmlFor="exercise-search">
+        <div className="ui-field field">
+          <label className="ui-label label" htmlFor="exercise-search">
             Search or create
           </label>
           <input
             id="exercise-search"
-            className="input"
+            className="ui-input input"
             placeholder="e.g. Overhead Press"
             value={query}
             onChange={(event) => setQuery(event.target.value)}
           />
         </div>
 
-        <div className="field">
-          <label className="label" htmlFor="exercise-type">
+        <div className="ui-field field">
+          <label className="ui-label label" htmlFor="exercise-type">
             Type
           </label>
           <select
             id="exercise-type"
-            className="select"
+            className="ui-select select"
             value={type}
             onChange={(event) => {
               const nextType = event.target.value as ExerciseType;
@@ -115,19 +115,25 @@ function SearchExerciseForm({
         </div>
 
         {type === "Barbell" ? (
-          <div className="field">
-            <span className="label">Default mode</span>
+          <div className="ui-field field">
+            <span className="ui-label label">Default mode</span>
             <div className="segmented">
               <button
                 type="button"
-                className={`button${mode === "plates" ? " button--primary" : ""}`}
+                className={`ui-button button${mode === "plates" ? " button--primary" : ""}`}
+                data-variant={mode === "plates" ? "primary" : "ghost"}
+                data-state={mode === "plates" ? "selected" : "default"}
+                data-size="sm"
                 onClick={() => setMode("plates")}
               >
                 Plates / side
               </button>
               <button
                 type="button"
-                className={`button${mode === "total" ? " button--primary" : ""}`}
+                className={`ui-button button${mode === "total" ? " button--primary" : ""}`}
+                data-variant={mode === "total" ? "primary" : "ghost"}
+                data-state={mode === "total" ? "selected" : "default"}
+                data-size="sm"
                 onClick={() => setMode("total")}
               >
                 Total
@@ -137,24 +143,37 @@ function SearchExerciseForm({
         ) : null}
       </form>
 
-      <div className="sheet__list">
-        <p className="label">Matches</p>
+      <div className="ui-sheet__list sheet__list">
+        <p className="ui-label label">Matches</p>
         <div className="stack">
           {results.map((exercise) => (
-            <button key={exercise.id} type="button" className="list-row" onClick={() => onSelect(exercise.id)}>
+            <button
+              key={exercise.id}
+              type="button"
+              className="ui-row list-row"
+              data-density="comfortable"
+              onClick={() => onSelect(exercise.id)}
+            >
               <span>{exercise.name}</span>
-              <span className="badge">{exercise.type}</span>
+              <span className="ui-badge badge" data-variant="neutral">
+                {exercise.type}
+              </span>
             </button>
           ))}
           {results.length === 0 ? <p className="muted">No matches yet.</p> : null}
         </div>
       </div>
 
-      <div className="sheet__actions">
-        <button type="button" className="button button--ghost" onClick={onClose}>
+      <div className="ui-sheet__actions sheet__actions">
+        <button type="button" className="ui-button button button--ghost" data-variant="ghost" onClick={onClose}>
           Cancel
         </button>
-        <button type="submit" className="button button--primary" form="search-exercise-form">
+        <button
+          type="submit"
+          className="ui-button button button--primary"
+          data-variant="primary"
+          form="search-exercise-form"
+        >
           Create
         </button>
       </div>

@@ -30,7 +30,9 @@ export function Button({
   return (
     <button
       type={type}
-      className={`button ${variantClass} ${sizeClass} ${className}`.trim()}
+      className={`ui-button button ${variantClass} ${sizeClass} ${className}`.trim()}
+      data-variant={variant}
+      data-size={size}
       {...props}
     />
   );

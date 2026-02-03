@@ -13,12 +13,14 @@ export default function Snackbar() {
   if (!snackbar.open) return null;
 
   return (
-    <div className="snackbar" role="status" aria-live="polite">
+    <div className="ui-snackbar snackbar" role="status" aria-live="polite" data-surface="3">
       <span>{snackbar.message}</span>
       {snackbar.actionLabel && snackbar.actionCommand ? (
         <button
           type="button"
-          className="button button--ghost button--sm"
+          className="ui-button button button--ghost button--sm"
+          data-variant="ghost"
+          data-size="sm"
           onClick={() => {
             if (snackbar.actionCommand) {
               executeCommand(snackbar.actionCommand);

@@ -56,26 +56,26 @@ export default function ProgramsPage() {
         <HeaderBar title="Program" subtitle={<span className="muted">{program.name}</span>} />
         <BackButton />
 
-        <div className="card">
-          <div className="card__body stack">
-            <div className="field">
-              <label className="label" htmlFor="program-name">
+        <div className="ui-card card" data-surface="1">
+          <div className="ui-card__body card__body stack">
+            <div className="ui-field field">
+              <label className="ui-label label" htmlFor="program-name">
                 Name
               </label>
               <input
                 id="program-name"
-                className="input"
+                className="ui-input input"
                 value={program.name}
                 onChange={(event) => updateProgram(program.id, { name: event.target.value })}
               />
             </div>
-            <div className="field">
-              <label className="label" htmlFor="program-note">
+            <div className="ui-field field">
+              <label className="ui-label label" htmlFor="program-note">
                 Note
               </label>
               <textarea
                 id="program-note"
-                className="textarea"
+                className="ui-textarea textarea"
                 value={program.note ?? ""}
                 onChange={(event) => updateProgram(program.id, { note: event.target.value })}
               />
@@ -85,10 +85,11 @@ export default function ProgramsPage() {
 
         <section className="page__section">
           <div className="cluster cluster--between">
-            <h2 className="section-title">Exercises</h2>
+            <h2 className="ui-section-title section-title">Exercises</h2>
             <button
               type="button"
-              className="button button--ghost"
+              className="ui-button button button--ghost"
+              data-variant="ghost"
               onClick={() => openSearchExercise({ programId: program.id })}
             >
               + Add
@@ -99,7 +100,8 @@ export default function ProgramsPage() {
             {orderedExercises.map((exercise) => (
               <div
                 key={exercise.id}
-                className="card"
+                className="ui-card card"
+                data-surface="1"
                 draggable
                 onDragStart={() => setDragId(exercise.id)}
                 onDragEnd={() => setDragId(null)}
@@ -110,18 +112,21 @@ export default function ProgramsPage() {
                   setDragId(null);
                 }}
               >
-                <div className="card__body stack">
+                <div className="ui-card__body card__body stack">
                   <div className="cluster cluster--between">
                     <div>
-                      <h3 className="card__title">{exercise.name}</h3>
-                      <p className="card__meta">{exercise.type}</p>
+                      <h3 className="ui-card__title card__title">{exercise.name}</h3>
+                      <p className="ui-card__meta card__meta">{exercise.type}</p>
                     </div>
-                    <span className="badge">Drag</span>
+                    <span className="ui-badge badge" data-variant="neutral">
+                      Drag
+                    </span>
                   </div>
                   <div className="cluster">
                     <button
                       type="button"
-                      className="button button--secondary"
+                      className="ui-button button button--secondary"
+                      data-variant="secondary"
                       aria-label={`Move ${exercise.name} up`}
                       onClick={() => moveProgramExercise(program.id, exercise.id, "up")}
                     >
@@ -129,7 +134,8 @@ export default function ProgramsPage() {
                     </button>
                     <button
                       type="button"
-                      className="button button--secondary"
+                      className="ui-button button button--secondary"
+                      data-variant="secondary"
                       aria-label={`Move ${exercise.name} down`}
                       onClick={() => moveProgramExercise(program.id, exercise.id, "down")}
                     >
@@ -137,7 +143,8 @@ export default function ProgramsPage() {
                     </button>
                     <button
                       type="button"
-                      className="button button--ghost"
+                      className="ui-button button button--ghost"
+                      data-variant="ghost"
                       aria-label={`Remove ${exercise.name}`}
                       onClick={() => removeExerciseFromProgram(program.id, exercise.id)}
                     >
@@ -152,15 +159,16 @@ export default function ProgramsPage() {
         </section>
 
         <section className="page__section">
-          <div className="card">
-            <div className="card__body stack">
+          <div className="ui-card card" data-surface="1">
+            <div className="ui-card__body card__body stack">
               <div>
-                <h2 className="section-title">Danger zone</h2>
-                <p className="card__meta">Deleting a program keeps your workout history intact.</p>
+                <h2 className="ui-section-title section-title">Danger zone</h2>
+                <p className="ui-card__meta card__meta">Deleting a program keeps your workout history intact.</p>
               </div>
               <button
                 type="button"
-                className="button button--danger"
+                className="ui-button button button--danger"
+                data-variant="danger"
                 onClick={() => {
                   const command: Command = {
                     type: "DELETE_PROGRAM",
@@ -201,7 +209,13 @@ export default function ProgramsPage() {
         ))}
       </div>
 
-      <button type="button" className="button button--primary fab" onClick={handleNewProgram}>
+      <button
+        type="button"
+        className="ui-button button button--primary fab"
+        data-variant="primary"
+        data-size="lg"
+        onClick={handleNewProgram}
+      >
         +
       </button>
     </div>
