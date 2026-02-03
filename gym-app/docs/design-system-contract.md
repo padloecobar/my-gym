@@ -34,6 +34,8 @@ This contract defines the **visual system** for the app. It is the source of tru
 
 --surface-highlight: color-mix(in srgb, white 14%, transparent);
 --surface-noise: repeating-linear-gradient(0deg, color-mix(in srgb, white 3%, transparent) 0px, transparent 2px, transparent 4px);
+--tray-bg: color-mix(in srgb, var(--surface-2) 58%, transparent);
+--tray-sheen: color-mix(in srgb, white 6%, transparent);
 ```
 
 ### 2.3 Text + Focus
@@ -75,13 +77,13 @@ This contract defines the **visual system** for the app. It is the source of tru
 - Must meet 48px hit area
 
 ### 3.3 Chips + Pills
-- Chip: `.chip`, active `.chip--active`
-- Pill: `.pill`, strong `.pill--strong`
-- Pill structure:
+-- Chip: `.chip`, active `.chip--active`
+-- Pill: `.pill`, strong `.pill--strong` (value-first layout)
+-- Pill structure:
 ```
 <span class="pill pill--strong">
-  <span class="pill__label">kg</span>
   <span class="pill__value">60</span>
+  <span class="pill__label">kg</span>
 </span>
 ```
 
@@ -105,13 +107,13 @@ This contract defines the **visual system** for the app. It is the source of tru
 
 ### 3.8 Navigation
 - `.bottom-nav` uses `--surface-3`
-- Active indicator uses cool glow (not overpowering)
+- Active state uses a soft selection background + cool glow (no underline)
 
 ### 3.9 Header
 - `.header-bar` / `.runner-header` use `--surface-3`
 
 ### 3.10 List Surface (Tray)
-- `.list-surface` uses `--surface-2` and holds list rows/cards
+- `.list-surface` uses `--tray-bg` with subtle sheen and holds list rows/cards
 
 ### 3.11 Set Row (Stats Layout)
 - Base: `.set-row`
@@ -122,7 +124,9 @@ This contract defines the **visual system** for the app. It is the source of tru
 ## 4) Rules
 - No raw hex colors outside token files.
 - Use `.button` as the canonical button API.
-- Use `--surface-1/2/3` for all surfaces.
+- Use `--surface-1/2/3` for top-level surfaces and `--tray-bg` for inner trays.
+- Borders are hints, not outlines. Inner trays avoid borders; rely on sheen + shadow.
+- Mango accent is a signal: primary CTA + active/selected states only.
 - Use `--focus-ring` for focus-visible (do not remove without replacement).
 - Tap targets must be >= 48px.
 - Avoid nested gradients inside surfaces.

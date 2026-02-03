@@ -54,12 +54,12 @@ export default function SetRow({
           <span className="set-row__label">Total</span>
           <span className="set-row__values">
             <span className="pill pill--strong">
-              <span className="pill__label">kg</span>
               <span className="pill__value tabular-nums">{formatKg(set.weightKg)}</span>
+              <span className="pill__label">kg</span>
             </span>
             <span className="pill">
-              <span className="pill__label">lb</span>
               <span className="pill__value tabular-nums">{formatLb(set.weightKg)}</span>
+              <span className="pill__label">lb</span>
             </span>
           </span>
           {showPerSide ? (
@@ -79,8 +79,8 @@ export default function SetRow({
             }}
           >
             <span className="pill pill--strong">
-              <span className="pill__label">Reps</span>
               <span className="pill__value tabular-nums">{set.reps}</span>
+              <span className="pill__label">reps</span>
             </span>
           </button>
           <button
