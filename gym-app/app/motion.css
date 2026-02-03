@@ -1,5 +1,5 @@
 /**
- * motion.css (Aurora Glass)
+ * motion.css (Mango Voltage Liquid Glass)
  */
 
 @keyframes page-in {
@@ -8,7 +8,7 @@
 }
 
 @keyframes set-highlight-fade {
-  0% { background: var(--set-highlight-bg, color-mix(in srgb, var(--brand-2) 18%, transparent)); }
+  0% { background: var(--set-highlight-bg, color-mix(in srgb, var(--hot-2) 18%, transparent)); }
   100% { background: transparent; }
 }
 

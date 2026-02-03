@@ -73,7 +73,7 @@ export default function BottomSheet({
     >
       <button type="button" className="sheet__backdrop" aria-label="Close" onClick={onClose} />
       <div
-        className="sheet__panel dialog"
+        className="sheet__panel"
         role="dialog"
         aria-modal="true"
         aria-labelledby="sheet-title"

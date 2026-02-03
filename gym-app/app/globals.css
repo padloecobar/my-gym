@@ -1,5 +1,5 @@
-/* globals.css (Aurora Glass - Dark-first)
-   Goal: match reference look: deep aurora background + dark glass panels + gradient edges + soft shapes
+/* globals.css (Mango Voltage Liquid Glass - Dark-first)
+   Goal: aurora world + dark translucent glass + warm signal accents
 */
 
 @layer reset, tokens, base, layout, components, motion, utilities, overrides;
@@ -40,7 +40,7 @@
 }
 
 /* --------------------------------------------
-   2) Tokens (dark-first aurora + glass)
+   2) Tokens (dark-first aurora glass)
 -------------------------------------------- */
 @layer tokens {
   :root {
@@ -114,62 +114,75 @@
     --gutter: clamp(1rem, 2vw, 1.5rem);
 
     /* ----------------------------
-       Dark primitives (OKLCH)
-       Night-gym navy + aurora accents
+       Mango Voltage Liquid Glass (dark)
     ---------------------------- */
-    --neutral-0: oklch(0.12 0.035 265); /* page base */
-    --neutral-1: oklch(0.16 0.038 265); /* deep surface */
-    --neutral-2: oklch(0.21 0.042 265); /* raised glass */
-    --neutral-3: oklch(0.29 0.045 265); /* subtle separation */
+    --neutral-0: oklch(0.10 0.035 260); /* page base */
+    --neutral-1: oklch(0.14 0.040 260); /* deep surface */
+    --neutral-2: oklch(0.18 0.045 260); /* raised glass */
+    --neutral-3: oklch(0.24 0.050 260); /* subtle separation */
 
-    --text-ink: oklch(0.96 0.02 270);
-    --text-muted: oklch(0.78 0.03 270);
+    /* Brand palette */
+    --hot-1: #FFB300; /* mango gold */
+    --hot-2: #FF4D6D; /* coral heat */
+    --cool-1: #3D7BFF; /* arctic blue */
+    --cool-2: #42FFD2; /* mint glow */
 
-    /* Aurora accents */
-    --brand-1: oklch(0.76 0.21 25);  /* coral glow */
-    --brand-2: oklch(0.72 0.20 330); /* magenta/violet */
-    --brand-3: oklch(0.72 0.16 255); /* blue edge */
+    --accent-1: var(--hot-1);
+    --accent-2: var(--hot-2);
+    --accent-cool-1: var(--cool-1);
+    --accent-cool-2: var(--cool-2);
 
-    --accent-1: var(--brand-1);
-    --accent-2: var(--brand-2);
-
-    --danger-1: oklch(0.72 0.21 25);
-    --success-1: oklch(0.78 0.15 145);
-    --warning-1: oklch(0.88 0.15 85);
+    --danger-1: color-mix(in srgb, var(--hot-2) 90%, white);
+    --success-1: color-mix(in srgb, var(--cool-2) 70%, white);
+    --warning-1: color-mix(in srgb, var(--hot-1) 85%, white);
 
     /* ----------------------------
        Semantic tokens
     ---------------------------- */
     --surface-0: var(--neutral-0);
-    --surface-1: color-mix(in srgb, var(--neutral-1) 76%, transparent);
-    --surface-2: color-mix(in srgb, var(--neutral-2) 82%, transparent);
-    --surface-3: color-mix(in srgb, var(--neutral-2) 90%, transparent);
+    --surface-1: color-mix(in srgb, var(--neutral-1) 82%, transparent);
+    --surface-2: color-mix(in srgb, var(--neutral-2) 78%, transparent);
+    --surface-3: color-mix(in srgb, var(--neutral-2) 88%, transparent);
 
-    --text-1: var(--text-ink);
-    --text-2: var(--text-muted);
-    --text-3: color-mix(in srgb, var(--text-2) 68%, var(--neutral-0));
+    --text-1: color-mix(in srgb, white 92%, var(--cool-1) 8%);
+    --text-2: color-mix(in srgb, white 70%, var(--cool-1) 10%);
+    --text-3: color-mix(in srgb, var(--text-2) 80%, var(--surface-0));
+    --placeholder: color-mix(in srgb, var(--text-2) 75%, var(--surface-0));
+    --text-shadow: 0 2px 12px color-mix(in srgb, black 55%, transparent);
+
+    --text-ink: var(--text-1);
+    --text-muted: var(--text-2);
 
     /* Border strokes for glass */
-    --stroke-1: color-mix(in srgb, white 14%, transparent);
-    --stroke-2: color-mix(in srgb, white 22%, transparent);
+    --stroke-1: color-mix(in srgb, white 12%, transparent);
+    --stroke-2: color-mix(in srgb, white 20%, transparent);
     --stroke-inner: var(--stroke-1);
     --stroke-outer: var(--stroke-2);
 
-    --focus-ring: color-mix(in srgb, var(--accent-1) 85%, white);
-    --on-brand: oklch(0.985 0.010 285);
+    --focus-ring: color-mix(in srgb, var(--cool-1) 70%, var(--cool-2));
+    --on-brand: color-mix(in srgb, black 88%, var(--neutral-0));
 
-    --scrim: color-mix(in srgb, black 64%, transparent);
+    --scrim: color-mix(in srgb, black 58%, transparent);
+
+    /* Surface accents */
+    --surface-highlight: color-mix(in srgb, white 14%, transparent);
+    --surface-noise:
+      repeating-linear-gradient(0deg,
+        color-mix(in srgb, white 3%, transparent) 0px,
+        transparent 2px,
+        transparent 4px
+      );
+    --surface-noise-opacity: 0.04;
 
     /* Elevation */
-    --shadow-color: color-mix(in srgb, black 62%, transparent);
+    --shadow-color: color-mix(in srgb, black 66%, transparent);
     --shadow-1: 0 1px 2px var(--shadow-color);
-    --shadow-2: 0 14px 50px var(--shadow-color);
-    --shadow-3: 0 26px 90px var(--shadow-color);
+    --shadow-2: 0 16px 50px var(--shadow-color);
+    --shadow-3: 0 28px 90px var(--shadow-color);
 
     /* Glow */
-    --glow-brand: 0 18px 60px color-mix(in srgb, var(--accent-1) 42%, transparent);
-    --glow-pink: 0 20px 70px color-mix(in srgb, var(--accent-2) 34%, transparent);
-    --glow-blue: 0 20px 70px color-mix(in srgb, var(--brand-3) 30%, transparent);
+    --glow-hot: 0 18px 50px color-mix(in srgb, var(--hot-1) 35%, transparent);
+    --glow-cool: 0 18px 50px color-mix(in srgb, var(--cool-1) 35%, transparent);
 
     /* Compatibility aliases */
     --bg: var(--surface-0);
@@ -180,35 +193,36 @@
     --border-soft: var(--stroke-2);
     --ring: var(--focus-ring);
 
-    --brand: var(--accent-1);
+    --brand: var(--hot-1);
     --success: var(--success-1);
     --warning: var(--warning-1);
     --danger: var(--danger-1);
 
-    --brand-soft: color-mix(in srgb, var(--accent-1) 18%, transparent);
+    --brand-soft: color-mix(in srgb, var(--hot-1) 18%, transparent);
+    --glow-brand: var(--glow-hot);
 
     /* Vibe */
     --bg-aurora:
-      radial-gradient(1200px 900px at 12% -10%,
-        color-mix(in srgb, var(--brand-3) 62%, transparent) 0%,
-        transparent 65%),
-      radial-gradient(1100px 850px at 52% 0%,
-        color-mix(in srgb, var(--brand-2) 70%, transparent) 0%,
+      radial-gradient(1200px 900px at 14% -10%,
+        color-mix(in srgb, var(--cool-1) 28%, transparent) 0%,
         transparent 62%),
-      radial-gradient(1000px 800px at 86% 12%,
-        color-mix(in srgb, var(--brand-1) 68%, transparent) 0%,
-        transparent 60%),
-      radial-gradient(1200px 900px at 55% 120%,
-        color-mix(in srgb, var(--brand-3) 30%, transparent) 0%,
+      radial-gradient(1000px 800px at 78% 8%,
+        color-mix(in srgb, var(--hot-1) 24%, transparent) 0%,
+        transparent 62%),
+      radial-gradient(1100px 900px at 58% 120%,
+        color-mix(in srgb, var(--cool-2) 20%, transparent) 0%,
+        transparent 66%),
+      radial-gradient(1200px 900px at 30% 110%,
+        color-mix(in srgb, var(--hot-2) 18%, transparent) 0%,
         transparent 68%),
       var(--neutral-0);
 
-    --glass-soft: color-mix(in srgb, var(--neutral-1) 56%, transparent);
-    --glass-mid: color-mix(in srgb, var(--neutral-1) 72%, transparent);
-    --glass-strong: color-mix(in srgb, var(--neutral-1) 86%, transparent);
-    --glass-1: var(--glass-mid);
-    --glass-2: color-mix(in srgb, var(--neutral-2) 80%, transparent);
-    --glass-3: var(--glass-soft);
+    --glass-soft: color-mix(in srgb, var(--neutral-1) 60%, transparent);
+    --glass-mid: color-mix(in srgb, var(--neutral-1) 78%, transparent);
+    --glass-strong: color-mix(in srgb, var(--neutral-1) 92%, transparent);
+    --glass-1: var(--surface-1);
+    --glass-2: var(--surface-2);
+    --glass-3: color-mix(in srgb, var(--neutral-1) 68%, transparent);
 
     --glass-bg: var(--glass-mid);
     --glass-stroke: var(--stroke-inner);
@@ -218,25 +232,25 @@
     --glass-blur-strong: 22px;
 
     --accent-gradient: linear-gradient(135deg,
-      color-mix(in srgb, var(--accent-1) 90%, transparent),
-      color-mix(in srgb, var(--accent-2) 92%, transparent)
+      color-mix(in srgb, var(--hot-1) 70%, transparent),
+      color-mix(in srgb, var(--hot-2) 75%, transparent)
     );
 
     --accent-edge: linear-gradient(135deg,
-      color-mix(in srgb, white 22%, transparent),
-      color-mix(in srgb, var(--accent-2) 60%, transparent)
+      color-mix(in srgb, var(--hot-1) 40%, transparent),
+      color-mix(in srgb, var(--hot-2) 40%, transparent)
     );
 
     --edge-gradient: linear-gradient(135deg,
-      color-mix(in srgb, var(--brand-3) 42%, transparent),
-      color-mix(in srgb, var(--brand-2) 42%, transparent),
-      color-mix(in srgb, var(--brand-1) 42%, transparent)
+      color-mix(in srgb, var(--cool-1) 28%, transparent),
+      color-mix(in srgb, var(--cool-2) 24%, transparent),
+      color-mix(in srgb, var(--hot-1) 24%, transparent)
     );
 
     --edge-gradient-soft: linear-gradient(135deg,
-      color-mix(in srgb, var(--brand-3) 18%, transparent),
-      color-mix(in srgb, var(--brand-2) 18%, transparent),
-      color-mix(in srgb, var(--brand-1) 18%, transparent)
+      color-mix(in srgb, var(--cool-1) 14%, transparent),
+      color-mix(in srgb, var(--cool-2) 12%, transparent),
+      color-mix(in srgb, var(--hot-1) 12%, transparent)
     );
 
     /* Subtle grain */
@@ -251,35 +265,40 @@
     --ring-offset: 2px;
 
     /* legacy highlight */
-    --accent-hsl: 18 90% 65%;
+    --accent-hsl: 40 100% 55%;
   }
 
   /* Optional LIGHT theme, only if you explicitly set <html data-theme="light"> */
   :root[data-theme="light"] {
     color-scheme: light;
 
-    --neutral-0: oklch(0.985 0.010 285);
-    --neutral-1: oklch(0.965 0.012 285);
-    --neutral-2: oklch(0.940 0.016 285);
-    --neutral-3: oklch(0.860 0.018 285);
+    --neutral-0: oklch(0.98 0.01 260);
+    --neutral-1: oklch(0.96 0.012 260);
+    --neutral-2: oklch(0.93 0.014 260);
+    --neutral-3: oklch(0.86 0.016 260);
 
-    --text-ink: oklch(0.220 0.020 285);
-    --text-muted: oklch(0.520 0.020 285);
+    --text-1: color-mix(in srgb, black 86%, var(--cool-1));
+    --text-2: color-mix(in srgb, black 55%, var(--cool-1));
+    --text-3: color-mix(in srgb, var(--text-2) 80%, var(--surface-0));
+    --placeholder: color-mix(in srgb, var(--text-2) 70%, var(--surface-0));
+
+    --text-ink: var(--text-1);
+    --text-muted: var(--text-2);
 
     --stroke-1: color-mix(in srgb, black 10%, transparent);
     --stroke-2: color-mix(in srgb, black 16%, transparent);
     --stroke-inner: var(--stroke-1);
     --stroke-outer: var(--stroke-2);
 
-    --scrim: color-mix(in srgb, black 30%, transparent);
-    --shadow-color: color-mix(in srgb, black 18%, transparent);
+    --scrim: color-mix(in srgb, black 28%, transparent);
+    --shadow-color: color-mix(in srgb, black 20%, transparent);
 
-    --glass-soft: color-mix(in srgb, white 70%, transparent);
-    --glass-mid: color-mix(in srgb, white 82%, transparent);
-    --glass-strong: color-mix(in srgb, white 90%, transparent);
-    --glass-1: var(--glass-mid);
-    --glass-2: color-mix(in srgb, white 88%, transparent);
-    --glass-3: var(--glass-soft);
+    --glass-soft: color-mix(in srgb, white 72%, transparent);
+    --glass-mid: color-mix(in srgb, white 84%, transparent);
+    --glass-strong: color-mix(in srgb, white 92%, transparent);
+    --glass-1: var(--surface-1);
+    --glass-2: var(--surface-2);
+    --glass-3: color-mix(in srgb, white 68%, transparent);
 
     --glass-bg: var(--glass-mid);
     --glass-stroke: var(--stroke-inner);
@@ -287,13 +306,13 @@
 
     --bg-aurora:
       radial-gradient(1100px 800px at 18% -10%,
-        color-mix(in srgb, var(--brand-3) 28%, transparent) 0%,
+        color-mix(in srgb, var(--cool-1) 22%, transparent) 0%,
         transparent 60%),
       radial-gradient(1200px 900px at 52% 0%,
-        color-mix(in srgb, var(--brand-1) 32%, transparent) 0%,
+        color-mix(in srgb, var(--hot-1) 24%, transparent) 0%,
         transparent 62%),
       radial-gradient(1200px 900px at 92% 10%,
-        color-mix(in srgb, var(--brand-2) 26%, transparent) 0%,
+        color-mix(in srgb, var(--hot-2) 22%, transparent) 0%,
         transparent 62%),
       var(--neutral-0);
   }
@@ -301,39 +320,32 @@
   /* OKLCH fallback */
   @supports not (color: oklch(62% 0.18 250)) {
     :root {
-      --neutral-0: hsl(252 32% 7%);
-      --neutral-1: hsl(252 28% 11%);
-      --neutral-2: hsl(252 26% 16%);
-      --neutral-3: hsl(252 22% 24%);
+      --neutral-0: hsl(255 36% 6%);
+      --neutral-1: hsl(255 30% 10%);
+      --neutral-2: hsl(255 26% 15%);
+      --neutral-3: hsl(255 22% 22%);
 
-      --text-ink: hsl(250 20% 96%);
-      --text-muted: hsl(250 10% 78%);
+      --text-ink: hsl(210 20% 96%);
+      --text-muted: hsl(210 10% 76%);
 
-      --brand-1: hsl(18 90% 68%);
-      --brand-2: hsl(330 85% 70%);
-      --brand-3: hsl(245 90% 70%);
+      --stroke-1: color-mix(in srgb, white 12%, transparent);
+      --stroke-2: color-mix(in srgb, white 20%, transparent);
 
-      --accent-1: var(--brand-1);
-      --accent-2: var(--brand-2);
-
-      --stroke-1: color-mix(in srgb, white 14%, transparent);
-      --stroke-2: color-mix(in srgb, white 22%, transparent);
-
-      --scrim: color-mix(in srgb, black 64%, transparent);
-      --shadow-color: color-mix(in srgb, black 62%, transparent);
+      --scrim: color-mix(in srgb, black 58%, transparent);
+      --shadow-color: color-mix(in srgb, black 66%, transparent);
 
       --bg-aurora:
-        radial-gradient(1200px 900px at 12% -10%,
-          color-mix(in srgb, var(--brand-3) 62%, transparent) 0%,
-          transparent 65%),
-        radial-gradient(1100px 850px at 52% 0%,
-          color-mix(in srgb, var(--brand-2) 70%, transparent) 0%,
+        radial-gradient(1200px 900px at 14% -10%,
+          color-mix(in srgb, var(--cool-1) 28%, transparent) 0%,
           transparent 62%),
-        radial-gradient(1000px 800px at 86% 12%,
-          color-mix(in srgb, var(--brand-1) 68%, transparent) 0%,
-          transparent 60%),
-        radial-gradient(1200px 900px at 55% 120%,
-          color-mix(in srgb, var(--brand-3) 30%, transparent) 0%,
+        radial-gradient(1000px 800px at 78% 8%,
+          color-mix(in srgb, var(--hot-1) 24%, transparent) 0%,
+          transparent 62%),
+        radial-gradient(1100px 900px at 58% 120%,
+          color-mix(in srgb, var(--cool-2) 20%, transparent) 0%,
+          transparent 66%),
+        radial-gradient(1200px 900px at 30% 110%,
+          color-mix(in srgb, var(--hot-2) 18%, transparent) 0%,
           transparent 68%),
         var(--neutral-0);
     }
@@ -428,7 +440,7 @@
 
   :where(button, [role="button"], input, select, textarea) { touch-action: manipulation; }
 
-  ::selection { background: color-mix(in srgb, var(--brand-1) 30%, transparent); }
+  ::selection { background: color-mix(in srgb, var(--hot-1) 30%, transparent); }
 
   @media (prefers-reduced-motion: reduce) {
     html:focus-within { scroll-behavior: auto; }
@@ -483,15 +495,15 @@
 
     min-block-size: var(--_height, var(--tap, 48px));
     border-radius: var(--radius-pill);
-    border: var(--border-1) solid var(--glass-stroke);
+    border: var(--border-1) solid var(--stroke-inner);
 
-    background: var(--glass-3);
+    background: var(--surface-2);
 
     color: var(--text-1);
     font-weight: 600;
     letter-spacing: -0.01em;
 
-    box-shadow: var(--_shadow);
+    box-shadow: var(--_shadow), inset 0 1px 0 var(--surface-highlight);
     transition:
       transform var(--dur-press) var(--ease-standard),
       filter var(--dur-press) var(--ease-standard),
@@ -524,15 +536,16 @@
 
   /* Variants */
   :where(.button--primary, .btn--primary) {
-    background: var(--accent-gradient);
-    border-color: color-mix(in srgb, var(--accent-1) 38%, transparent);
-    color: var(--on-brand);
-    box-shadow: var(--glow-brand), var(--shadow-2);
+    background: color-mix(in srgb, var(--surface-2) 86%, var(--hot-1) 14%);
+    border-color: color-mix(in srgb, var(--hot-1) 45%, transparent);
+    color: var(--text-1);
+    box-shadow: var(--glow-hot), var(--shadow-2);
+    text-shadow: var(--text-shadow);
   }
 
   :where(.button--secondary, .btn--secondary) {
-    background: var(--glass-2);
-    border-color: var(--glass-stroke);
+    background: var(--surface-2);
+    border-color: var(--stroke-inner);
   }
 
   :where(.button--ghost, .btn--ghost) {
@@ -543,23 +556,36 @@
   }
 
   :where(.button--ghost, .btn--ghost):hover:not(:disabled):not([aria-disabled="true"]) {
-    background: color-mix(in srgb, var(--glass-2) 30%, transparent);
+    background: color-mix(in srgb, var(--surface-2) 30%, transparent);
     color: var(--text-1);
     filter: none;
     box-shadow: none;
   }
 
   :where(.button--danger, .btn--danger) {
-    background: color-mix(in srgb, var(--danger-1) 18%, transparent);
-    border-color: color-mix(in srgb, var(--danger-1) 38%, transparent);
+    background: color-mix(in srgb, var(--surface-2) 84%, var(--danger-1) 16%);
+    border-color: color-mix(in srgb, var(--danger-1) 45%, transparent);
     color: color-mix(in srgb, var(--danger-1) 88%, white);
     box-shadow: none;
   }
 
   /* Sizes */
-  :where(.button--sm, .btn--sm) { --_height: 40px; padding-inline: var(--space-3); font-size: var(--fs-1); }
+  :where(.button--sm, .btn--sm) { --_height: 48px; padding-inline: var(--space-3); font-size: var(--fs-1); }
   :where(.button--md, .btn--md) { --_height: 48px; padding-inline: var(--space-4); font-size: var(--fs-2); }
   :where(.button--lg, .btn--lg) { --_height: 56px; padding-inline: var(--space-5); font-size: var(--fs-3); }
+
+  :where(.icon-button) {
+    --_height: var(--tap, 48px);
+    inline-size: var(--tap, 48px);
+    padding: 0;
+    display: inline-grid;
+    place-items: center;
+  }
+
+  :where(.icon-button.button--ghost, .icon-button.btn--ghost) {
+    background: color-mix(in srgb, var(--surface-2) 35%, transparent);
+    border-color: var(--stroke-inner);
+  }
 
   /* Segmented control */
   .segmented {
@@ -567,9 +593,9 @@
     gap: var(--space-1);
     padding: var(--space-1);
     border-radius: var(--radius-pill);
-    border: var(--border-1) solid var(--glass-stroke);
-    background: var(--glass-2);
-    box-shadow: var(--shadow-1);
+    border: var(--border-1) solid var(--stroke-inner);
+    background: var(--surface-2);
+    box-shadow: var(--shadow-1), inset 0 1px 0 var(--surface-highlight);
   }
 
   @supports (backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px)) {
@@ -587,10 +613,10 @@
   }
 
   .segmented > :where(.button--primary, .btn--primary) {
-    background: var(--accent-gradient);
-    border-color: color-mix(in srgb, var(--accent-1) 38%, transparent);
-    color: var(--on-brand);
-    box-shadow: var(--glow-brand);
+    background: color-mix(in srgb, var(--surface-2) 80%, var(--hot-1) 20%);
+    border-color: color-mix(in srgb, var(--hot-1) 45%, transparent);
+    color: var(--text-1);
+    box-shadow: var(--glow-hot);
   }
 
   /* Card (key: dark glass, not pastel) */
@@ -599,9 +625,9 @@
     position: relative;
     border-radius: var(--radius-card);
     border: var(--border-1) solid var(--stroke-outer);
-    background: var(--glass-1);
+    background: var(--surface-1);
 
-    box-shadow: var(--shadow-2);
+    box-shadow: var(--shadow-2), inset 0 1px 0 var(--surface-highlight);
     overflow: clip;
   }
 
@@ -612,12 +638,23 @@
     }
   }
 
+  .card::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: var(--surface-noise);
+    opacity: var(--surface-noise-opacity);
+    mix-blend-mode: overlay;
+  }
+
   .card__body { position: relative; padding: var(--space-5); display: grid; gap: var(--space-3); }
   .card__title {
     font-size: var(--fs-2);
     font-weight: 650;
     line-height: var(--lh-tight);
     letter-spacing: -0.01em;
+    text-shadow: var(--text-shadow);
   }
   .card__meta { color: var(--text-2); font-size: var(--fs-1); }
 
@@ -626,6 +663,7 @@
     font-weight: 720;
     line-height: var(--lh-tight);
     letter-spacing: -0.03em;
+    text-shadow: var(--text-shadow);
   }
 
   .section-title {
@@ -633,6 +671,7 @@
     font-weight: 680;
     line-height: var(--lh-tight);
     letter-spacing: -0.02em;
+    text-shadow: var(--text-shadow);
   }
 
   @container (min-width: 34rem) {
@@ -649,10 +688,12 @@
     inline-size: 100%;
     padding-inline: var(--space-3);
     padding-block: var(--space-2);
+    min-block-size: var(--tap, 48px);
     border-radius: var(--radius-pill);
     border: var(--border-1) solid var(--stroke-inner);
-    background: var(--glass-2);
+    background: var(--surface-2);
     color: var(--text-1);
+    box-shadow: inset 0 1px 0 var(--surface-highlight);
     transition: filter var(--dur-quick) var(--ease-standard), box-shadow var(--dur-quick) var(--ease-standard);
   }
 
@@ -671,14 +712,27 @@
     line-height: var(--lh-relaxed);
   }
 
+  .input::placeholder,
+  .textarea::placeholder {
+    color: var(--placeholder);
+    opacity: 1;
+  }
+
   .input:focus-visible,
   .select:focus-visible,
   .textarea:focus-visible {
     outline: none;
     box-shadow:
-      0 0 0 var(--ring-size) color-mix(in srgb, var(--focus-ring) 28%, transparent),
+      0 0 0 var(--ring-size) color-mix(in srgb, var(--focus-ring) 45%, transparent),
       var(--shadow-1);
     filter: brightness(1.05);
+  }
+
+  .input:disabled,
+  .select:disabled,
+  .textarea:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
   }
 
   .help { font-size: var(--fs-1); color: var(--text-2); }
@@ -693,17 +747,108 @@
     padding-block: var(--space-1);
     border-radius: var(--radius-pill);
     border: var(--border-1) solid var(--stroke-inner);
-    background: color-mix(in srgb, var(--glass-3) 85%, transparent);
+    background: color-mix(in srgb, var(--surface-2) 70%, transparent);
     font-size: var(--fs-1);
     color: var(--text-2);
     white-space: nowrap;
   }
 
   .badge--brand {
-    color: var(--on-brand);
-    background: var(--accent-gradient);
-    border: var(--border-1) solid color-mix(in srgb, var(--accent-1) 35%, transparent);
-    box-shadow: var(--glow-brand);
+    color: var(--text-1);
+    background: color-mix(in srgb, var(--surface-2) 70%, var(--hot-1) 30%);
+    border: var(--border-1) solid color-mix(in srgb, var(--hot-1) 45%, transparent);
+    box-shadow: var(--glow-hot);
+  }
+
+  .badge--info {
+    color: var(--text-1);
+    background: color-mix(in srgb, var(--surface-2) 70%, var(--cool-1) 30%);
+    border-color: color-mix(in srgb, var(--cool-1) 45%, transparent);
+  }
+
+  .badge--success {
+    color: var(--text-1);
+    background: color-mix(in srgb, var(--surface-2) 70%, var(--cool-2) 30%);
+    border-color: color-mix(in srgb, var(--cool-2) 45%, transparent);
+  }
+
+  .badge--warn {
+    color: var(--text-1);
+    background: color-mix(in srgb, var(--surface-2) 70%, var(--hot-1) 30%);
+    border-color: color-mix(in srgb, var(--hot-1) 45%, transparent);
+  }
+
+  /* Chips + pills */
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    min-block-size: var(--tap, 48px);
+    padding-inline: var(--space-3);
+    border-radius: var(--radius-pill);
+    border: var(--border-1) solid var(--stroke-inner);
+    background: var(--surface-2);
+    color: var(--text-2);
+    font-size: var(--fs-1);
+    box-shadow: inset 0 1px 0 var(--surface-highlight);
+  }
+
+  .chip:hover {
+    filter: brightness(1.04);
+  }
+
+  .chip:active {
+    transform: translateY(1px);
+  }
+
+  .chip:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 var(--ring-size) color-mix(in srgb, var(--focus-ring) 45%, transparent);
+  }
+
+  .chip:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  .chip--active {
+    color: var(--text-1);
+    border-color: color-mix(in srgb, var(--cool-1) 45%, transparent);
+    box-shadow: var(--glow-cool);
+  }
+
+  .pill {
+    display: grid;
+    gap: 2px;
+    align-items: center;
+    min-block-size: var(--tap, 48px);
+    padding-inline: var(--space-3);
+    padding-block: var(--space-2);
+    border-radius: var(--radius-pill);
+    border: var(--border-1) solid transparent;
+    background: color-mix(in srgb, var(--surface-2) 80%, transparent);
+    color: var(--text-1);
+    box-shadow: inset 0 1px 0 var(--surface-highlight);
+  }
+
+  .pill__label {
+    font-size: var(--fs-1);
+    color: var(--text-3);
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+  }
+
+  .pill__value {
+    font-size: var(--fs-3);
+    font-weight: 700;
+    line-height: 1.1;
+    text-shadow: var(--text-shadow);
+  }
+
+  .pill--strong {
+    background: color-mix(in srgb, var(--surface-2) 70%, var(--hot-1) 12%);
+    border-color: color-mix(in srgb, var(--hot-1) 40%, transparent);
+    box-shadow: var(--glow-hot), inset 0 1px 0 var(--surface-highlight);
   }
 
   @supports (backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px)) {
@@ -715,11 +860,22 @@
 
   /* Dialog */
   .dialog {
+    position: relative;
     border-radius: var(--radius-card);
     border: var(--border-1) solid var(--stroke-outer);
-    background: var(--glass-strong);
-    box-shadow: var(--shadow-3);
+    background: var(--surface-3);
+    box-shadow: var(--shadow-3), inset 0 1px 0 var(--surface-highlight);
     overflow: clip;
+  }
+
+  .dialog::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: var(--surface-noise);
+    opacity: var(--surface-noise-opacity);
+    mix-blend-mode: overlay;
   }
 
   @supports (backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px)) {

@@ -53,8 +53,14 @@ export default function SetRow({
         >
           <span className="set-row__label">Total</span>
           <span className="set-row__values">
-            <span className="set-row__pill tabular-nums">{formatKg(set.weightKg)} kg</span>
-            <span className="set-row__pill muted tabular-nums">{formatLb(set.weightKg)} lb</span>
+            <span className="pill pill--strong">
+              <span className="pill__label">kg</span>
+              <span className="pill__value tabular-nums">{formatKg(set.weightKg)}</span>
+            </span>
+            <span className="pill">
+              <span className="pill__label">lb</span>
+              <span className="pill__value tabular-nums">{formatLb(set.weightKg)}</span>
+            </span>
           </span>
           {showPerSide ? (
             <span className="set-row__sub muted tabular-nums">
@@ -72,12 +78,14 @@ export default function SetRow({
               onEdit();
             }}
           >
-            <span className="set-row__label">Reps</span>
-            <span className="set-row__reps-value tabular-nums">{set.reps}</span>
+            <span className="pill pill--strong">
+              <span className="pill__label">Reps</span>
+              <span className="pill__value tabular-nums">{set.reps}</span>
+            </span>
           </button>
           <button
             type="button"
-            className="set-row__action"
+            className="button button--ghost icon-button set-row__action"
             aria-label="Delete set"
             title="Delete set"
             onClick={(event) => {

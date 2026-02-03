@@ -9,8 +9,8 @@ export default function manifest(): MetadataRoute.Manifest {
     description: "Offline-first workout runner for strength training.",
     start_url: "/",
     display: "standalone",
-    background_color: "#fff9f1",
-    theme_color: "#fff9f1",
+    background_color: "#0b0f1a",
+    theme_color: "#0b0f1a",
     icons: [
       {
         src: "/icon-192.png",

@@ -15,7 +15,7 @@ interface ButtonProps extends ComponentProps<'button'> {
  * Uses CSS custom properties for theming and maintains 48px tap target minimum.
  * 
  * @param variant - Visual style (primary, secondary, ghost, danger)
- * @param size - Button size (sm: 40px, md: 48px, lg: 56px)
+ * @param size - Button size (sm: 48px, md: 48px, lg: 56px)
  */
 export function Button({
   variant = 'primary',

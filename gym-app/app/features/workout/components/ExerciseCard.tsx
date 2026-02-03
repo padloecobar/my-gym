@@ -46,7 +46,7 @@ export default function ExerciseCard({
           ))}
         </div>
         <div className="exercise-card__actions">
-          <button type="button" className="button button--secondary button--sm exercise-card__add" onClick={onAddSet}>
+          <button type="button" className="button button--primary button--sm exercise-card__add" onClick={onAddSet}>
             + Add set
           </button>
         </div>

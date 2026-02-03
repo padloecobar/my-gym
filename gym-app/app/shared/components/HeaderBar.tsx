@@ -6,7 +6,7 @@ export default function HeaderBar({ title, right, subtitle }: { title: string; r
   return (
     <header className="header-bar">
       <div className="header-bar__text">
-        <h1 className="header-bar__title">{title}</h1>
+        <h1 className="header-bar__title page-title">{title}</h1>
         {subtitle ? <div className="header-bar__subtitle muted">{subtitle}</div> : null}
       </div>
       {right ? <div className="header-bar__action">{right}</div> : null}

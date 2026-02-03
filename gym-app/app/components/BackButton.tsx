@@ -12,7 +12,7 @@ export default function BackButton({ label = "Back" }: { label?: string }) {
   };
 
   return (
-    <button type="button" className="button button--secondary back-btn" onClick={handle} aria-label={label}>
+    <button type="button" className="button button--ghost icon-button back-btn" onClick={handle} aria-label={label}>
       <ChevronIcon size="md" />
     </button>
   );

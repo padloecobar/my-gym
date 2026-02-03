@@ -81,7 +81,7 @@ export default function WorkoutRunnerPage() {
         <div className="runner-header__row">
           <div>
             <div className="muted">Workout Runner</div>
-            <div className="runner-header__title">{programName}</div>
+            <div className="runner-header__title section-title">{programName}</div>
           </div>
           <button type="button" className="button button--primary" onClick={handleFinish}>
             Finish
