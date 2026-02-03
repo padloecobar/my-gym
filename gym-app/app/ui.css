@@ -381,7 +381,6 @@
     .set-row:hover .set-row__action,
     .set-row:focus-within .set-row__action { opacity: 0.9; }
   }
-  }
 
   .set-row--highlight {
     --set-highlight-bg: color-mix(in srgb, var(--hot-2) 18%, transparent);
