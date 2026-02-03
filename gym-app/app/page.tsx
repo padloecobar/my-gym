@@ -64,7 +64,7 @@ export default function TodayPage() {
       ) : null}
 
       <section className="page__section">
-        <h2 className="card__title">Programs</h2>
+        <h2 className="section-title">Programs</h2>
         <div className="stack virtual-list list-surface">
           {programs.map((program) => (
             <ProgramCard

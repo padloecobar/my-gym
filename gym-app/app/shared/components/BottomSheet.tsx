@@ -89,7 +89,7 @@ export default function BottomSheet({
           <h2 id="sheet-title" className="sheet__title">
             {title}
           </h2>
-          <button type="button" className="button button--ghost" onClick={onClose}>
+          <button type="button" className="button button--ghost button--sm" onClick={onClose}>
             Close
           </button>
         </div>

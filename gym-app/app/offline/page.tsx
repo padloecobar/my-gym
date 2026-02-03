@@ -3,7 +3,7 @@ export default function OfflinePage() {
     <div className="page container">
       <div className="card">
         <div className="card__body stack">
-          <h1 className="card__title">You are offline</h1>
+          <h1 className="page-title">You are offline</h1>
           <p className="muted">The app shell is ready. You can keep logging workouts.</p>
         </div>
       </div>

@@ -62,33 +62,32 @@ export default function SetRow({
             </span>
           ) : null}
         </button>
-
-        <button
-          type="button"
-          className="set-row__edit set-row__stat set-row__stat--reps"
-          aria-label="Edit weight and reps"
-          onClick={(event) => {
-            event.stopPropagation();
-            onEdit();
-          }}
-        >
-          <span className="set-row__label">Reps</span>
-          <span className="set-row__reps-value tabular-nums">{set.reps}</span>
-        </button>
-      </div>
-      <div className="set-row__meta">
-        <button
-          type="button"
-          className="set-row__menu"
-          aria-label="Delete set"
-          title="Delete set"
-          onClick={(event) => {
-            event.stopPropagation();
-            onDelete();
-          }}
-        >
-          <TrashIcon size="sm" />
-        </button>
+        <div className="set-row__actions">
+          <button
+            type="button"
+            className="set-row__edit set-row__stat set-row__stat--reps"
+            aria-label="Edit weight and reps"
+            onClick={(event) => {
+              event.stopPropagation();
+              onEdit();
+            }}
+          >
+            <span className="set-row__label">Reps</span>
+            <span className="set-row__reps-value tabular-nums">{set.reps}</span>
+          </button>
+          <button
+            type="button"
+            className="set-row__action"
+            aria-label="Delete set"
+            title="Delete set"
+            onClick={(event) => {
+              event.stopPropagation();
+              onDelete();
+            }}
+          >
+            <TrashIcon size="sm" />
+          </button>
+        </div>
       </div>
     </div>
   );

@@ -6,7 +6,7 @@ This document summarizes the app's current architecture, routes, and core featur
 - Product: mobile-first, offline-capable workout tracker focused on a fast Workout Runner experience.
 - Stack: Next.js App Router + TypeScript + React 19 + Zustand v5.
 - Deployment: static export (`output: "export"`) for GitHub Pages.
-- UI system: Aurora Glass Gym UI with neon-coral accents, pill controls, and glass surfaces (tokens in `globals.css`, components in `app/ui.css`).
+- UI system: Aurora Glass Gym UI with neon-coral accents, pill controls, glass surfaces, and typography utilities (`page-title`, `section-title`) (tokens in `globals.css`, components in `app/ui.css`).
 - Design contract: `docs/design-system-contract.md` (tokens + component recipes).
 - Motion: View Transitions (progressive enhancement) + reduced-motion safe fallbacks.
 

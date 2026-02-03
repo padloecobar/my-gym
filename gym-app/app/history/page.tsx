@@ -145,9 +145,11 @@ export default function HistoryPage() {
                                     </span>
                                   ) : null}
                                 </div>
-                                <div className="set-row__stat set-row__stat--reps">
-                                  <span className="set-row__label">Reps</span>
-                                  <span className="set-row__reps-value tabular-nums">{set.reps}</span>
+                                <div className="set-row__actions">
+                                  <div className="set-row__stat set-row__stat--reps">
+                                    <span className="set-row__label">Reps</span>
+                                    <span className="set-row__reps-value tabular-nums">{set.reps}</span>
+                                  </div>
                                 </div>
                               </div>
                             </div>
@@ -165,7 +167,7 @@ export default function HistoryPage() {
         <div className="stack virtual-list list-surface">
           {Object.entries(grouped).map(([dateKey, items]) => (
             <section key={dateKey} className="page__section">
-              <h2 className="card__title">{formatDate(new Date(dateKey).getTime())}</h2>
+              <h2 className="section-title">{formatDate(new Date(dateKey).getTime())}</h2>
               <div className="stack">
                 {items.map((workout) => {
                   const program = programById.get(workout.programId);

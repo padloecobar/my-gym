@@ -85,7 +85,7 @@ export default function ProgramsPage() {
 
         <section className="page__section">
           <div className="cluster cluster--between">
-            <h2 className="card__title">Exercises</h2>
+            <h2 className="section-title">Exercises</h2>
             <button
               type="button"
               className="button button--ghost"
@@ -155,7 +155,7 @@ export default function ProgramsPage() {
           <div className="card">
             <div className="card__body stack">
               <div>
-                <h2 className="card__title">Danger zone</h2>
+                <h2 className="section-title">Danger zone</h2>
                 <p className="card__meta">Deleting a program keeps your workout history intact.</p>
               </div>
               <button

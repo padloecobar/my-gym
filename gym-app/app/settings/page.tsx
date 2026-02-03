@@ -149,7 +149,7 @@ export default function SettingsPage() {
       </div>
 
       <section className="page__section">
-        <h2 className="card__title">Data</h2>
+        <h2 className="section-title">Data</h2>
         <div className="stack">
           <button type="button" className="button button--secondary" onClick={handleExport}>
             Export JSON
@@ -162,7 +162,7 @@ export default function SettingsPage() {
       </section>
 
       <section className="page__section">
-        <h2 className="card__title">Danger zone</h2>
+        <h2 className="section-title">Danger zone</h2>
         <button
           type="button"
           className="button button--danger"

@@ -59,7 +59,7 @@ export default function WorkoutSummaryPage() {
             <path d="M8 12l3 3 5-6" />
           </svg>
         </div>
-        <h1 className="card__title">Workout Complete</h1>
+        <h1 className="page-title">Workout Complete</h1>
         <p className="muted">{programName}</p>
       </header>
 

@@ -18,7 +18,7 @@ export default function Snackbar() {
       {snackbar.actionLabel && snackbar.actionCommand ? (
         <button
           type="button"
-          className="button button--ghost"
+          className="button button--ghost button--sm"
           onClick={() => {
             if (snackbar.actionCommand) {
               executeCommand(snackbar.actionCommand);
