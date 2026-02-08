@@ -41,7 +41,7 @@ Reason: dynamic segment routes are avoided for static export compatibility.
 
 ## Key UX Flows
 - Start or resume a workout from Today.
-- Workout Runner: log sets quickly, edit via bottom sheet, finish to summary.
+- Workout Runner: log sets quickly, edit via bottom sheet, delete sets via always-visible row action (touch target >= 48px), finish to summary.
 - History: grouped list, tap to view detail (journal view).
 - Programs: list + edit program details and exercise order.
 - Settings: units, bar weight, import/export/reset.

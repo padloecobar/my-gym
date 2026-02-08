@@ -1003,12 +1003,16 @@
   }
 
   .set-row__action {
+    --_btn-height: calc(var(--tap, 48px) + var(--space-1));
     flex-shrink: 0;
-    background: transparent;
-    border-color: transparent;
-    box-shadow: none;
-    color: var(--text-2);
-    opacity: 0.6;
+    inline-size: var(--_btn-height);
+    min-inline-size: var(--tap, 48px);
+    min-block-size: var(--tap, 48px);
+    color: var(--text-1);
+    background: color-mix(in srgb, var(--surface-2) 55%, transparent);
+    border-color: var(--stroke-inner);
+    opacity: 0.92;
+    touch-action: manipulation;
     transition:
       opacity var(--dur-quick) var(--ease-standard),
       transform var(--dur-press) var(--ease-standard),
@@ -1017,16 +1021,11 @@
   }
 
   .set-row:hover .set-row__action,
-  .set-row:focus-within .set-row__action {
-    opacity: 0.9;
+  .set-row:focus-within .set-row__action,
+  .set-row__action:focus-visible {
+    opacity: 1;
     color: var(--text-1);
-    background: color-mix(in srgb, var(--surface-2) 35%, transparent);
-  }
-
-  @media (hover: hover) {
-    .set-row__action { opacity: 0; }
-    .set-row:hover .set-row__action,
-    .set-row:focus-within .set-row__action { opacity: 0.9; }
+    background: color-mix(in srgb, var(--surface-2) 72%, transparent);
   }
 
   .set-row--highlight,

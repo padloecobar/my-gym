@@ -90,7 +90,7 @@ export default function SetRow({
             type="button"
             className="ui-button ui-icon-button button button--ghost icon-button set-row__action"
             data-variant="ghost"
-            data-size="sm"
+            data-size="md"
             aria-label="Delete set"
             title="Delete set"
             onClick={(event) => {
@@ -98,7 +98,7 @@ export default function SetRow({
               onDelete();
             }}
           >
-            <TrashIcon size="sm" />
+            <TrashIcon size="md" />
           </button>
         </div>
       </div>
